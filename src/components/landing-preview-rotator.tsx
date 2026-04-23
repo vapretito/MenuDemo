@@ -54,20 +54,27 @@ export function LandingPreviewRotator() {
   const currentPreviewData = buildPreviewData(step);
   const incomingPreviewData = nextStep !== null ? buildPreviewData(nextStep) : null;
   const activePreviewData = incomingPreviewData ?? currentPreviewData;
+
   const activeStyle = menuStylePresets.find((item) => item.id === activePreviewData.stylePresetId);
   const activePalette = palettePresets.find((item) => item.id === activePreviewData.palettePresetId);
 
-  const renderPreviewLayer = (viewport: "desktop" | "mobile") => (
+  const renderDesktopPreview = () => (
     <>
       <div className={`preview-layer ${isTransitioning ? "preview-layer-out" : ""}`}>
-        <MenuPreview data={currentPreviewData} viewport={viewport} />
+        <MenuPreview data={currentPreviewData} viewport="desktop" />
       </div>
       {incomingPreviewData ? (
         <div className="preview-layer preview-layer-in">
-          <MenuPreview data={incomingPreviewData} viewport={viewport} />
+          <MenuPreview data={incomingPreviewData} viewport="desktop" />
         </div>
       ) : null}
     </>
+  );
+
+  const renderMobilePreview = () => (
+    <div className="preview-mobile-scroll">
+      <MenuPreview data={activePreviewData} viewport="mobile" />
+    </div>
   );
 
   return (
@@ -116,7 +123,7 @@ export function LandingPreviewRotator() {
           }`}
         >
           <div className="preview-device-label">Vista desktop</div>
-          <div className="preview-stage preview-stage-desktop">{renderPreviewLayer("desktop")}</div>
+          <div className="preview-stage preview-stage-desktop">{renderDesktopPreview()}</div>
         </div>
 
         <div
@@ -126,9 +133,13 @@ export function LandingPreviewRotator() {
         >
           <div className="preview-device-label">Vista mobile</div>
           <div className="preview-phone-frame">
-            <div className="preview-phone-notch" />
-            <div className="preview-stage preview-stage-mobile">{renderPreviewLayer("mobile")}</div>
-          </div>
+  <div className="preview-phone-notch" />
+  <div className="preview-stage preview-stage-mobile">
+    <div className="preview-mobile-scroll">
+      <MenuPreview data={activePreviewData} viewport="mobile" />
+    </div>
+  </div>
+</div>
         </div>
       </div>
     </div>
