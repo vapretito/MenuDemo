@@ -1,0 +1,2460 @@
+.shell {
+  display: grid;
+  gap: 1rem;
+  border: 1.5px solid var(--menu-border);
+  background: var(--menu-bg);
+  color: var(--menu-text);
+  overflow: hidden;
+  scroll-behavior: smooth;
+  min-width: 0;
+  width: 100%;
+  max-width: 100%;
+}
+
+.editorial {
+  --hero-ratio: 1.25fr 0.95fr;
+}
+
+.split {
+  --hero-ratio: 1fr 1fr;
+}
+
+.banner {
+  --hero-ratio: 0.9fr 1.1fr;
+}
+
+.catalog {
+  --hero-ratio: 1.4fr 0.8fr;
+}
+
+.poster {
+  --hero-ratio: 0.85fr 1.15fr;
+}
+
+.hero {
+  display: grid;
+  grid-template-columns: var(--hero-ratio, 1.25fr 0.95fr);
+  min-height: 30rem;
+}
+
+.heroCopy {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  padding: 2rem;
+  border-right: 1.5px solid var(--menu-border);
+  min-width: 0;
+}
+
+.eyebrow {
+  text-transform: uppercase;
+  letter-spacing: 0.18em;
+  font-size: 0.72rem;
+}
+
+.heroTitle {
+  max-width: 10ch;
+  font-size: clamp(3rem, 8vw, 6.5rem);
+  line-height: 0.9;
+  font-weight: 600;
+  overflow-wrap: anywhere;
+}
+
+.heroText {
+  max-width: 34rem;
+  color: var(--menu-muted);
+  font-size: 1rem;
+  line-height: 1.6;
+  min-width: 0;
+}
+
+.heroFooter {
+  display: grid;
+  gap: 0.85rem;
+}
+
+.heroBadge {
+  display: inline-flex;
+  width: fit-content;
+  padding: 0.3rem 0.6rem;
+  border: 1px solid var(--menu-border);
+  background: color-mix(in srgb, var(--menu-accent) 10%, var(--menu-bg));
+  font-size: 0.76rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.heroArt {
+  position: relative;
+  min-height: 24rem;
+  background: var(--menu-surface);
+}
+
+.artImage {
+  position: absolute;
+  inset: 0;
+  background-position: center;
+  background-size: cover;
+  filter: saturate(0.85) contrast(1.05);
+}
+
+.artTint {
+  position: absolute;
+  inset: 0;
+  background: transparent;
+}
+
+.artOverlay {
+  position: absolute;
+  right: 1.25rem;
+  bottom: 1.25rem;
+  max-width: 14rem;
+  padding: 1rem;
+  border: 1.5px solid var(--menu-border);
+  background: color-mix(in srgb, var(--menu-bg) 84%, transparent);
+  backdrop-filter: blur(0);
+  min-width: 0;
+}
+
+.brutalistBistro {
+  border-width: 2.5px;
+}
+
+.brutalistBistro .hero {
+  min-height: 34rem;
+}
+
+.brutalistBistro .heroCopy {
+  padding: 2.2rem;
+  background:
+    linear-gradient(180deg, transparent 0 82%, color-mix(in srgb, var(--menu-accent) 24%, transparent) 82% 100%);
+}
+
+.brutalistBistro .heroTitle {
+  max-width: 7ch;
+  font-size: clamp(4rem, 10vw, 7.3rem);
+  letter-spacing: -0.06em;
+  text-transform: uppercase;
+}
+
+.brutalistBistro .heroBadge,
+.brutalistBistro .categoryTag,
+.brutalistBistro .availability {
+  background: var(--menu-text);
+  color: var(--menu-bg);
+}
+
+.brutalistBistro .rail {
+  background: color-mix(in srgb, var(--menu-surface) 68%, var(--menu-bg));
+}
+
+.brutalistBistro .item {
+  border-bottom-width: 2px;
+}
+
+.brutalistBistro .price {
+  font-size: 1.45rem;
+  letter-spacing: -0.04em;
+}
+
+.luxuryMinimal {
+  gap: 2.2rem;
+  border-color: color-mix(in srgb, var(--menu-border) 25%, transparent);
+}
+
+.luxuryMinimal .hero {
+  grid-template-columns: 0.85fr 1.15fr;
+  min-height: 42rem;
+}
+
+.luxuryMinimal .heroCopy,
+.luxuryMinimal .rail,
+.luxuryMinimal .items {
+  border-color: color-mix(in srgb, var(--menu-border) 14%, transparent);
+}
+
+.luxuryMinimal .heroCopy {
+  padding: 3rem 3.2rem;
+}
+
+.luxuryMinimal .heroTitle {
+  max-width: 9ch;
+  font-size: clamp(3.5rem, 7vw, 6.2rem);
+  line-height: 0.95;
+}
+
+.luxuryMinimal .heroText,
+.luxuryMinimal .itemDescription,
+.luxuryMinimal .category {
+  color: color-mix(in srgb, var(--menu-muted) 92%, white);
+}
+
+.luxuryMinimal .heroBadge,
+.luxuryMinimal .categoryTag,
+.luxuryMinimal .availability {
+  background: transparent;
+  border-color: color-mix(in srgb, var(--menu-border) 20%, transparent);
+}
+
+.luxuryMinimal .artOverlay {
+  max-width: 18rem;
+  background: color-mix(in srgb, var(--menu-bg) 90%, white);
+}
+
+.luxuryMinimal .grid {
+  grid-template-columns: 13rem 1fr;
+  gap: 2rem;
+}
+
+.luxuryMinimal .item {
+  padding: 2rem 0;
+  grid-template-columns: 12rem 1fr auto;
+}
+
+.luxuryMinimal .itemThumb {
+  min-height: 12rem;
+}
+
+.luxuryMinimal .price {
+  font-size: 1rem;
+  font-weight: 600;
+}
+
+.retroMediterranean {
+  background:
+    radial-gradient(circle at top left, color-mix(in srgb, var(--menu-accent) 16%, transparent), transparent 28%),
+    var(--menu-bg);
+}
+
+.retroMediterranean .heroCopy {
+  background:
+    linear-gradient(0deg, color-mix(in srgb, var(--menu-surface) 28%, transparent), transparent 35%),
+    var(--menu-bg);
+}
+
+.retroMediterranean .heroTitle {
+  font-size: clamp(3.4rem, 8vw, 6.6rem);
+}
+
+.retroMediterranean .heroBadge {
+  background: color-mix(in srgb, var(--menu-accent) 14%, var(--menu-bg));
+}
+
+.retroMediterranean .artTint {
+  background:
+    linear-gradient(135deg, color-mix(in srgb, var(--menu-accent) 20%, transparent), transparent 45%);
+}
+
+.retroMediterranean .rail {
+  position: relative;
+}
+
+.retroMediterranean .rail::after {
+  content: "";
+  position: absolute;
+  right: 1.1rem;
+  bottom: 1.1rem;
+  width: 4.5rem;
+  height: 4.5rem;
+  border: 1.5px solid color-mix(in srgb, var(--menu-accent) 60%, var(--menu-border));
+  border-radius: 50%;
+  opacity: 0.4;
+}
+
+.retroMediterranean .item:nth-child(odd) {
+  background: color-mix(in srgb, var(--menu-surface) 18%, transparent);
+}
+
+.playfulColorBlock .hero {
+  grid-template-columns: 1.05fr 0.95fr;
+  min-height: 33rem;
+}
+
+.playfulColorBlock .heroCopy {
+  background:
+    linear-gradient(90deg, color-mix(in srgb, var(--menu-accent) 88%, var(--menu-bg)) 0 1.25rem, transparent 1.25rem 100%),
+    var(--menu-bg);
+}
+
+.playfulColorBlock .heroTitle {
+  max-width: 7ch;
+  font-size: clamp(4rem, 10vw, 7rem);
+  line-height: 0.88;
+}
+
+.playfulColorBlock .heroBadge {
+  background: var(--menu-accent);
+  color: var(--menu-bg);
+}
+
+.playfulColorBlock .artTint {
+  background:
+    linear-gradient(135deg, color-mix(in srgb, var(--menu-accent) 26%, transparent), transparent 55%),
+    linear-gradient(225deg, color-mix(in srgb, var(--menu-surface) 30%, transparent), transparent 45%);
+}
+
+.playfulColorBlock .item:nth-child(4n + 1) {
+  background: color-mix(in srgb, var(--menu-surface) 45%, var(--menu-bg));
+}
+
+.playfulColorBlock .item:nth-child(4n + 2) {
+  background: color-mix(in srgb, var(--menu-accent) 14%, var(--menu-bg));
+}
+
+.playfulColorBlock .item:nth-child(4n + 3) {
+  background: color-mix(in srgb, var(--menu-border) 6%, var(--menu-bg));
+}
+
+.playfulColorBlock .categoryTag,
+.playfulColorBlock .availability {
+  border-width: 1.5px;
+}
+
+.darkCinematic {
+  background: var(--menu-bg);
+}
+
+.darkCinematic .hero {
+  min-height: 38rem;
+}
+
+.darkCinematic .heroCopy {
+  background:
+    linear-gradient(180deg, color-mix(in srgb, var(--menu-surface) 65%, black), transparent 58%),
+    var(--menu-bg);
+}
+
+.darkCinematic .heroTitle {
+  max-width: 7.5ch;
+  font-size: clamp(3.8rem, 9vw, 6.8rem);
+}
+
+.darkCinematic .heroText,
+.darkCinematic .itemDescription,
+.darkCinematic .category,
+.darkCinematic .artOverlay .heroText {
+  color: var(--menu-muted);
+}
+
+.darkCinematic .artImage {
+  filter: saturate(0.72) contrast(1.12) brightness(0.55);
+}
+
+.darkCinematic .artTint {
+  background:
+    linear-gradient(180deg, rgba(0, 0, 0, 0.05), rgba(0, 0, 0, 0.55)),
+    radial-gradient(circle at 75% 20%, color-mix(in srgb, var(--menu-accent) 22%, transparent), transparent 22%);
+}
+
+.darkCinematic .artOverlay {
+  background: rgba(11, 9, 8, 0.72);
+  border-color: color-mix(in srgb, var(--menu-accent) 70%, var(--menu-border));
+}
+
+.darkCinematic .heroBadge,
+.darkCinematic .categoryTag,
+.darkCinematic .availability {
+  border-color: color-mix(in srgb, var(--menu-accent) 78%, var(--menu-border));
+  color: var(--menu-accent);
+}
+
+.darkCinematic .rail {
+  background: color-mix(in srgb, var(--menu-surface) 65%, black);
+}
+
+.darkCinematic .item {
+  background: color-mix(in srgb, var(--menu-surface) 38%, transparent);
+}
+
+.darkCinematic .price {
+  color: var(--menu-accent);
+}
+
+.restaurantVintage {
+  background:
+    linear-gradient(180deg, color-mix(in srgb, var(--menu-surface) 18%, transparent), transparent 18%),
+    var(--menu-bg);
+}
+
+.restaurantVintage .hero {
+  min-height: 36rem;
+}
+
+.restaurantVintage .heroCopy {
+  padding: 2.6rem;
+}
+
+.restaurantVintage .heroTitle {
+  max-width: 8ch;
+  font-size: clamp(3.4rem, 8vw, 6rem);
+}
+
+.restaurantVintage .artOverlay {
+  max-width: 16rem;
+  border-style: double;
+}
+
+.restaurantVintage .grid {
+  grid-template-columns: 16rem 1fr;
+}
+
+.restaurantVintage .rail {
+  background: color-mix(in srgb, var(--menu-surface) 32%, var(--menu-bg));
+}
+
+.restaurantVintage .item {
+  grid-template-columns: 9rem 1fr auto;
+  padding: 1.5rem 1.2rem;
+}
+
+.restaurantVintage .itemThumb {
+  min-height: 10rem;
+}
+
+.fastBites {
+  border-width: 2px;
+}
+
+.fastBites .hero {
+  grid-template-columns: 1.25fr 0.75fr;
+  min-height: 25rem;
+}
+
+.fastBites .heroCopy {
+  padding: 1.4rem;
+  background:
+    linear-gradient(0deg, color-mix(in srgb, var(--menu-accent) 18%, transparent), transparent 35%),
+    var(--menu-bg);
+}
+
+.fastBites .heroTitle {
+  max-width: 6ch;
+  font-size: clamp(4.2rem, 12vw, 7.8rem);
+  line-height: 0.84;
+  text-transform: uppercase;
+}
+
+.fastBites .heroText {
+  max-width: 28rem;
+}
+
+.fastBites .artOverlay {
+  left: auto;
+  right: 1rem;
+  bottom: 1rem;
+  max-width: 12rem;
+  background: var(--menu-accent);
+  color: var(--menu-bg);
+}
+
+.fastBites .artOverlay .heroText,
+.fastBites .artOverlay .eyebrow {
+  color: inherit;
+}
+
+.fastBites .grid {
+  grid-template-columns: 1fr;
+  gap: 0;
+}
+
+.fastBites .rail {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 0.75rem;
+  padding: 1rem;
+}
+
+.fastBites .railTitle {
+  grid-column: 1 / -1;
+  margin-bottom: 0;
+}
+
+.fastBites .categoryList {
+  display: contents;
+}
+
+.fastBites .category {
+  border: 1.5px solid var(--menu-border);
+  padding: 0.8rem;
+  background: color-mix(in srgb, var(--menu-surface) 26%, var(--menu-bg));
+}
+
+.fastBites .items {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.fastBites .item {
+  grid-template-columns: 1fr;
+  gap: 0.9rem;
+  border-right: 1px solid color-mix(in srgb, var(--menu-border) 20%, transparent);
+}
+
+.fastBites .itemThumb {
+  min-height: 12rem;
+}
+
+.fastBites .price {
+  font-size: 1.5rem;
+}
+
+.artistic {
+  gap: 0;
+  border-width: 2px;
+  background: var(--menu-bg);
+}
+
+.artistic .hero {
+  grid-template-columns: 1.05fr 0.95fr;
+  min-height: 34rem;
+}
+
+.artistic .heroCopy {
+  position: relative;
+  padding: 2rem 2.2rem;
+  background:
+    radial-gradient(circle at 16% 14%, color-mix(in srgb, var(--menu-accent) 28%, transparent) 0 6%, transparent 6.3%),
+    linear-gradient(180deg, color-mix(in srgb, var(--menu-surface) 100%, white) 0 100%);
+  border-right: 0;
+}
+
+.artistic .heroCopy::after {
+  content: "";
+  position: absolute;
+  right: -4rem;
+  top: 0;
+  bottom: 0;
+  width: 8rem;
+  background: var(--menu-accent);
+  transform: skewX(-20deg);
+}
+
+.artistic .heroTitle {
+  position: relative;
+  z-index: 1;
+  max-width: 7ch;
+  font-size: clamp(4rem, 10vw, 7.1rem);
+  line-height: 0.84;
+  text-transform: uppercase;
+  letter-spacing: -0.05em;
+}
+
+.artistic .heroText {
+  position: relative;
+  z-index: 1;
+  max-width: 24rem;
+  color: color-mix(in srgb, var(--menu-text) 78%, var(--menu-bg));
+}
+
+.artistic .heroFooter {
+  position: relative;
+  z-index: 1;
+  gap: 1rem;
+}
+
+.artistic .heroBadge {
+  position: relative;
+  padding: 0.9rem 1rem;
+  border: 0;
+  background: var(--menu-accent);
+  color: var(--menu-bg);
+  clip-path: polygon(8% 0, 92% 0, 100% 28%, 93% 100%, 7% 100%, 0 60%);
+}
+
+.artistic .heroArt {
+  min-height: 34rem;
+  background: var(--menu-accent);
+}
+
+.artistic .artImage {
+  inset: 1.6rem 1.8rem 2rem 0.6rem;
+  border-radius: 50% 8% 20% 12%;
+  filter: saturate(1.05) contrast(1.05);
+}
+
+.artistic .artTint {
+  background:
+    radial-gradient(circle at 86% 16%, rgba(0, 0, 0, 0.9) 0 0.3rem, transparent 0.36rem),
+    radial-gradient(circle at 90% 21%, rgba(0, 0, 0, 0.9) 0 0.3rem, transparent 0.36rem),
+    radial-gradient(circle at 94% 26%, rgba(0, 0, 0, 0.9) 0 0.3rem, transparent 0.36rem);
+}
+
+.artistic .artOverlay {
+  left: 1.3rem;
+  right: auto;
+  bottom: 1.2rem;
+  max-width: 12rem;
+  border: 0;
+  background: var(--menu-bg);
+  box-shadow: 0 0 0 2px var(--menu-border);
+}
+
+.artistic .grid {
+  gap: 0;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.artistic .rail,
+.artistic .items {
+  border-top: 2px solid var(--menu-border);
+}
+
+.artistic .rail {
+  min-height: 100%;
+  padding: 1.4rem;
+  background: color-mix(in srgb, var(--menu-bg) 85%, white);
+}
+
+.artistic .railTitle {
+  font-size: 0.95rem;
+}
+
+.artistic .categoryList {
+  gap: 0.9rem;
+}
+
+.artistic .category {
+  flex-direction: column;
+  align-items: start;
+  padding: 0.8rem 0;
+}
+
+.artistic .items {
+  grid-column: span 2;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.artistic .item {
+  grid-template-columns: 1fr;
+  gap: 0.8rem;
+  padding: 1.3rem;
+  border-right: 1px solid color-mix(in srgb, var(--menu-border) 18%, transparent);
+}
+
+.artistic .item:nth-child(4n + 1) {
+  background: color-mix(in srgb, var(--menu-surface) 18%, var(--menu-bg));
+}
+
+.artistic .item:nth-child(4n + 2) {
+  background: color-mix(in srgb, var(--menu-accent) 9%, var(--menu-bg));
+}
+
+.artistic .item:nth-child(4n + 3) {
+  background: color-mix(in srgb, var(--menu-bg) 92%, white);
+}
+
+.artistic .itemThumb {
+  min-height: 13rem;
+  border-radius: 0 18% 0 0;
+}
+
+.artistic .categoryTag,
+.artistic .availability {
+  border-width: 1.5px;
+  background: var(--menu-bg);
+}
+
+.artistic .itemName {
+  max-width: 10ch;
+  font-size: 2rem;
+  line-height: 0.9;
+  text-transform: uppercase;
+}
+
+.artistic .price {
+  font-size: 1.3rem;
+}
+
+.cantinaBrava .hero {
+  grid-template-columns: 1fr;
+}
+
+.cantinaBrava .heroCopy {
+  min-height: 18rem;
+  border-right: 0;
+  border-bottom: 2px solid var(--menu-border);
+  background:
+    linear-gradient(90deg, color-mix(in srgb, var(--menu-accent) 16%, transparent) 0 22%, transparent 22% 100%),
+    var(--menu-bg);
+}
+
+.cantinaBrava .heroArt {
+  min-height: 22rem;
+}
+
+.cantinaBrava .grid {
+  grid-template-columns: 15rem 1fr;
+}
+
+.cantinaBrava .rail {
+  background:
+    linear-gradient(180deg, color-mix(in srgb, var(--menu-accent) 12%, transparent), transparent 34%),
+    var(--menu-surface);
+}
+
+.cantinaBrava .item:nth-child(odd) {
+  background: color-mix(in srgb, var(--menu-accent) 9%, transparent);
+}
+
+.cantinaBrava .item {
+  grid-template-columns: 9rem 1fr auto;
+}
+
+.cantinaBrava .price {
+  font-size: 1.3rem;
+}
+
+.bakeryHouse .hero {
+  grid-template-columns: 1fr;
+  min-height: auto;
+}
+
+.bakeryHouse .heroCopy {
+  min-height: 15rem;
+  border-right: 0;
+  border-bottom: 1.5px solid var(--menu-border);
+  align-items: center;
+  text-align: center;
+}
+
+.bakeryHouse .heroTitle {
+  max-width: 11ch;
+  font-size: clamp(3rem, 7vw, 5.4rem);
+}
+
+.bakeryHouse .heroText {
+  max-width: 42rem;
+}
+
+.bakeryHouse .heroFooter {
+  justify-items: center;
+}
+
+.bakeryHouse .artOverlay {
+  right: 50%;
+  transform: translateX(50%);
+  text-align: center;
+}
+
+.bakeryHouse .grid {
+  grid-template-columns: 1fr;
+}
+
+.bakeryHouse .rail {
+  padding-bottom: 0.75rem;
+}
+
+.bakeryHouse .categoryList {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(8.5rem, 1fr));
+  gap: 0.75rem;
+}
+
+.bakeryHouse .category {
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid color-mix(in srgb, var(--menu-border) 25%, transparent);
+  padding: 0.9rem;
+  background: color-mix(in srgb, var(--menu-surface) 16%, var(--menu-bg));
+  text-align: center;
+  min-height: 6rem;
+}
+
+.bakeryHouse .category span:first-child {
+  overflow-wrap: anywhere;
+}
+
+.bakeryHouse .items {
+  grid-template-columns: 1fr;
+}
+
+.bakeryHouse .item {
+  grid-template-columns: 15rem minmax(0, 1fr);
+  grid-template-areas:
+    "thumb meta"
+    "thumb price";
+  align-items: start;
+  gap: 1rem;
+  padding: 1.2rem 0;
+}
+
+.bakeryHouse .itemThumb {
+  grid-area: thumb;
+  width: 100%;
+  min-height: 0;
+  aspect-ratio: 1.55 / 1;
+}
+
+.bakeryHouse .itemMeta {
+  grid-area: meta;
+}
+
+.bakeryHouse .itemName {
+  max-width: 11ch;
+}
+
+.bakeryHouse .itemDescription {
+  max-width: 24rem;
+}
+
+.bakeryHouse .price {
+  grid-area: price;
+  justify-self: start;
+  margin-top: 0.2rem;
+}
+
+@media (min-width: 1100px) {
+  .bakeryHouse .items {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .bakeryHouse .item {
+    grid-template-columns: 1fr;
+    grid-template-areas:
+      "thumb"
+      "meta"
+      "price";
+    padding: 1.25rem;
+  }
+
+  .bakeryHouse .itemThumb {
+    aspect-ratio: 1.65 / 1;
+  }
+}
+
+.veggieStudio .hero {
+  grid-template-columns: 1.4fr 0.6fr;
+  min-height: 31rem;
+}
+
+.veggieStudio .heroCopy {
+  padding: 2.8rem;
+}
+
+.veggieStudio .heroTitle {
+  max-width: 9ch;
+  font-size: clamp(3.5rem, 8vw, 6.4rem);
+}
+
+.veggieStudio .grid {
+  grid-template-columns: 20rem 1fr;
+  gap: 2rem;
+}
+
+.veggieStudio .rail {
+  background: color-mix(in srgb, var(--menu-surface) 44%, var(--menu-bg));
+}
+
+.veggieStudio .item {
+  grid-template-columns: 1fr auto;
+  grid-template-areas:
+    "meta price"
+    "thumb price";
+  gap: 1rem 1.25rem;
+  padding: 1.8rem 0;
+}
+
+.veggieStudio .itemMeta {
+  grid-area: meta;
+}
+
+.veggieStudio .itemThumb {
+  grid-area: thumb;
+  min-height: 13rem;
+}
+
+.veggieStudio .price {
+  grid-area: price;
+  align-self: center;
+  font-size: 1.2rem;
+}
+
+.fineDining {
+  gap: 2rem;
+}
+
+.fineDining .hero {
+  grid-template-columns: 0.8fr 1.2fr;
+  min-height: 44rem;
+}
+
+.fineDining .heroCopy {
+  justify-content: center;
+  gap: 2.5rem;
+  padding: 3.2rem;
+}
+
+.fineDining .heroTitle {
+  max-width: 8ch;
+  font-size: clamp(3.6rem, 8vw, 6.4rem);
+}
+
+.fineDining .heroText {
+  max-width: 22rem;
+}
+
+.fineDining .artOverlay {
+  left: auto;
+  right: 2rem;
+  bottom: 2rem;
+  max-width: 17rem;
+}
+
+.fineDining .grid {
+  grid-template-columns: 10rem 1fr;
+  gap: 2.5rem;
+}
+
+.fineDining .rail {
+  padding-left: 0;
+  background: transparent;
+}
+
+.fineDining .category {
+  flex-direction: column;
+  align-items: start;
+  padding: 1rem 0;
+}
+
+.fineDining .item {
+  grid-template-columns: 11rem 1fr auto;
+  padding: 2.4rem 0;
+}
+
+.fineDining .itemThumb {
+  min-height: 14rem;
+}
+
+.fineDining .price {
+  font-size: 0.95rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.banner .heroTitle,
+.poster .heroTitle {
+  max-width: 8ch;
+}
+
+.banner .artOverlay,
+.poster .artOverlay {
+  left: 1.25rem;
+  right: auto;
+}
+
+.catalog .grid {
+  grid-template-columns: 14rem 1fr;
+}
+
+.catalog .item {
+  grid-template-columns: 8.5rem 1fr auto;
+}
+
+.split .heroArt,
+.poster .heroArt {
+  min-height: 32rem;
+}
+
+.poster .heroCopy {
+  justify-content: center;
+  gap: 2rem;
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: 18rem 1fr;
+  gap: 1rem;
+  min-width: 0;
+}
+
+.rail,
+.items {
+  border-top: 1.5px solid var(--menu-border);
+}
+
+.rail {
+  padding: 1.5rem;
+}
+
+.mobileRail {
+  display: none;
+}
+
+.mobileRailAnchor {
+  display: none;
+}
+
+.mobileRailList {
+  display: none;
+}
+
+.mobileRailCategory {
+  display: none;
+}
+
+.mobileRailSpacer {
+  display: none;
+}
+
+.mobileRailSpacerVisible {
+  display: none;
+}
+
+.previewMobileViewport {
+  gap: 0;
+  overflow-x: clip;
+  overflow-y: visible;
+}
+
+.previewMobileViewport .hero,
+.previewMobileViewport .grid,
+.previewMobileViewport .item {
+  grid-template-columns: 1fr;
+}
+
+.previewMobileViewport .hero {
+  min-height: auto;
+}
+
+.previewMobileViewport .heroCopy,
+.previewMobileViewport .heroArt,
+.previewMobileViewport .heroFooter,
+.previewMobileViewport .grid,
+.previewMobileViewport .items,
+.previewMobileViewport .categorySection,
+.previewMobileViewport .categorySectionItems,
+.previewMobileViewport .item,
+.previewMobileViewport .itemMeta,
+.previewMobileViewport .itemThumb,
+.previewMobileViewport .artOverlay {
+  min-width: 0;
+  max-width: 100%;
+}
+
+.previewMobileViewport .heroCopy {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  padding: 1rem;
+  border-right: 0;
+  border-bottom: 1px solid color-mix(in srgb, var(--menu-border) 18%, transparent);
+}
+
+.previewMobileViewport .hero > * {
+  min-width: 0;
+}
+
+.previewMobileViewport .heroTitle,
+.previewMobileViewport .heroText,
+.previewMobileViewport .eyebrow,
+.previewMobileViewport .heroBadge,
+.previewMobileViewport .itemName,
+.previewMobileViewport .categorySectionTitle {
+  max-width: 100%;
+  overflow-wrap: anywhere;
+  word-break: break-word;
+}
+
+.previewMobileViewport .heroTitle,
+.previewMobileViewport.brutalistBistro .heroTitle,
+.previewMobileViewport.playfulColorBlock .heroTitle,
+.previewMobileViewport.darkCinematic .heroTitle,
+.previewMobileViewport.fastBites .heroTitle,
+.previewMobileViewport.artistic .heroTitle,
+.previewMobileViewport.veggieStudio .heroTitle,
+.previewMobileViewport.fineDining .heroTitle,
+.previewMobileViewport.restaurantVintage .heroTitle,
+.previewMobileViewport.luxuryMinimal .heroTitle,
+.previewMobileViewport.retroMediterranean .heroTitle,
+.previewMobileViewport.cantinaBrava .heroTitle,
+.previewMobileViewport.bakeryHouse .heroTitle {
+  font-size: clamp(2rem, 8vw, 3.2rem);
+  line-height: 0.94;
+}
+
+.previewMobileViewport .heroText,
+.previewMobileViewport .itemDescription {
+  font-size: 0.92rem;
+  line-height: 1.45;
+}
+
+.previewMobileViewport .heroArt {
+  min-height: 14rem;
+  overflow: hidden;
+}
+
+.previewMobileViewport .artOverlay {
+  position: static;
+  margin: 0;
+  max-width: none;
+  width: auto;
+  transform: none;
+  border-left: 0;
+  border-right: 0;
+  border-bottom: 0;
+}
+
+.previewMobileViewport .mobileRail {
+  display: block;
+  position: sticky;
+  top: 0;
+  z-index: 18;
+  padding: 0.8rem;
+  border: 1px solid color-mix(in srgb, var(--menu-border) 18%, transparent);
+  background: color-mix(in srgb, var(--menu-bg) 94%, white);
+}
+
+.previewMobileViewport .mobileRailAnchor,
+.previewMobileViewport .mobileRailSpacer {
+  display: none;
+}
+
+.previewMobileViewport .mobileRailList {
+  display: flex;
+  flex-wrap: nowrap;
+  gap: 0.65rem;
+  overflow-x: auto;
+  overflow-y: hidden;
+  padding-bottom: 0.1rem;
+  scrollbar-width: none;
+  -webkit-overflow-scrolling: touch;
+}
+
+.previewMobileViewport .mobileRailList::-webkit-scrollbar {
+  display: none;
+}
+
+.previewMobileViewport .mobileRailCategory {
+  display: inline-flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  flex: 0 0 auto;
+  padding: 0.75rem 0.85rem;
+  border: 1px solid color-mix(in srgb, var(--menu-border) 18%, transparent);
+  background: color-mix(in srgb, var(--menu-surface) 10%, var(--menu-bg));
+  white-space: nowrap;
+}
+
+.previewMobileViewport .grid {
+  gap: 0;
+}
+
+.previewMobileViewport .rail {
+  display: none;
+}
+
+.previewMobileViewport .categorySectionHeader {
+  flex-direction: column;
+  align-items: start;
+  padding: 1rem;
+}
+
+.previewMobileViewport .categorySectionTitle {
+  font-size: clamp(1.45rem, 6vw, 2rem);
+}
+
+.previewMobileViewport .item,
+.previewMobileViewport.luxuryMinimal .item,
+.previewMobileViewport.restaurantVintage .item,
+.previewMobileViewport.cantinaBrava .item,
+.previewMobileViewport.fineDining .item,
+.previewMobileViewport.bakeryHouse .item,
+.previewMobileViewport.veggieStudio .item,
+.previewMobileViewport.artistic .item,
+.previewMobileViewport.fastBites .item {
+  grid-template-columns: 1fr;
+  gap: 0.85rem;
+  padding: 1rem;
+  overflow: hidden;
+}
+
+.previewMobileViewport .itemThumb,
+.previewMobileViewport.luxuryMinimal .itemThumb,
+.previewMobileViewport.restaurantVintage .itemThumb,
+.previewMobileViewport.cantinaBrava .itemThumb,
+.previewMobileViewport.fineDining .itemThumb,
+.previewMobileViewport.veggieStudio .itemThumb,
+.previewMobileViewport.artistic .itemThumb,
+.previewMobileViewport.bakeryHouse .itemThumb {
+  min-height: 10.5rem;
+  width: 100%;
+  max-width: 100%;
+  aspect-ratio: 1.45 / 1;
+  justify-self: stretch;
+  overflow: hidden;
+  background-size: cover;
+  background-position: center;
+}
+
+.railTitle {
+  margin-bottom: 1rem;
+  font-size: 1rem;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+}
+
+.categoryList {
+  display: flex;
+  flex-direction: column;
+  gap: 0.65rem;
+}
+
+.category {
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 0.75rem 0;
+  border-top: 1px solid color-mix(in srgb, var(--menu-border) 25%, transparent);
+  font-size: 0.95rem;
+}
+
+.category:hover {
+  color: var(--menu-accent);
+}
+
+.items {
+  display: grid;
+  min-width: 0;
+}
+
+.categorySection {
+  scroll-margin-top: 1.25rem;
+}
+
+.categorySection + .categorySection {
+  border-top: 1.5px solid color-mix(in srgb, var(--menu-border) 30%, transparent);
+}
+
+.categorySectionHeader {
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
+  align-items: end;
+  padding: 1.2rem 1.25rem;
+  border-bottom: 1px solid color-mix(in srgb, var(--menu-border) 18%, transparent);
+}
+
+.categorySectionTitle {
+  font-size: clamp(1.8rem, 4vw, 3rem);
+  line-height: 0.95;
+}
+
+.categorySectionCount {
+  font-size: 0.8rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.categorySectionItems {
+  display: grid;
+  min-width: 0;
+}
+
+.item {
+  display: grid;
+  grid-template-columns: 10.5rem 1fr auto;
+  gap: 1.25rem;
+  padding: 1.25rem;
+  border-bottom: 1px solid color-mix(in srgb, var(--menu-border) 20%, transparent);
+  min-width: 0;
+}
+
+.itemThumb {
+  min-height: 8.75rem;
+  background: var(--menu-surface);
+  background-size: cover;
+  background-position: center;
+  width: 100%;
+  max-width: 100%;
+}
+
+.itemMeta {
+  display: grid;
+  gap: 0.55rem;
+  min-width: 0;
+}
+
+.itemTopline {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.7rem;
+  align-items: baseline;
+}
+
+.categoryTag,
+.availability {
+  display: inline-flex;
+  align-items: center;
+  width: fit-content;
+  padding: 0.2rem 0.45rem;
+  border: 1px solid var(--menu-border);
+  font-size: 0.74rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.availabilityOff {
+  opacity: 0.6;
+}
+
+.itemName {
+  font-size: 1.65rem;
+  line-height: 1;
+  overflow-wrap: anywhere;
+}
+
+.itemDescription {
+  max-width: 40rem;
+  color: var(--menu-muted);
+  line-height: 1.55;
+}
+
+.price {
+  font-size: 1.05rem;
+  font-weight: 700;
+  align-self: start;
+  white-space: nowrap;
+}
+
+@media (max-width: 900px) {
+  .hero,
+  .grid,
+  .item {
+    grid-template-columns: 1fr;
+  }
+
+  .heroCopy {
+    border-right: 0;
+    border-bottom: 1.5px solid var(--menu-border);
+  }
+
+  .price {
+    justify-self: start;
+  }
+
+  .heroCopy,
+  .heroArt,
+  .items,
+  .itemMeta,
+  .categorySection,
+  .categorySectionItems {
+    min-width: 0;
+  }
+
+  .heroTitle,
+  .brutalistBistro .heroTitle,
+  .playfulColorBlock .heroTitle,
+  .darkCinematic .heroTitle,
+  .fastBites .heroTitle,
+  .artistic .heroTitle,
+  .veggieStudio .heroTitle,
+  .fineDining .heroTitle,
+  .restaurantVintage .heroTitle,
+  .luxuryMinimal .heroTitle,
+  .retroMediterranean .heroTitle,
+  .cantinaBrava .heroTitle,
+  .bakeryHouse .heroTitle {
+    max-width: 100%;
+    font-size: clamp(2.6rem, 13vw, 4.5rem);
+    line-height: 0.92;
+  }
+
+  .eyebrow,
+  .heroText,
+  .itemDescription,
+  .categorySectionCount {
+    max-width: 100%;
+    overflow-wrap: anywhere;
+  }
+
+  .artOverlay,
+  .banner .artOverlay,
+  .poster .artOverlay,
+  .fastBites .artOverlay,
+  .artistic .artOverlay,
+  .fineDining .artOverlay,
+  .bakeryHouse .artOverlay,
+  .darkCinematic .artOverlay {
+    left: 1rem;
+    right: 1rem;
+    bottom: 1rem;
+    max-width: none;
+    width: auto;
+    transform: none;
+  }
+
+  .veggieStudio .item,
+  .fineDining .item,
+  .luxuryMinimal .item,
+  .restaurantVintage .item,
+  .cantinaBrava .item,
+  .chinaHouse .item,
+  .bakeryHouse .item {
+    grid-template-columns: 1fr;
+    grid-template-areas: none;
+  }
+
+  .veggieStudio .itemMeta,
+  .veggieStudio .itemThumb,
+  .veggieStudio .price,
+  .bakeryHouse .itemMeta,
+  .bakeryHouse .itemThumb,
+  .bakeryHouse .price {
+    grid-area: auto;
+  }
+
+  .fastBites .rail,
+  .bakeryHouse .categoryList,
+  .fastBites .items,
+  .bakeryHouse .items {
+    grid-template-columns: 1fr;
+  }
+
+  .artistic .grid,
+  .artistic .items {
+    grid-template-columns: 1fr;
+  }
+
+  .artistic .heroCopy::after {
+    display: none;
+  }
+
+  .artistic .artImage {
+    inset: 0;
+    border-radius: 0;
+  }
+}
+
+@media (max-width: 640px) {
+  .fullPage .mobileRail {
+    display: block;
+    position: relative;
+    z-index: 10;
+    padding: 0.8rem;
+    margin: 0;
+    border: 1px solid color-mix(in srgb, var(--menu-border) 18%, transparent);
+    background: color-mix(in srgb, var(--menu-bg) 94%, white);
+    backdrop-filter: blur(8px);
+    box-shadow:
+      0 8px 24px color-mix(in srgb, var(--menu-text) 7%, transparent),
+      0 1px 0 color-mix(in srgb, var(--menu-border) 16%, transparent);
+  }
+
+  .fullPage .mobileRailAnchor {
+    display: block;
+    height: 1px;
+    margin-top: -1px;
+  }
+
+  .fullPage .mobileRailPinned {
+    position: fixed;
+    top: 0;
+    left: var(--mobile-rail-left);
+    width: var(--mobile-rail-width);
+    z-index: 26;
+  }
+
+  .fullPage .mobileRail .railTitle {
+    margin-bottom: 0.65rem;
+    font-size: 0.78rem;
+  }
+
+  .fullPage .mobileRailList {
+    display: flex;
+    flex-direction: row;
+    flex-wrap: nowrap;
+    width: 100%;
+    gap: 0.7rem;
+    overflow-x: auto;
+    overflow-y: hidden;
+    padding-bottom: 0.15rem;
+    padding-right: 0.35rem;
+    overscroll-behavior-x: contain;
+    scrollbar-width: none;
+    -webkit-overflow-scrolling: touch;
+    touch-action: pan-x;
+  }
+
+  .fullPage .mobileRailList::-webkit-scrollbar {
+    display: none;
+  }
+
+  .fullPage .mobileRailCategory {
+    display: inline-flex;
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+    flex: 0 0 auto;
+    min-width: fit-content;
+    width: auto;
+    max-width: none;
+    min-height: 0;
+    gap: 0.8rem;
+    padding: 0.8rem 0.9rem;
+    border: 1px solid color-mix(in srgb, var(--menu-border) 18%, transparent);
+    background: color-mix(in srgb, var(--menu-surface) 10%, var(--menu-bg));
+    white-space: nowrap;
+  }
+
+  .fullPage .mobileRailSpacerVisible {
+    display: block;
+    height: 5.9rem;
+  }
+
+  .fullPage .grid {
+    grid-template-columns: 1fr;
+  }
+
+  .fullPage .rail {
+    display: none;
+  }
+
+  .shell,
+  .hero,
+  .heroCopy,
+  .heroArt,
+  .heroFooter,
+  .grid,
+  .rail,
+  .items,
+  .categorySection,
+  .categorySectionItems,
+  .item,
+  .itemMeta,
+  .itemThumb,
+  .artOverlay {
+    min-width: 0;
+    max-width: 100%;
+  }
+
+  .shell {
+    gap: 0;
+    overflow-x: clip;
+    overflow-y: visible;
+    width: 100%;
+    max-width: 100%;
+  }
+
+  .hero {
+    min-height: auto;
+  }
+
+  .hero,
+  .grid,
+  .items,
+  .categorySection,
+  .categorySectionItems {
+    overflow: visible;
+  }
+
+  .hero > * {
+    min-width: 0;
+  }
+
+  .heroCopy {
+    display: grid;
+    gap: 1.1rem;
+    padding: 1.1rem;
+    overflow: visible;
+    width: 100%;
+    max-width: 100%;
+  }
+
+  .fullPage .heroCopy > *,
+  .fullPage .heroCopy > div,
+  .fullPage .heroFooter > * {
+    min-width: 0;
+    width: 100%;
+    max-width: 100%;
+  }
+
+  .fullPage .heroCopy > div {
+    display: block;
+  }
+
+  .fullPage .hero,
+  .fullPage .heroCopy,
+  .fullPage .heroArt,
+  .fullPage .heroFooter,
+  .fullPage .heroTitle,
+  .fullPage .heroText,
+  .fullPage .eyebrow,
+  .fullPage .heroBadge,
+  .fullPage .artOverlay,
+  .fullPage .artOverlay .heroText {
+    min-width: 0;
+    max-width: 100%;
+  }
+
+  .fullPage .heroCopy {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    overflow: visible;
+  }
+
+  .heroArt {
+    min-height: 15rem;
+    overflow: hidden;
+  }
+
+  .heroTitle,
+  .brutalistBistro .heroTitle,
+  .playfulColorBlock .heroTitle,
+  .darkCinematic .heroTitle,
+  .fastBites .heroTitle,
+  .artistic .heroTitle,
+  .veggieStudio .heroTitle,
+  .fineDining .heroTitle,
+  .restaurantVintage .heroTitle,
+  .luxuryMinimal .heroTitle,
+  .retroMediterranean .heroTitle,
+  .cantinaBrava .heroTitle,
+  .bakeryHouse .heroTitle {
+    font-size: clamp(2.3rem, 12vw, 3.4rem);
+    line-height: 0.95;
+  }
+
+  .heroText,
+  .itemDescription {
+    font-size: 0.95rem;
+    line-height: 1.5;
+    overflow-wrap: anywhere;
+  }
+
+  .eyebrow {
+    white-space: normal;
+    max-width: 100%;
+  }
+
+  .heroTitle,
+  .heroText,
+  .heroFooter,
+  .heroBadge {
+    max-width: 100%;
+  }
+
+  .heroText,
+  .heroBadge {
+    white-space: normal;
+  }
+
+  .heroFooter {
+    display: grid;
+    min-width: 0;
+    width: 100%;
+  }
+
+  .fullPage .heroFooter {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.85rem;
+  }
+
+  .fullPage .heroText,
+  .fullPage .eyebrow,
+  .fullPage .heroBadge {
+    width: 100%;
+  }
+
+  .fullPage .heroTitle,
+  .fullPage .heroText,
+  .fullPage .eyebrow {
+    display: block;
+    width: 100% !important;
+    max-width: 100% !important;
+  }
+
+  .fullPage .heroBadge {
+    display: inline-flex;
+    width: auto;
+    max-width: 100%;
+  }
+
+  .fullPage.brutalistBistro .heroCopy {
+    padding: 1.1rem;
+    gap: 0.85rem;
+  }
+
+  .fullPage.brutalistBistro .heroTitle {
+    max-width: 100% !important;
+    width: 100% !important;
+    font-size: clamp(1.8rem, 9.4vw, 2.8rem) !important;
+    line-height: 0.92;
+    letter-spacing: -0.025em;
+  }
+
+  .fullPage.brutalistBistro .heroText,
+  .fullPage.brutalistBistro .eyebrow,
+  .fullPage.brutalistBistro .heroFooter,
+  .fullPage.brutalistBistro .heroFooter .heroText {
+    max-width: 100% !important;
+    width: 100% !important;
+  }
+
+  .fullPage.brutalistBistro .eyebrow {
+    font-size: 0.62rem;
+    letter-spacing: 0.14em;
+  }
+
+  .fullPage.brutalistBistro .heroText,
+  .fullPage.brutalistBistro .heroFooter .heroText {
+    max-width: 26ch !important;
+    font-size: 0.99rem;
+    line-height: 1.36;
+  }
+
+  .fullPage.brutalistBistro .heroFooter {
+    gap: 0.7rem;
+  }
+
+  .fullPage.brutalistBistro .heroBadge {
+    width: fit-content !important;
+    max-width: 100% !important;
+    padding: 0.28rem 0.55rem;
+    font-size: 0.64rem;
+  }
+
+  .fullPage .heroText,
+  .fullPage .eyebrow,
+  .fullPage .heroBadge,
+  .fullPage .heroTitle,
+  .fullPage .artOverlay .heroText {
+    overflow-wrap: anywhere;
+    word-break: break-word;
+    white-space: normal;
+    inline-size: 100%;
+    max-inline-size: 100%;
+  }
+
+  .artOverlay,
+  .darkCinematic .artOverlay,
+  .luxuryMinimal .artOverlay,
+  .restaurantVintage .artOverlay,
+  .retroMediterranean .artOverlay,
+  .cantinaBrava .artOverlay,
+  .veggieStudio .artOverlay,
+  .fineDining .artOverlay,
+  .bakeryHouse .artOverlay {
+    max-width: calc(100% - 1rem);
+    overflow: hidden;
+  }
+
+  .eyebrow,
+  .heroTitle,
+  .itemName,
+  .categorySectionTitle {
+    overflow-wrap: anywhere;
+    word-break: break-word;
+  }
+
+  .heroBadge,
+  .categoryTag,
+  .availability {
+    font-size: 0.68rem;
+    letter-spacing: 0.06em;
+  }
+
+  .grid {
+    gap: 0;
+    overflow: visible;
+  }
+
+  .rail {
+    padding: 1rem;
+    border-bottom: 1px solid color-mix(in srgb, var(--menu-border) 18%, transparent);
+    position: sticky;
+    top: 0;
+    z-index: 8;
+    background: color-mix(in srgb, var(--menu-bg) 94%, white);
+    backdrop-filter: blur(8px);
+    overflow: visible;
+  }
+
+  .railTitle {
+    margin-bottom: 0.8rem;
+  }
+
+  .categoryList {
+    display: flex;
+    width: 100%;
+    flex-wrap: nowrap;
+    gap: 0.7rem;
+    overflow-x: auto !important;
+    overflow-y: visible;
+    padding-bottom: 0.2rem;
+    overscroll-behavior-x: contain;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+    touch-action: pan-x pan-y;
+    scroll-snap-type: x proximity;
+  }
+
+  .categoryList::-webkit-scrollbar {
+    display: none;
+  }
+
+  .category {
+    display: flex;
+    flex-direction: row !important;
+    align-items: center !important;
+    justify-content: space-between;
+    flex: 0 0 auto;
+    min-width: max(9rem, max-content);
+    max-width: none;
+    padding: 0.8rem;
+    border: 1px solid color-mix(in srgb, var(--menu-border) 22%, transparent);
+    background: color-mix(in srgb, var(--menu-surface) 10%, var(--menu-bg));
+    white-space: normal;
+    scroll-snap-align: start;
+  }
+
+  .category span:last-child {
+    flex: 0 0 auto;
+    margin-left: 0.9rem;
+  }
+
+  .categorySectionHeader {
+    flex-direction: column;
+    align-items: start;
+    padding: 1rem;
+  }
+
+  .categorySectionTitle {
+    font-size: clamp(1.5rem, 8vw, 2.1rem);
+  }
+
+  .categorySectionCount {
+    font-size: 0.72rem;
+  }
+
+  .item,
+  .luxuryMinimal .item,
+  .restaurantVintage .item,
+  .cantinaBrava .item,
+  .fineDining .item,
+  .bakeryHouse .item,
+  .veggieStudio .item,
+  .artistic .item,
+  .fastBites .item {
+      grid-template-columns: 1fr;
+      gap: 0.85rem;
+      padding: 1rem;
+      overflow: hidden;
+    }
+
+  .itemThumb,
+  .luxuryMinimal .itemThumb,
+  .restaurantVintage .itemThumb,
+  .cantinaBrava .itemThumb,
+  .fineDining .itemThumb,
+  .veggieStudio .itemThumb,
+  .artistic .itemThumb {
+      min-height: 11rem;
+      width: 100%;
+      max-width: 100%;
+      aspect-ratio: 1.45 / 1;
+      justify-self: stretch;
+      overflow: hidden;
+      background-size: cover;
+      background-position: center;
+    }
+
+  .bakeryHouse .itemThumb {
+    aspect-ratio: 1.55 / 1;
+  }
+
+  .itemName,
+  .artistic .itemName {
+    font-size: clamp(1.8rem, 8vw, 2.5rem);
+    line-height: 0.95;
+  }
+
+  .price,
+  .brutalistBistro .price,
+  .fastBites .price,
+  .cantinaBrava .price,
+  .artistic .price {
+    font-size: 1rem;
+    justify-self: start;
+  }
+
+  .fastBites .rail,
+  .bakeryHouse .rail,
+  .artistic .rail,
+  .veggieStudio .rail,
+  .cantinaBrava .rail,
+  .darkCinematic .rail,
+  .playfulColorBlock .rail,
+  .fineDining .rail {
+    display: block;
+  }
+
+  .fastBites .categoryList,
+  .bakeryHouse .categoryList,
+  .artistic .categoryList,
+  .veggieStudio .categoryList,
+  .cantinaBrava .categoryList,
+  .darkCinematic .categoryList,
+  .playfulColorBlock .categoryList,
+  .fineDining .categoryList,
+  .luxuryMinimal .categoryList {
+    display: grid;
+  }
+
+  .fastBites .items,
+  .bakeryHouse .items,
+  .artistic .items,
+  .veggieStudio .items,
+  .cantinaBrava .items,
+  .darkCinematic .items,
+  .playfulColorBlock .items,
+  .fineDining .items {
+    grid-template-columns: 1fr;
+  }
+
+  .artOverlay,
+  .banner .artOverlay,
+  .poster .artOverlay,
+  .fastBites .artOverlay,
+  .artistic .artOverlay,
+  .fineDining .artOverlay,
+  .bakeryHouse .artOverlay,
+  .darkCinematic .artOverlay {
+    position: static;
+    margin: 1rem;
+  }
+
+  .heroArt {
+    display: grid;
+    align-content: end;
+  }
+
+  .artImage,
+  .artistic .artImage {
+    inset: 0;
+  }
+
+  .luxuryMinimal {
+    gap: 0;
+  }
+
+  .luxuryMinimal .hero {
+    grid-template-columns: 1fr;
+    min-height: auto;
+  }
+
+  .luxuryMinimal .heroCopy {
+    display: grid;
+    gap: 1rem;
+    padding: 1.25rem 1rem;
+    border-right: 0;
+    border-bottom: 1px solid color-mix(in srgb, var(--menu-border) 16%, transparent);
+  }
+
+  .luxuryMinimal .eyebrow {
+    font-size: 0.68rem;
+    letter-spacing: 0.16em;
+  }
+
+  .luxuryMinimal .heroTitle {
+    max-width: 100%;
+    font-size: clamp(2.7rem, 12vw, 4rem);
+    line-height: 0.94;
+  }
+
+  .luxuryMinimal .heroText {
+    max-width: 100%;
+  }
+
+  .luxuryMinimal .heroFooter {
+    gap: 0.75rem;
+  }
+
+  .luxuryMinimal .heroArt {
+    min-height: 16rem;
+  }
+
+  .luxuryMinimal .artOverlay {
+    position: static;
+    max-width: none;
+    margin: 0;
+    border-top: 1px solid color-mix(in srgb, var(--menu-border) 16%, transparent);
+    border-right: 0;
+    border-left: 0;
+    border-bottom: 0;
+    background: color-mix(in srgb, var(--menu-bg) 96%, white);
+  }
+
+  .luxuryMinimal .grid {
+    grid-template-columns: 1fr;
+    gap: 0;
+  }
+
+  .luxuryMinimal .rail {
+    padding: 0.95rem 1rem;
+    border-top: 0;
+    border-bottom: 1px solid color-mix(in srgb, var(--menu-border) 16%, transparent);
+    background: transparent;
+  }
+
+  .luxuryMinimal .categoryList {
+    display: grid;
+    grid-auto-flow: column;
+    grid-auto-columns: minmax(7.5rem, 1fr);
+    gap: 0.6rem;
+    overflow-x: auto;
+    padding-bottom: 0.15rem;
+  }
+
+  .luxuryMinimal .category {
+    padding: 0.8rem;
+    border: 1px solid color-mix(in srgb, var(--menu-border) 16%, transparent);
+    background: color-mix(in srgb, var(--menu-bg) 98%, white);
+  }
+
+  .luxuryMinimal .items {
+    border-top: 0;
+  }
+
+  .luxuryMinimal .categorySectionHeader {
+    padding: 1rem;
+  }
+
+  .luxuryMinimal .categorySectionTitle {
+    font-size: clamp(1.6rem, 9vw, 2.2rem);
+  }
+
+  .luxuryMinimal .item {
+    grid-template-columns: 1fr;
+    gap: 0.8rem;
+    padding: 1rem;
+  }
+
+  .luxuryMinimal .itemThumb {
+    min-height: 12rem;
+    aspect-ratio: 1.45 / 1;
+  }
+
+  .luxuryMinimal .itemName {
+    font-size: clamp(1.9rem, 9vw, 2.6rem);
+    line-height: 0.96;
+  }
+
+  .luxuryMinimal .itemDescription {
+    max-width: 100%;
+  }
+
+  .luxuryMinimal .price {
+    font-size: 1rem;
+    justify-self: start;
+  }
+
+  .fineDining .hero,
+  .veggieStudio .hero,
+  .bakeryHouse .hero,
+  .cantinaBrava .hero,
+  .artistic .hero,
+  .fastBites .hero,
+  .playfulColorBlock .hero,
+  .darkCinematic .hero {
+    grid-template-columns: 1fr;
+    min-height: auto;
+  }
+
+  .fineDining .heroCopy,
+  .veggieStudio .heroCopy,
+  .cantinaBrava .heroCopy,
+  .artistic .heroCopy,
+  .fastBites .heroCopy,
+  .playfulColorBlock .heroCopy,
+  .darkCinematic .heroCopy {
+    padding: 1.1rem;
+    border-right: 0;
+    border-bottom: 1px solid color-mix(in srgb, var(--menu-border) 18%, transparent);
+    gap: 1rem;
+    min-height: auto;
+  }
+
+  .fineDining .heroArt,
+  .veggieStudio .heroArt,
+  .cantinaBrava .heroArt,
+  .artistic .heroArt,
+  .fastBites .heroArt,
+  .playfulColorBlock .heroArt,
+  .darkCinematic .heroArt,
+  .bakeryHouse .heroArt {
+    min-height: 15rem;
+  }
+
+  .fineDining .item,
+  .veggieStudio .item,
+  .bakeryHouse .item,
+  .cantinaBrava .item,
+  .artistic .item,
+  .fastBites .item,
+  .playfulColorBlock .item,
+  .darkCinematic .item {
+    grid-template-columns: 1fr;
+    gap: 0.85rem;
+    padding: 1rem;
+  }
+
+  .fineDining .itemThumb,
+  .veggieStudio .itemThumb,
+  .bakeryHouse .itemThumb,
+  .cantinaBrava .itemThumb,
+  .artistic .itemThumb,
+  .fastBites .itemThumb,
+  .playfulColorBlock .itemThumb,
+  .darkCinematic .itemThumb {
+    min-height: 11rem;
+    aspect-ratio: 1.45 / 1;
+  }
+
+  .fineDining .itemName,
+  .veggieStudio .itemName,
+  .bakeryHouse .itemName,
+  .cantinaBrava .itemName,
+  .artistic .itemName,
+  .fastBites .itemName,
+  .playfulColorBlock .itemName,
+  .darkCinematic .itemName {
+    font-size: clamp(1.8rem, 8vw, 2.5rem);
+    line-height: 0.95;
+    max-width: 100%;
+  }
+
+  .fineDining .price,
+  .veggieStudio .price,
+  .bakeryHouse .price,
+  .cantinaBrava .price,
+  .artistic .price,
+  .fastBites .price,
+  .playfulColorBlock .price,
+  .darkCinematic .price {
+    justify-self: start;
+    font-size: 1rem;
+  }
+
+  .fineDining .artOverlay,
+  .veggieStudio .artOverlay,
+  .cantinaBrava .artOverlay,
+  .artistic .artOverlay,
+  .fastBites .artOverlay,
+  .playfulColorBlock .artOverlay,
+  .darkCinematic .artOverlay,
+  .bakeryHouse .artOverlay {
+    position: static;
+    margin: 0;
+    max-width: none;
+    width: auto;
+    transform: none;
+    border-left: 0;
+    border-right: 0;
+    border-bottom: 0;
+  }
+
+  .darkCinematic .artOverlay {
+    background: rgba(11, 9, 8, 0.9);
+  }
+
+  .playfulColorBlock .heroCopy,
+  .cantinaBrava .heroCopy,
+  .fastBites .heroCopy {
+    background:
+      linear-gradient(180deg, color-mix(in srgb, var(--menu-accent) 14%, transparent), transparent 42%),
+      var(--menu-bg);
+  }
+
+  .artistic .heroCopy::after {
+    display: none;
+  }
+
+  .artistic .artImage {
+    inset: 0;
+    border-radius: 0;
+  }
+
+  .bakeryHouse .item {
+    grid-template-columns: 1fr;
+    grid-template-areas: none;
+  }
+
+  .bakeryHouse .itemMeta,
+  .bakeryHouse .itemThumb,
+  .bakeryHouse .price,
+  .veggieStudio .itemMeta,
+  .veggieStudio .itemThumb,
+  .veggieStudio .price {
+    grid-area: auto;
+  }
+
+  .fineDining .hero,
+  .veggieStudio .hero,
+  .bakeryHouse .hero,
+  .cantinaBrava .hero,
+  .darkCinematic .hero,
+  .retroMediterranean .hero,
+  .restaurantVintage .hero {
+    grid-template-columns: 1fr;
+    min-height: auto;
+  }
+
+  .fineDining .heroCopy,
+  .veggieStudio .heroCopy,
+  .bakeryHouse .heroCopy,
+  .cantinaBrava .heroCopy,
+  .darkCinematic .heroCopy,
+  .retroMediterranean .heroCopy,
+  .restaurantVintage .heroCopy {
+    padding: 1rem;
+    border-right: 0;
+    border-bottom: 1px solid color-mix(in srgb, var(--menu-border) 18%, transparent);
+    min-height: auto;
+    gap: 1rem;
+  }
+
+  .fineDining .heroArt,
+  .veggieStudio .heroArt,
+  .bakeryHouse .heroArt,
+  .cantinaBrava .heroArt,
+  .darkCinematic .heroArt,
+  .retroMediterranean .heroArt,
+  .restaurantVintage .heroArt {
+    min-height: 15rem;
+  }
+
+  .fineDining .grid,
+  .veggieStudio .grid,
+  .bakeryHouse .grid,
+  .cantinaBrava .grid,
+  .darkCinematic .grid,
+  .retroMediterranean .grid,
+  .restaurantVintage .grid {
+    grid-template-columns: 1fr;
+    gap: 0;
+  }
+
+  .fineDining .rail,
+  .veggieStudio .rail,
+  .bakeryHouse .rail,
+  .cantinaBrava .rail,
+  .darkCinematic .rail,
+  .retroMediterranean .rail,
+  .restaurantVintage .rail {
+    display: block;
+    padding: 1rem;
+    border-top: 0;
+    border-bottom: 1px solid color-mix(in srgb, var(--menu-border) 16%, transparent);
+    position: sticky;
+    top: 0;
+    z-index: 8;
+  }
+
+  .fineDining .categoryList,
+  .veggieStudio .categoryList,
+  .bakeryHouse .categoryList,
+  .cantinaBrava .categoryList,
+  .darkCinematic .categoryList,
+  .retroMediterranean .categoryList,
+  .restaurantVintage .categoryList {
+    display: flex;
+    flex-wrap: nowrap;
+    gap: 0.7rem;
+    overflow-x: auto;
+    padding-bottom: 0.2rem;
+    overscroll-behavior-x: contain;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+  }
+
+  .fineDining .categoryList::-webkit-scrollbar,
+  .veggieStudio .categoryList::-webkit-scrollbar,
+  .bakeryHouse .categoryList::-webkit-scrollbar,
+  .cantinaBrava .categoryList::-webkit-scrollbar,
+  .darkCinematic .categoryList::-webkit-scrollbar,
+  .retroMediterranean .categoryList::-webkit-scrollbar,
+  .restaurantVintage .categoryList::-webkit-scrollbar {
+    display: none;
+  }
+
+  .fineDining .category,
+  .veggieStudio .category,
+  .bakeryHouse .category,
+  .cantinaBrava .category,
+  .darkCinematic .category,
+  .retroMediterranean .category,
+  .restaurantVintage .category {
+    flex: 0 0 auto;
+    min-width: 9rem;
+    max-width: 11rem;
+    padding: 0.8rem;
+    border: 1px solid color-mix(in srgb, var(--menu-border) 18%, transparent);
+    background: color-mix(in srgb, var(--menu-surface) 10%, var(--menu-bg));
+  }
+
+  .fineDining .item,
+  .veggieStudio .item,
+  .bakeryHouse .item,
+  .cantinaBrava .item,
+  .darkCinematic .item,
+  .retroMediterranean .item,
+  .restaurantVintage .item {
+    grid-template-columns: 1fr;
+    gap: 0.85rem;
+    padding: 1rem;
+    overflow: hidden;
+  }
+
+  .fineDining .itemThumb,
+  .veggieStudio .itemThumb,
+  .bakeryHouse .itemThumb,
+  .cantinaBrava .itemThumb,
+  .darkCinematic .itemThumb,
+  .retroMediterranean .itemThumb,
+  .restaurantVintage .itemThumb {
+    min-height: 11rem;
+    width: 100%;
+    aspect-ratio: 1.45 / 1;
+    justify-self: stretch;
+  }
+
+  .fineDining .itemName,
+  .veggieStudio .itemName,
+  .bakeryHouse .itemName,
+  .cantinaBrava .itemName,
+  .darkCinematic .itemName,
+  .retroMediterranean .itemName,
+  .restaurantVintage .itemName {
+    font-size: clamp(1.8rem, 8vw, 2.5rem);
+    line-height: 0.95;
+    max-width: 100%;
+  }
+
+  .fineDining .price,
+  .veggieStudio .price,
+  .bakeryHouse .price,
+  .cantinaBrava .price,
+  .darkCinematic .price,
+  .retroMediterranean .price,
+  .restaurantVintage .price {
+    justify-self: start;
+    font-size: 1rem;
+  }
+
+  .fineDining .artOverlay,
+  .veggieStudio .artOverlay,
+  .bakeryHouse .artOverlay,
+  .cantinaBrava .artOverlay,
+  .darkCinematic .artOverlay,
+  .retroMediterranean .artOverlay,
+  .restaurantVintage .artOverlay {
+    position: static;
+    margin: 0;
+    max-width: none;
+    width: auto;
+    transform: none;
+    border-left: 0;
+    border-right: 0;
+    border-bottom: 0;
+  }
+
+  .darkCinematic .artOverlay {
+    background: rgba(11, 9, 8, 0.9);
+  }
+
+  .cantinaBrava .heroCopy,
+  .retroMediterranean .heroCopy {
+    background:
+      linear-gradient(180deg, color-mix(in srgb, var(--menu-accent) 14%, transparent), transparent 42%),
+      var(--menu-bg);
+  }
+}
+
+@media (max-width: 640px) {
+  .rail {
+    position: sticky;
+    top: 0;
+    z-index: 12;
+    align-self: start;
+    width: 100%;
+    box-shadow: 0 1px 0 color-mix(in srgb, var(--menu-border) 16%, transparent);
+  }
+
+  .categoryList,
+  .luxuryMinimal .categoryList,
+  .fineDining .categoryList,
+  .veggieStudio .categoryList,
+  .bakeryHouse .categoryList,
+  .cantinaBrava .categoryList,
+  .darkCinematic .categoryList,
+  .retroMediterranean .categoryList,
+  .restaurantVintage .categoryList {
+    display: flex !important;
+    flex-direction: row !important;
+    flex-wrap: nowrap !important;
+    grid-auto-flow: unset !important;
+    grid-auto-columns: unset !important;
+    width: 100%;
+    overflow-x: auto !important;
+    overflow-y: hidden !important;
+    align-items: stretch;
+    gap: 0.7rem;
+    white-space: nowrap;
+    scrollbar-width: none;
+    -webkit-overflow-scrolling: touch;
+    touch-action: pan-x pan-y;
+  }
+
+  .categoryList::-webkit-scrollbar,
+  .luxuryMinimal .categoryList::-webkit-scrollbar,
+  .fineDining .categoryList::-webkit-scrollbar,
+  .veggieStudio .categoryList::-webkit-scrollbar,
+  .bakeryHouse .categoryList::-webkit-scrollbar,
+  .cantinaBrava .categoryList::-webkit-scrollbar,
+  .darkCinematic .categoryList::-webkit-scrollbar,
+  .retroMediterranean .categoryList::-webkit-scrollbar,
+  .restaurantVintage .categoryList::-webkit-scrollbar {
+    display: none;
+  }
+
+  .category,
+  .luxuryMinimal .category,
+  .fineDining .category,
+  .veggieStudio .category,
+  .bakeryHouse .category,
+  .cantinaBrava .category,
+  .darkCinematic .category,
+  .retroMediterranean .category,
+  .restaurantVintage .category {
+    display: inline-flex !important;
+    flex-direction: row !important;
+    align-items: center !important;
+    justify-content: space-between !important;
+    flex: 0 0 auto !important;
+    min-width: max-content !important;
+    width: auto !important;
+    max-width: none !important;
+    min-height: 0 !important;
+    padding: 0.85rem 0.95rem !important;
+    text-align: left !important;
+    white-space: nowrap !important;
+  }
+
+  .category span,
+  .luxuryMinimal .category span,
+  .fineDining .category span,
+  .veggieStudio .category span,
+  .bakeryHouse .category span,
+  .cantinaBrava .category span,
+  .darkCinematic .category span,
+  .retroMediterranean .category span,
+  .restaurantVintage .category span {
+    white-space: nowrap;
+  }
+}
