@@ -3,7 +3,7 @@ import { LandingPreviewRotator } from "@/components/landing-preview-rotator";
 
 export default function Home() {
   const whatsappHref =
-    "https://wa.me/5490000000000?text=Hola%2C%20quiero%20una%20demo%20de%20menu%20visual%20para%20mi%20restaurante";
+    "https://wa.me/543516641124?text=Hola%2C%20quiero%20una%20demo%20de%20menu%20visual%20para%20mi%20restaurante";
 
   return (
     <main className="editorial-page landing-page">
