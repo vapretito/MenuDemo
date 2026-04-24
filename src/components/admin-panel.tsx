@@ -28,6 +28,7 @@ const sectionIcons = {
 export function AdminPanel() {
   const [data, setData] = useState<MenuData>(initialMenuData);
   const [newCategoryName, setNewCategoryName] = useState("");
+  const [isPublishNoticeOpen, setIsPublishNoticeOpen] = useState(false);
   const [openSection, setOpenSection] = useState<
     "identity" | "styles" | "palette" | "categories" | "items"
   >("styles");
@@ -103,6 +104,13 @@ export function AdminPanel() {
     });
   };
 
+  const deleteItem = (id: number) => {
+    setData((current) => ({
+      ...current,
+      items: current.items.filter((item) => item.id !== id),
+    }));
+  };
+
   const addCategory = () => {
     const normalizedName = newCategoryName.trim();
     if (!normalizedName) return;
@@ -119,6 +127,22 @@ export function AdminPanel() {
     });
 
     setNewCategoryName("");
+  };
+
+  const deleteCategory = (categoryToDelete: string) => {
+    setData((current) => {
+      const nextCategories = current.categories.filter((category) => category !== categoryToDelete);
+
+      if (nextCategories.length === 0) {
+        return current;
+      }
+
+      return {
+        ...current,
+        categories: nextCategories,
+        items: current.items.filter((item) => item.category !== categoryToDelete),
+      };
+    });
   };
 
   const handleCategoryKeyDown = (event: KeyboardEvent<HTMLInputElement>) => {
@@ -169,6 +193,13 @@ export function AdminPanel() {
           </div>
           <div className={styles.headerBadges}>
             <span className={styles.headerPill}>Live Preview</span>
+            <button
+              className={styles.publishButton}
+              onClick={() => setIsPublishNoticeOpen(true)}
+              type="button"
+            >
+              Publicar / actualizar menu
+            </button>
             <button className={styles.ghostButton} onClick={resetDemo} type="button">
               Restaurar
             </button>
@@ -368,11 +399,34 @@ export function AdminPanel() {
 
                   <div className={styles.categoryChipList}>
                     {data.categories.map((category) => (
-                      <span className={styles.categoryChip} key={category}>
-                        {category}
-                      </span>
+                      <div className={styles.categoryChip} key={category}>
+                        <span>{category}</span>
+                        <span className={styles.categoryMeta}>
+                          {
+                            data.items.filter((item) => item.category === category).length
+                          }{" "}
+                          platos
+                        </span>
+                        <button
+                          className={styles.deleteButton}
+                          disabled={data.categories.length === 1}
+                          onClick={() => deleteCategory(category)}
+                          type="button"
+                        >
+                          Borrar
+                        </button>
+                      </div>
                     ))}
                   </div>
+                  {data.categories.length === 1 ? (
+                    <p className={styles.helperText}>
+                      Necesitas al menos una categoria activa para seguir creando platos.
+                    </p>
+                  ) : (
+                    <p className={styles.helperText}>
+                      Al borrar una categoria tambien se eliminan sus platos asociados.
+                    </p>
+                  )}
                 </div>
               </div>
             ) : null}
@@ -398,6 +452,17 @@ export function AdminPanel() {
                 <div className={styles.itemList}>
                   {data.items.map((item) => (
                     <article className={styles.itemEditor} key={item.id}>
+                      <div className={styles.itemEditorHeader}>
+                        <strong>{item.name || "Nuevo plato"}</strong>
+                        <button
+                          className={styles.deleteButton}
+                          onClick={() => deleteItem(item.id)}
+                          type="button"
+                        >
+                          Borrar plato
+                        </button>
+                      </div>
+
                       <div className={styles.fieldPair}>
                         <label className={styles.fieldRow}>
                           <span>Nombre</span>
@@ -497,6 +562,44 @@ export function AdminPanel() {
       <div className={styles.previewWrap}>
         <MenuPreview data={data} />
       </div>
+
+      {isPublishNoticeOpen ? (
+        <div
+          aria-hidden="true"
+          className={styles.noticeBackdrop}
+          onClick={() => setIsPublishNoticeOpen(false)}
+        >
+          <div
+            aria-labelledby="publish-notice-title"
+            aria-modal="true"
+            className={styles.noticeDialog}
+            onClick={(event) => event.stopPropagation()}
+            role="dialog"
+          >
+            <p className={styles.noticeEyebrow}>Demo interactiva</p>
+            <h2 className={styles.noticeTitle} id="publish-notice-title">
+              Aca se actualizaria tu menu.
+            </h2>
+            <p className={styles.noticeText}>
+              Este es el punto donde se publicaria o actualizaria el menu que despues veria el
+              cliente.
+            </p>
+            <p className={styles.noticeText}>
+              Por cuestiones de practicidad, y porque esta experiencia esta pensada como demo, no
+              podemos publicar ni actualizar este menu desde aqui.
+            </p>
+            <div className={styles.noticeActions}>
+              <button
+                className={styles.button}
+                onClick={() => setIsPublishNoticeOpen(false)}
+                type="button"
+              >
+                Entendido
+              </button>
+            </div>
+          </div>
+        </div>
+      ) : null}
     </div>
   );
 }

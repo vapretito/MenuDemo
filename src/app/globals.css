@@ -370,24 +370,6 @@ select {
   overflow: hidden;
 }
 
-.preview-phone-frame {
-  position: relative;
-  width: min(100%, 18rem);
-  aspect-ratio: 9 / 19.5;
-  padding: 0.55rem 0.4rem 0.45rem;
-  border: 1.5px solid var(--line);
-  border-radius: 2rem;
-  background: linear-gradient(
-    180deg,
-    rgba(255, 255, 255, 0.55),
-    rgba(232, 227, 217, 0.95)
-  );
-  box-shadow:
-    inset 0 0 0 1px rgba(255, 255, 255, 0.45),
-    0 18px 40px rgba(0, 0, 0, 0.14);
-  overflow: hidden;
-}
-
 .preview-phone-notch {
   position: absolute;
   top: 0.55rem;
@@ -401,11 +383,11 @@ select {
 }
 .preview-phone-frame {
   position: relative;
-  width: min(100%, 17.5rem);
-  aspect-ratio: 9 / 19.5;
-  padding: 0.5rem 0.38rem 0.42rem;
+  width: min(100%, 22rem);
+  aspect-ratio: 390 / 844;
+  padding: 0.55rem 0.42rem 0.48rem;
   border: 1.5px solid var(--line);
-  border-radius: 2rem;
+  border-radius: 2.2rem;
   background: linear-gradient(
     180deg,
     rgba(255, 255, 255, 0.55),
@@ -427,9 +409,9 @@ select {
   position: relative;
   width: 100%;
   height: 100%;
-  border-radius: 1.55rem;
+  border-radius: 1.72rem;
   overflow: hidden;
-  background: #111;
+  background: #faf5ea;
 }
 
 .preview-mobile-scroll {
@@ -439,16 +421,18 @@ select {
   overflow-y: auto;
   overflow-x: hidden;
   -webkit-overflow-scrolling: touch;
-  scrollbar-width: thin;
+  scrollbar-width: none;
+  cursor: grab;
+  overscroll-behavior: contain;
 }
 
 .preview-mobile-scroll::-webkit-scrollbar {
-  width: 6px;
+  display: none;
 }
 
-.preview-mobile-scroll::-webkit-scrollbar-thumb {
-  background: rgba(255, 255, 255, 0.18);
-  border-radius: 999px;
+.preview-mobile-scroll-dragging {
+  cursor: grabbing;
+  user-select: none;
 }
 
 .preview-layer-out {
@@ -555,6 +539,43 @@ select {
   line-height: 0.95;
 }
 
+.demo-poster-shell {
+  display: grid;
+  gap: 0.85rem;
+}
+
+.demo-poster-toolbar {
+  display: grid;
+  gap: 0.75rem;
+}
+
+.demo-poster-toggle {
+  display: none;
+}
+
+.demo-poster-toggle-button {
+  border: 0;
+  background: transparent;
+}
+
+.demo-poster-note {
+  display: none;
+}
+
+.demo-poster-frame {
+  width: 100%;
+}
+
+.demo-poster-canvas {
+  position: relative;
+  width: 100%;
+}
+
+.demo-poster-scaled {
+  transform-origin: top left;
+  will-change: transform;
+}
+
 .portfolio-hero,
 .showcase-section {
   margin-top: 1rem;
@@ -626,6 +647,88 @@ select {
   line-height: 1.7;
 }
 
+.showcase-text-block {
+  display: grid;
+  gap: 1rem;
+  max-width: 44rem;
+}
+
+.showcase-mode-strip {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.85rem;
+}
+
+.showcase-mode-card {
+  position: relative;
+  display: grid;
+  gap: 0.55rem;
+  padding: 0.95rem 1rem;
+  border: 1.5px solid var(--line);
+  background: rgba(255, 255, 255, 0.3);
+  overflow: hidden;
+  isolation: isolate;
+  transform: translateY(0);
+  animation: showcaseCardEnter 700ms ease both;
+  transition:
+    transform 220ms ease,
+    box-shadow 220ms ease,
+    border-color 220ms ease;
+}
+
+.showcase-mode-card::before {
+  content: "";
+  position: absolute;
+  inset: 0 auto 0 0;
+  width: 0.35rem;
+  background: linear-gradient(180deg, var(--oxide), rgba(166, 74, 49, 0.18));
+  z-index: 0;
+}
+
+.showcase-mode-card::after {
+  content: "";
+  position: absolute;
+  inset: -20% auto auto -30%;
+  width: 60%;
+  height: 140%;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgba(255, 255, 255, 0.4),
+    transparent
+  );
+  transform: rotate(14deg) translateX(-140%);
+  opacity: 0.7;
+  pointer-events: none;
+  animation: showcaseCardShimmer 5.6s ease-in-out infinite;
+}
+
+.showcase-mode-card > * {
+  position: relative;
+  z-index: 1;
+}
+
+.showcase-mode-card:nth-child(2) {
+  animation-delay: 120ms;
+}
+
+.showcase-mode-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 14px 28px rgba(23, 22, 20, 0.1);
+  border-color: rgba(23, 22, 20, 0.4);
+}
+
+.showcase-mode-card strong {
+  font-family: var(--font-editorial-serif), serif;
+  font-size: 1.15rem;
+  line-height: 1.05;
+}
+
+.showcase-mode-card p:last-child {
+  color: var(--muted);
+  line-height: 1.6;
+}
+
 .showcase-preview {
   display: grid;
 }
@@ -638,6 +741,7 @@ select {
 }
 
 .portfolio-card {
+  position: relative;
   display: grid;
   align-content: start;
   gap: 0.8rem;
@@ -645,6 +749,59 @@ select {
   padding: 1.2rem;
   border: 1.5px solid var(--line);
   background: rgba(255, 250, 245, 0.3);
+  overflow: hidden;
+  isolation: isolate;
+  animation: showcaseCardEnter 760ms ease both;
+  transition:
+    transform 220ms ease,
+    box-shadow 220ms ease,
+    border-color 220ms ease;
+}
+
+.portfolio-card::before {
+  content: "";
+  position: absolute;
+  inset: auto 0 0 0;
+  height: 0.32rem;
+  background: linear-gradient(90deg, var(--oxide), rgba(166, 74, 49, 0.15));
+  z-index: 0;
+}
+
+.portfolio-card::after {
+  content: "";
+  position: absolute;
+  inset: -15% auto auto -25%;
+  width: 55%;
+  height: 130%;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgba(255, 255, 255, 0.28),
+    transparent
+  );
+  transform: rotate(10deg) translateX(-140%);
+  opacity: 0.65;
+  pointer-events: none;
+  animation: showcaseCardShimmer 6.4s ease-in-out infinite;
+}
+
+.portfolio-card > * {
+  position: relative;
+  z-index: 1;
+}
+
+.portfolio-card:nth-child(2) {
+  animation-delay: 110ms;
+}
+
+.portfolio-card:nth-child(3) {
+  animation-delay: 220ms;
+}
+
+.portfolio-card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 16px 30px rgba(23, 22, 20, 0.1);
+  border-color: rgba(23, 22, 20, 0.38);
 }
 
 .portfolio-card h3 {
@@ -672,6 +829,10 @@ select {
   }
 
   .preview-device-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .showcase-mode-strip {
     grid-template-columns: 1fr;
   }
 
@@ -829,6 +990,60 @@ select {
     display: none;
   }
 
+  .demo-poster-shell {
+    gap: 0.75rem;
+  }
+
+  .demo-poster-toolbar {
+    gap: 0.65rem;
+  }
+
+  .demo-poster-toggle {
+    display: inline-flex;
+    width: 100%;
+    padding: 0.22rem;
+    border: 1.5px solid var(--line);
+    background: rgba(255, 250, 245, 0.68);
+  }
+
+  .demo-poster-toggle-button {
+    flex: 1 1 0;
+    padding: 0.7rem 0.8rem;
+    color: var(--muted);
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    font-size: 0.72rem;
+    cursor: pointer;
+  }
+
+  .demo-poster-toggle-button-active {
+    background: var(--ink);
+    color: var(--paper);
+  }
+
+  .demo-poster-note {
+    display: block;
+    padding: 0.85rem 0.95rem;
+    border: 1.5px solid var(--line);
+    background: rgba(255, 250, 245, 0.52);
+    color: var(--muted);
+    font-size: 0.88rem;
+    line-height: 1.5;
+  }
+
+  .demo-poster-frame {
+    padding: 0.5rem;
+    border: 1.5px solid var(--line);
+    background:
+      linear-gradient(180deg, rgba(255, 255, 255, 0.72), rgba(232, 227, 217, 0.9));
+    box-shadow: 0 14px 30px rgba(0, 0, 0, 0.08);
+    overflow: hidden;
+  }
+
+  .demo-mobile-frame {
+    overflow: hidden;
+  }
+
 
   
 }
@@ -851,6 +1066,20 @@ select {
 .landing-page .portfolio-card {
   background:
     linear-gradient(180deg, rgba(246, 242, 235, 0.9), rgba(246, 242, 235, 0.74));
+}
+
+.landing-page .portfolio-card::before {
+  background: linear-gradient(90deg, var(--landing-accent), rgba(143, 122, 99, 0.16));
+}
+
+.landing-page .showcase-mode-card {
+  border-color: var(--landing-line);
+  background:
+    linear-gradient(180deg, rgba(246, 242, 235, 0.86), rgba(232, 227, 217, 0.74));
+}
+
+.landing-page .showcase-mode-card::before {
+  background: linear-gradient(180deg, var(--landing-accent), rgba(143, 122, 99, 0.18));
 }
 
 .landing-page .wide-card {
@@ -1009,6 +1238,30 @@ select {
   line-height: 1.6;
 }
 
+@keyframes showcaseCardEnter {
+  from {
+    opacity: 0;
+    transform: translateY(14px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes showcaseCardShimmer {
+  0%,
+  72%,
+  100% {
+    transform: rotate(14deg) translateX(-140%);
+  }
+
+  84% {
+    transform: rotate(14deg) translateX(260%);
+  }
+}
+
 .landing-page .corporate-links a {
   color: var(--landing-ink);
 }
@@ -1026,6 +1279,20 @@ select {
 @media (max-width: 640px) {
   .corporate-hero {
     padding: 1rem;
+  }
+
+  .showcase-mode-card {
+    animation-duration: 560ms;
+  }
+
+  .showcase-mode-card:hover {
+    transform: translateY(0);
+    box-shadow: none;
+  }
+
+  .portfolio-card:hover {
+    transform: translateY(0);
+    box-shadow: none;
   }
 
   .corporate-links {

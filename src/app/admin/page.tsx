@@ -27,7 +27,7 @@ export default function AdminPage() {
 
       <div className="top-nav">
         <Link className="inline-link" href="/">
-          Volver a la landing
+          Volver 
         </Link>
         <Link className="inline-link" href="/demo">
           Ver demo publica

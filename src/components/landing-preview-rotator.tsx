@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState, type PointerEvent as ReactPointerEvent } from "react";
 import { MenuPreview } from "@/components/menu-preview";
 import { initialMenuData } from "@/data/menu";
 import { menuStylePresets, palettePresets } from "@/data/presets";
@@ -22,12 +22,24 @@ const buildPreviewData = (index: number): MenuData => {
 };
 
 export function LandingPreviewRotator() {
+  const mobileScrollRef = useRef<HTMLDivElement | null>(null);
+  const dragStateRef = useRef({
+    isPointerDown: false,
+    hasDragged: false,
+    pointerId: -1,
+    startY: 0,
+    startScrollTop: 0,
+  });
   const [step, setStep] = useState(0);
   const [nextStep, setNextStep] = useState<number | null>(null);
   const [isTransitioning, setIsTransitioning] = useState(false);
   const [activeViewport, setActiveViewport] = useState<"desktop" | "mobile">("desktop");
+  const [isDraggingMobilePreview, setIsDraggingMobilePreview] = useState(false);
+  const shouldRotate = activeViewport === "desktop";
 
   useEffect(() => {
+    if (!shouldRotate) return;
+
     const timer = window.setInterval(() => {
       setNextStep((current) => {
         if (current !== null) return current;
@@ -37,7 +49,7 @@ export function LandingPreviewRotator() {
     }, ROTATION_MS);
 
     return () => window.clearInterval(timer);
-  }, [step]);
+  }, [shouldRotate, step]);
 
   useEffect(() => {
     if (nextStep === null) return;
@@ -58,6 +70,66 @@ export function LandingPreviewRotator() {
   const activeStyle = menuStylePresets.find((item) => item.id === activePreviewData.stylePresetId);
   const activePalette = palettePresets.find((item) => item.id === activePreviewData.palettePresetId);
 
+  const stopMobileDrag = () => {
+    dragStateRef.current = {
+      isPointerDown: false,
+      hasDragged: false,
+      pointerId: -1,
+      startY: 0,
+      startScrollTop: 0,
+    };
+    setIsDraggingMobilePreview(false);
+  };
+
+  const handleMobilePointerDown = (event: ReactPointerEvent<HTMLDivElement>) => {
+    if (event.pointerType !== "mouse") return;
+
+    dragStateRef.current = {
+      isPointerDown: true,
+      hasDragged: false,
+      pointerId: event.pointerId,
+      startY: event.clientY,
+      startScrollTop: mobileScrollRef.current?.scrollTop ?? 0,
+    };
+
+    event.currentTarget.setPointerCapture(event.pointerId);
+  };
+
+  const handleMobilePointerMove = (event: ReactPointerEvent<HTMLDivElement>) => {
+    const dragState = dragStateRef.current;
+    const scrollNode = mobileScrollRef.current;
+
+    if (!dragState.isPointerDown || dragState.pointerId !== event.pointerId || !scrollNode) return;
+
+    const deltaY = event.clientY - dragState.startY;
+
+    if (!dragState.hasDragged && Math.abs(deltaY) > 3) {
+      dragState.hasDragged = true;
+      setIsDraggingMobilePreview(true);
+    }
+
+    if (!dragState.hasDragged) return;
+
+    scrollNode.scrollTop = dragState.startScrollTop - deltaY;
+    event.preventDefault();
+  };
+
+  const handleMobilePointerUp = (event: ReactPointerEvent<HTMLDivElement>) => {
+    const dragState = dragStateRef.current;
+
+    if (dragState.pointerId !== event.pointerId) return;
+
+    if (event.currentTarget.hasPointerCapture(event.pointerId)) {
+      event.currentTarget.releasePointerCapture(event.pointerId);
+    }
+
+    stopMobileDrag();
+  };
+
+  const handleMobilePointerCancel = () => {
+    stopMobileDrag();
+  };
+
   const renderDesktopPreview = () => (
     <>
       <div className={`preview-layer ${isTransitioning ? "preview-layer-out" : ""}`}>
@@ -69,12 +141,6 @@ export function LandingPreviewRotator() {
         </div>
       ) : null}
     </>
-  );
-
-  const renderMobilePreview = () => (
-    <div className="preview-mobile-scroll">
-      <MenuPreview data={activePreviewData} viewport="mobile" />
-    </div>
   );
 
   return (
@@ -95,7 +161,7 @@ export function LandingPreviewRotator() {
               onClick={() => setActiveViewport("desktop")}
               type="button"
             >
-              View desktop
+              Vista desktop
             </button>
             <button
               aria-pressed={activeViewport === "mobile"}
@@ -105,7 +171,7 @@ export function LandingPreviewRotator() {
               onClick={() => setActiveViewport("mobile")}
               type="button"
             >
-              View mobile
+              Vista mobile
             </button>
           </div>
 
@@ -133,13 +199,23 @@ export function LandingPreviewRotator() {
         >
           <div className="preview-device-label">Vista mobile</div>
           <div className="preview-phone-frame">
-  <div className="preview-phone-notch" />
-  <div className="preview-stage preview-stage-mobile">
-    <div className="preview-mobile-scroll">
-      <MenuPreview data={activePreviewData} viewport="mobile" />
-    </div>
-  </div>
-</div>
+            <div className="preview-phone-notch" />
+            <div className="preview-stage preview-stage-mobile">
+              <div
+                className={`preview-mobile-scroll ${
+                  isDraggingMobilePreview ? "preview-mobile-scroll-dragging" : ""
+                }`}
+                data-preview-scroll-root="true"
+                onPointerCancel={handleMobilePointerCancel}
+                onPointerDown={handleMobilePointerDown}
+                onPointerMove={handleMobilePointerMove}
+                onPointerUp={handleMobilePointerUp}
+                ref={mobileScrollRef}
+              >
+                <MenuPreview data={activePreviewData} viewport="mobile" />
+              </div>
+            </div>
+          </div>
         </div>
       </div>
     </div>

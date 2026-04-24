@@ -1036,8 +1036,8 @@
 .previewMobileViewport .heroCopy {
   display: flex;
   flex-direction: column;
-  gap: 1rem;
-  padding: 1rem;
+  gap: 0.85rem;
+  padding: 1rem 0.95rem 0.9rem;
   border-right: 0;
   border-bottom: 1px solid color-mix(in srgb, var(--menu-border) 18%, transparent);
 }
@@ -1070,24 +1070,39 @@
 .previewMobileViewport.retroMediterranean .heroTitle,
 .previewMobileViewport.cantinaBrava .heroTitle,
 .previewMobileViewport.bakeryHouse .heroTitle {
-  font-size: clamp(2rem, 8vw, 3.2rem);
-  line-height: 0.94;
+  font-size: clamp(2.15rem, 8vw, 3.2rem);
+  line-height: 0.92;
+  letter-spacing: -0.03em;
 }
 
 .previewMobileViewport .heroText,
 .previewMobileViewport .itemDescription {
   font-size: 0.92rem;
-  line-height: 1.45;
+  line-height: 1.38;
+}
+
+.previewMobileViewport .eyebrow {
+  font-size: 0.68rem;
+  letter-spacing: 0.14em;
+  line-height: 1.35;
+}
+
+.previewMobileViewport .heroBadge,
+.previewMobileViewport .categoryTag,
+.previewMobileViewport .availability,
+.previewMobileViewport .categorySectionCount {
+  font-size: 0.72rem;
 }
 
 .previewMobileViewport .heroArt {
-  min-height: 14rem;
+  min-height: 12.4rem;
   overflow: hidden;
 }
 
 .previewMobileViewport .artOverlay {
   position: static;
   margin: 0;
+  padding: 0.78rem 0.85rem;
   max-width: none;
   width: auto;
   transform: none;
@@ -1096,12 +1111,16 @@
   border-bottom: 0;
 }
 
+.previewMobileViewport .artOverlay .eyebrow {
+  margin-bottom: 0.2rem;
+}
+
 .previewMobileViewport .mobileRail {
   display: block;
   position: sticky;
   top: 0;
   z-index: 18;
-  padding: 0.8rem;
+  padding: 0.75rem 0.8rem;
   border: 1px solid color-mix(in srgb, var(--menu-border) 18%, transparent);
   background: color-mix(in srgb, var(--menu-bg) 94%, white);
 }
@@ -1130,12 +1149,19 @@
   display: inline-flex;
   align-items: center;
   justify-content: space-between;
-  gap: 0.75rem;
+  gap: 0.65rem;
   flex: 0 0 auto;
-  padding: 0.75rem 0.85rem;
+  padding: 0.72rem 0.82rem;
   border: 1px solid color-mix(in srgb, var(--menu-border) 18%, transparent);
   background: color-mix(in srgb, var(--menu-surface) 10%, var(--menu-bg));
   white-space: nowrap;
+  font-size: 0.92rem;
+}
+
+.mobileRailCategoryActive {
+  border-color: var(--menu-accent);
+  background: color-mix(in srgb, var(--menu-accent) 12%, var(--menu-bg));
+  color: var(--menu-text);
 }
 
 .previewMobileViewport .grid {
@@ -1149,11 +1175,52 @@
 .previewMobileViewport .categorySectionHeader {
   flex-direction: column;
   align-items: start;
-  padding: 1rem;
+  padding: 0.95rem;
 }
 
 .previewMobileViewport .categorySectionTitle {
-  font-size: clamp(1.45rem, 6vw, 2rem);
+  font-size: clamp(1.7rem, 6vw, 2.15rem);
+}
+
+.previewMobileViewport .itemName,
+.previewMobileViewport.artistic .itemName,
+.previewMobileViewport.bakeryHouse .itemName,
+.previewMobileViewport.darkCinematic .itemName,
+.previewMobileViewport.fastBites .itemName,
+.previewMobileViewport.fineDining .itemName,
+.previewMobileViewport.luxuryMinimal .itemName,
+.previewMobileViewport.restaurantVintage .itemName,
+.previewMobileViewport.retroMediterranean .itemName,
+.previewMobileViewport.veggieStudio .itemName {
+  font-size: clamp(1.7rem, 6vw, 2.2rem);
+  line-height: 0.96;
+}
+
+.previewMobileViewport .artOverlay .itemName,
+.previewMobileViewport.retroMediterranean .artOverlay .itemName,
+.previewMobileViewport.playfulColorBlock .artOverlay .itemName,
+.previewMobileViewport.darkCinematic .artOverlay .itemName,
+.previewMobileViewport.fastBites .artOverlay .itemName {
+  font-size: clamp(1.2rem, 5.2vw, 1.85rem);
+  line-height: 0.98;
+}
+
+.previewMobileViewport.playfulColorBlock .heroCopy,
+.previewMobileViewport.retroMediterranean .heroCopy,
+.previewMobileViewport.darkCinematic .heroCopy,
+.previewMobileViewport.fastBites .heroCopy {
+  padding: 0.9rem 0.85rem 0.85rem;
+}
+
+.previewMobileViewport.playfulColorBlock .heroTitle,
+.previewMobileViewport.retroMediterranean .heroTitle,
+.previewMobileViewport.darkCinematic .heroTitle {
+  font-size: clamp(2rem, 7.3vw, 2.9rem);
+}
+
+.previewMobileViewport.playfulColorBlock .heroBadge,
+.previewMobileViewport.retroMediterranean .heroBadge {
+  padding: 0.28rem 0.5rem;
 }
 
 .previewMobileViewport .item,
@@ -1167,7 +1234,7 @@
 .previewMobileViewport.fastBites .item {
   grid-template-columns: 1fr;
   gap: 0.85rem;
-  padding: 1rem;
+  padding: 0.95rem;
   overflow: hidden;
 }
 
@@ -1179,7 +1246,7 @@
 .previewMobileViewport.veggieStudio .itemThumb,
 .previewMobileViewport.artistic .itemThumb,
 .previewMobileViewport.bakeryHouse .itemThumb {
-  min-height: 10.5rem;
+  min-height: 10.2rem;
   width: 100%;
   max-width: 100%;
   aspect-ratio: 1.45 / 1;
@@ -1187,6 +1254,19 @@
   overflow: hidden;
   background-size: cover;
   background-position: center;
+}
+
+.previewMobileViewport .price,
+.previewMobileViewport.artistic .price,
+.previewMobileViewport.brutalistBistro .price,
+.previewMobileViewport.fastBites .price,
+.previewMobileViewport.cantinaBrava .price,
+.previewMobileViewport.fineDining .price,
+.previewMobileViewport.luxuryMinimal .price,
+.previewMobileViewport.restaurantVintage .price,
+.previewMobileViewport.retroMediterranean .price,
+.previewMobileViewport.veggieStudio .price {
+  font-size: 1rem;
 }
 
 .railTitle {
@@ -1209,6 +1289,10 @@
   padding: 0.75rem 0;
   border-top: 1px solid color-mix(in srgb, var(--menu-border) 25%, transparent);
   font-size: 0.95rem;
+}
+
+.categoryActive {
+  color: var(--menu-accent);
 }
 
 .category:hover {
@@ -2456,5 +2540,240 @@
   .retroMediterranean .category span,
   .restaurantVintage .category span {
     white-space: nowrap;
+  }
+
+  .posterViewport {
+    gap: 1rem;
+    overflow: hidden;
+  }
+
+  .posterViewport .hero {
+    grid-template-columns: var(--hero-ratio, 1.25fr 0.95fr);
+    min-height: 30rem;
+  }
+
+  .posterViewport .heroCopy {
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    gap: 0;
+    padding: 2rem;
+    border-right: 1.5px solid var(--menu-border);
+    border-bottom: 0;
+  }
+
+  .posterViewport .heroArt {
+    min-height: 24rem;
+  }
+
+  .posterViewport .heroTitle,
+  .posterViewport.brutalistBistro .heroTitle,
+  .posterViewport.playfulColorBlock .heroTitle,
+  .posterViewport.darkCinematic .heroTitle,
+  .posterViewport.fastBites .heroTitle,
+  .posterViewport.artistic .heroTitle,
+  .posterViewport.veggieStudio .heroTitle,
+  .posterViewport.fineDining .heroTitle,
+  .posterViewport.restaurantVintage .heroTitle,
+  .posterViewport.luxuryMinimal .heroTitle,
+  .posterViewport.retroMediterranean .heroTitle,
+  .posterViewport.cantinaBrava .heroTitle,
+  .posterViewport.bakeryHouse .heroTitle {
+    font-size: clamp(3rem, 8vw, 6.5rem);
+    line-height: 0.9;
+    max-width: 10ch;
+  }
+
+  .posterViewport .heroText,
+  .posterViewport .itemDescription {
+    font-size: 1rem;
+    line-height: 1.6;
+  }
+
+  .posterViewport .eyebrow {
+    font-size: 0.72rem;
+    letter-spacing: 0.18em;
+    white-space: normal;
+  }
+
+  .posterViewport .heroBadge,
+  .posterViewport .categoryTag,
+  .posterViewport .availability {
+    font-size: 0.74rem;
+    letter-spacing: 0.08em;
+  }
+
+  .posterViewport .artOverlay,
+  .posterViewport .fineDining .artOverlay,
+  .posterViewport .veggieStudio .artOverlay,
+  .posterViewport .cantinaBrava .artOverlay,
+  .posterViewport .artistic .artOverlay,
+  .posterViewport .fastBites .artOverlay,
+  .posterViewport .playfulColorBlock .artOverlay,
+  .posterViewport .darkCinematic .artOverlay,
+  .posterViewport .bakeryHouse .artOverlay,
+  .posterViewport .luxuryMinimal .artOverlay,
+  .posterViewport .retroMediterranean .artOverlay,
+  .posterViewport .restaurantVintage .artOverlay {
+    position: absolute;
+    right: 1.25rem;
+    bottom: 1.25rem;
+    left: auto;
+    margin: 0;
+    max-width: 14rem;
+    padding: 1rem;
+    transform: none;
+    border-left: 1.5px solid var(--menu-border);
+    border-right: 1.5px solid var(--menu-border);
+    border-bottom: 1.5px solid var(--menu-border);
+  }
+
+  .posterViewport .mobileRail,
+  .posterViewport .mobileRailAnchor,
+  .posterViewport .mobileRailSpacer {
+    display: none !important;
+  }
+
+  .posterViewport .grid {
+    grid-template-columns: 18rem 1fr;
+    gap: 1rem;
+  }
+
+  .posterViewport .rail {
+    display: block;
+    position: static;
+    top: auto;
+    z-index: auto;
+    padding: 1.5rem;
+    border-bottom: 0;
+    box-shadow: none;
+    backdrop-filter: none;
+    background: transparent;
+  }
+
+  .posterViewport .categoryList,
+  .posterViewport .luxuryMinimal .categoryList,
+  .posterViewport .fineDining .categoryList,
+  .posterViewport .veggieStudio .categoryList,
+  .posterViewport .bakeryHouse .categoryList,
+  .posterViewport .cantinaBrava .categoryList,
+  .posterViewport .darkCinematic .categoryList,
+  .posterViewport .retroMediterranean .categoryList,
+  .posterViewport .restaurantVintage .categoryList {
+    display: flex !important;
+    flex-direction: column !important;
+    gap: 0.65rem;
+    overflow: visible !important;
+    padding-bottom: 0;
+    white-space: normal;
+  }
+
+  .posterViewport .category,
+  .posterViewport .luxuryMinimal .category,
+  .posterViewport .fineDining .category,
+  .posterViewport .veggieStudio .category,
+  .posterViewport .bakeryHouse .category,
+  .posterViewport .cantinaBrava .category,
+  .posterViewport .darkCinematic .category,
+  .posterViewport .retroMediterranean .category,
+  .posterViewport .restaurantVintage .category {
+    display: flex !important;
+    flex-direction: row !important;
+    justify-content: space-between !important;
+    min-width: 0 !important;
+    width: 100% !important;
+    max-width: none !important;
+    padding: 0.75rem 0 !important;
+    border-top: 1px solid color-mix(in srgb, var(--menu-border) 25%, transparent);
+    background: transparent;
+    white-space: normal !important;
+  }
+
+  .posterViewport .category span,
+  .posterViewport .luxuryMinimal .category span,
+  .posterViewport .fineDining .category span,
+  .posterViewport .veggieStudio .category span,
+  .posterViewport .bakeryHouse .category span,
+  .posterViewport .cantinaBrava .category span,
+  .posterViewport .darkCinematic .category span,
+  .posterViewport .retroMediterranean .category span,
+  .posterViewport .restaurantVintage .category span {
+    white-space: normal;
+  }
+
+  .posterViewport .categorySectionHeader,
+  .posterViewport .luxuryMinimal .categorySectionHeader {
+    flex-direction: row;
+    align-items: end;
+    padding: 1.2rem 1.25rem;
+  }
+
+  .posterViewport .categorySectionTitle,
+  .posterViewport .luxuryMinimal .categorySectionTitle {
+    font-size: clamp(1.8rem, 4vw, 3rem);
+  }
+
+  .posterViewport .item,
+  .posterViewport .luxuryMinimal .item,
+  .posterViewport .restaurantVintage .item,
+  .posterViewport .cantinaBrava .item,
+  .posterViewport .fineDining .item,
+  .posterViewport .bakeryHouse .item,
+  .posterViewport .veggieStudio .item,
+  .posterViewport .artistic .item,
+  .posterViewport .fastBites .item,
+  .posterViewport .darkCinematic .item,
+  .posterViewport .playfulColorBlock .item,
+  .posterViewport .retroMediterranean .item {
+    grid-template-columns: 10.5rem 1fr auto;
+    gap: 1.25rem;
+    padding: 1.25rem;
+    overflow: visible;
+  }
+
+  .posterViewport .itemThumb,
+  .posterViewport .luxuryMinimal .itemThumb,
+  .posterViewport .restaurantVintage .itemThumb,
+  .posterViewport .cantinaBrava .itemThumb,
+  .posterViewport .fineDining .itemThumb,
+  .posterViewport .veggieStudio .itemThumb,
+  .posterViewport .artistic .itemThumb,
+  .posterViewport .bakeryHouse .itemThumb,
+  .posterViewport .darkCinematic .itemThumb,
+  .posterViewport .playfulColorBlock .itemThumb,
+  .posterViewport .retroMediterranean .itemThumb {
+    min-height: 8.75rem;
+    aspect-ratio: auto;
+  }
+
+  .posterViewport .itemName,
+  .posterViewport .artistic .itemName,
+  .posterViewport .fineDining .itemName,
+  .posterViewport .veggieStudio .itemName,
+  .posterViewport .bakeryHouse .itemName,
+  .posterViewport .cantinaBrava .itemName,
+  .posterViewport .darkCinematic .itemName,
+  .posterViewport .playfulColorBlock .itemName,
+  .posterViewport .retroMediterranean .itemName,
+  .posterViewport .restaurantVintage .itemName,
+  .posterViewport .luxuryMinimal .itemName {
+    font-size: 1.65rem;
+    line-height: 1;
+  }
+
+  .posterViewport .price,
+  .posterViewport .brutalistBistro .price,
+  .posterViewport .fastBites .price,
+  .posterViewport .cantinaBrava .price,
+  .posterViewport .artistic .price,
+  .posterViewport .fineDining .price,
+  .posterViewport .veggieStudio .price,
+  .posterViewport .bakeryHouse .price,
+  .posterViewport .darkCinematic .price,
+  .posterViewport .retroMediterranean .price,
+  .posterViewport .restaurantVintage .price,
+  .posterViewport .luxuryMinimal .price {
+    justify-self: end;
+    font-size: 1.05rem;
   }
 }

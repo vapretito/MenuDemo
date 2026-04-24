@@ -77,11 +77,31 @@ export default function Home() {
               Una plataforma. Multiples direcciones visuales.
             </h2>
           </div>
-          <p className="showcase-text">
-            La preview en vivo rota entre las esteticas y paletas disponibles para que
-            un cliente entienda rapido el rango visual, el nivel de detalle y la
-            flexibilidad del producto.
-          </p>
+          <div className="showcase-text-block">
+            <p className="showcase-text">
+              La preview en vivo rota entre las esteticas y paletas disponibles para que
+              un cliente entienda rapido el rango visual, el nivel de detalle y la
+              flexibilidad del producto.
+            </p>
+            <div className="showcase-mode-strip">
+              <div className="showcase-mode-card">
+                <p className="section-label">Web Mobile</p>
+                <strong>Navegacion optimizada para telefono.</strong>
+                <p>
+                  El menu puede mostrarse como experiencia web mobile, comoda para recorrer
+                  categorias, platos y contenido visual desde pantalla chica.
+                </p>
+              </div>
+              <div className="showcase-mode-card">
+                <p className="section-label">Modo PDF</p>
+                <strong>Version tipo lamina o documento visual.</strong>
+                <p>
+                  Tambien puede verse en formato PDF o pieza visual escalada, ideal para
+                  conservar una composicion editorial completa sin deformar el diseno.
+                </p>
+              </div>
+            </div>
+          </div>
         </div>
 
         <div className="showcase-preview">

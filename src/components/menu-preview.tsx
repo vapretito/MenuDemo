@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState, type CSSProperties } from "react";
+import { useEffect, useMemo, useRef, useState, type CSSProperties, type MouseEvent } from "react";
 import styles from "./menu-preview.module.css";
 import { menuStylePresets } from "@/data/presets";
 import { MenuData } from "@/types/menu";
@@ -9,6 +9,7 @@ type MenuPreviewProps = {
   data: MenuData;
   mode?: "default" | "full-page";
   viewport?: "desktop" | "mobile";
+  presentation?: "responsive" | "poster";
 };
 
 const slugifyCategory = (value: string) =>
@@ -29,20 +30,30 @@ export function MenuPreview({
   data,
   mode = "default",
   viewport = "desktop",
+  presentation = "responsive",
 }: MenuPreviewProps) {
   const shellRef = useRef<HTMLElement | null>(null);
   const mobileRailRef = useRef<HTMLElement | null>(null);
   const mobileRailAnchorRef = useRef<HTMLDivElement | null>(null);
+  const sectionRefs = useRef<Record<string, HTMLElement | null>>({});
   const [isMobileRailPinned, setIsMobileRailPinned] = useState(false);
   const [mobileRailFrame, setMobileRailFrame] = useState({ left: 0, width: 0 });
   const featuredItem = data.items[0];
-  const categorizedItems = data.categories
-    .map((category) => ({
-      category,
-      id: slugifyCategory(category),
-      items: data.items.filter((item) => item.category === category),
-    }))
-    .filter((group) => group.items.length > 0);
+  const categorizedItems = useMemo(
+    () =>
+      data.categories
+        .map((category) => ({
+          category,
+          id: slugifyCategory(category),
+          items: data.items.filter((item) => item.category === category),
+        }))
+        .filter((group) => group.items.length > 0),
+    [data.categories, data.items]
+  );
+  const categoryIds = useMemo(
+    () => categorizedItems.map((group) => group.id).join("|"),
+    [categorizedItems]
+  );
   const preset =
     menuStylePresets.find((item) => item.id === data.stylePresetId) ?? menuStylePresets[0];
   const presetStyleClass = (() => {
@@ -75,17 +86,79 @@ export function MenuPreview({
         return "";
     }
   })();
+  const [activeCategoryId, setActiveCategoryId] = useState(categorizedItems[0]?.id ?? "");
+  const resolvedActiveCategoryId = categorizedItems.some((group) => group.id === activeCategoryId)
+    ? activeCategoryId
+    : categorizedItems[0]?.id ?? "";
   const shellClassName = [
     styles.shell,
     styles[preset.layout] ?? "",
     presetStyleClass,
     mode === "full-page" ? styles.fullPage : "",
     viewport === "mobile" ? styles.previewMobileViewport : "",
+    presentation === "poster" ? styles.posterViewport : "",
   ]
     .filter(Boolean)
     .join(" ");
 
-  const showMobileRail = mode === "full-page" || viewport === "mobile";
+  const showMobileRail =
+    presentation === "responsive" && (mode === "full-page" || viewport === "mobile");
+  const isEmbeddedMobilePreview = viewport === "mobile" && presentation === "responsive";
+
+  useEffect(() => {
+    sectionRefs.current = {};
+  }, [categoryIds]);
+
+  useEffect(() => {
+    const shellNode = shellRef.current;
+
+    if (!shellNode || !showMobileRail) return;
+
+    const scrollContainer = shellNode.closest("[data-preview-scroll-root='true']");
+    const railNode = mobileRailRef.current;
+
+    const resolveActiveSection = () => {
+      const entries = categorizedItems
+        .map((group) => {
+          const node = sectionRefs.current[group.id];
+          if (!node) return null;
+
+          const rect = node.getBoundingClientRect();
+          const containerTop = scrollContainer
+            ? scrollContainer.getBoundingClientRect().top
+            : 0;
+          const railOffset = railNode?.offsetHeight ?? 0;
+
+          return {
+            id: group.id,
+            distance: Math.abs(rect.top - containerTop - railOffset - 16),
+            top: rect.top,
+          };
+        })
+        .filter((entry): entry is { id: string; distance: number; top: number } => entry !== null)
+        .sort((left, right) => left.distance - right.distance);
+
+      if (entries[0]) {
+        setActiveCategoryId((current) => (current === entries[0].id ? current : entries[0].id));
+      }
+    };
+
+    resolveActiveSection();
+
+    if (scrollContainer) {
+      scrollContainer.addEventListener("scroll", resolveActiveSection, { passive: true });
+
+      return () => {
+        scrollContainer.removeEventListener("scroll", resolveActiveSection);
+      };
+    }
+
+    window.addEventListener("scroll", resolveActiveSection, { passive: true });
+
+    return () => {
+      window.removeEventListener("scroll", resolveActiveSection);
+    };
+  }, [categoryIds, categorizedItems, showMobileRail]);
 
   useEffect(() => {
     if (mode !== "full-page") return;
@@ -123,6 +196,47 @@ export function MenuPreview({
       window.removeEventListener("resize", updateRail);
     };
   }, [mode, data.stylePresetId, data.categories.length]);
+
+  const handleCategoryClick = (event: MouseEvent<HTMLAnchorElement>, categoryId: string) => {
+    const shellNode = shellRef.current;
+    const sectionNode = sectionRefs.current[categoryId];
+
+    if (!shellNode || !sectionNode) return;
+
+    const scrollContainer = shellNode.closest("[data-preview-scroll-root='true']");
+    const railOffset = mobileRailRef.current?.offsetHeight ?? 0;
+    const extraOffset = 12;
+
+    setActiveCategoryId(categoryId);
+
+    if (scrollContainer) {
+      event.preventDefault();
+
+      const containerRect = scrollContainer.getBoundingClientRect();
+      const sectionRect = sectionNode.getBoundingClientRect();
+      const targetTop =
+        scrollContainer.scrollTop + sectionRect.top - containerRect.top - railOffset - extraOffset;
+
+      scrollContainer.scrollTo({
+        top: Math.max(targetTop, 0),
+        behavior: "smooth",
+      });
+
+      return;
+    }
+
+    if (isEmbeddedMobilePreview) {
+      event.preventDefault();
+
+      const targetTop =
+        window.scrollY + sectionNode.getBoundingClientRect().top - railOffset - extraOffset;
+
+      window.scrollTo({
+        top: Math.max(targetTop, 0),
+        behavior: "smooth",
+      });
+    }
+  };
 
   return (
     <section
@@ -193,8 +307,14 @@ export function MenuPreview({
 
                 return (
                   <a
-                    className={styles.mobileRailCategory}
+                    aria-current={resolvedActiveCategoryId === group.id ? "true" : undefined}
+                    className={`${styles.mobileRailCategory} ${
+                      resolvedActiveCategoryId === group.id
+                        ? styles.mobileRailCategoryActive
+                        : ""
+                    }`}
                     href={`#category-${group.id}`}
+                    onClick={(event) => handleCategoryClick(event, group.id)}
                     key={group.category}
                   >
                     <span>{group.category}</span>
@@ -221,7 +341,15 @@ export function MenuPreview({
               const total = group.items.length;
 
               return (
-                <a className={styles.category} href={`#category-${group.id}`} key={group.category}>
+                <a
+                  aria-current={resolvedActiveCategoryId === group.id ? "true" : undefined}
+                  className={`${styles.category} ${
+                    resolvedActiveCategoryId === group.id ? styles.categoryActive : ""
+                  }`}
+                  href={`#category-${group.id}`}
+                  key={group.category}
+                  onClick={(event) => handleCategoryClick(event, group.id)}
+                >
                   <span>{group.category}</span>
                   <span>{String(total).padStart(2, "0")}</span>
                 </a>
@@ -236,6 +364,9 @@ export function MenuPreview({
               className={styles.categorySection}
               id={`category-${group.id}`}
               key={group.category}
+              ref={(node) => {
+                sectionRefs.current[group.id] = node;
+              }}
             >
               <div className={styles.categorySectionHeader}>
                 <h3 className={styles.categorySectionTitle}>{group.category}</h3>

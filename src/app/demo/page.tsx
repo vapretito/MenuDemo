@@ -1,6 +1,6 @@
 import Link from "next/link";
-import { MenuPreview } from "@/components/menu-preview";
 import { initialMenuData } from "@/data/menu";
+import { DemoPosterPreview } from "@/components/demo-poster-preview";
 
 export default function DemoPage() {
   return (
@@ -27,14 +27,14 @@ export default function DemoPage() {
 
       <div className="top-nav">
         <Link className="inline-link" href="/">
-          Volver a la landing
+          Volver
         </Link>
         <Link className="inline-link" href="/admin">
           Personalizar demo
         </Link>
       </div>
 
-      <MenuPreview data={initialMenuData} mode="full-page" />
+      <DemoPosterPreview data={initialMenuData} />
     </main>
   );
 }
