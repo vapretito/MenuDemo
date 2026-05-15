@@ -24,8 +24,7 @@ export default async function MenuPage({ params }: MenuPageProps) {
     notFound();
   }
 
-  const isDemoMenu = restaurant.slug === "demo";
-
+  const isDemoMenu = restaurant.slug === "demo" || restaurant.connectedToDemo;
   return (
     <main className="menuPage">
       {isDemoMenu ? (
