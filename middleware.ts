@@ -27,13 +27,11 @@ function getRestaurantSlugFromHost(hostname: string) {
     return null;
   }
 
-  // Producción: subway.menui.online
   if (hostname.endsWith(`.${ROOT_DOMAIN}`)) {
     const subdomain = hostname.replace(`.${ROOT_DOMAIN}`, "");
     return subdomain.split(".")[0] || null;
   }
 
-  // Desarrollo opcional: subway.localhost:3000
   if (hostname.endsWith(".localhost")) {
     const subdomain = hostname.replace(".localhost", "");
     return subdomain.split(".")[0] || null;

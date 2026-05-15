@@ -46,7 +46,11 @@ const createItem = (categoryId: string): MenuItem => ({
   prepTime: "15 min",
 });
 
-export function RestaurantAdminPanel() {
+type RestaurantAdminPanelProps = {
+  restaurantSlug?: string;
+};
+
+export function RestaurantAdminPanel({ restaurantSlug }: RestaurantAdminPanelProps) {
   const [restaurant, setRestaurant] = useState<RestaurantRecord>(demoRestaurant);
   const [newCategoryName, setNewCategoryName] = useState("");
   const [activeSection, setActiveSection] = useState<AdminSection>("overview");
@@ -151,7 +155,7 @@ export function RestaurantAdminPanel() {
   const publicUrl = `https://${restaurant.subdomain}`;
   const adminWhatsappUrl = `https://wa.me/${restaurant.customerWhatsapp}`;
   const activeMeta = sections.find((section) => section.id === activeSection) ?? sections[0];
-
+  const currentRestaurantSlug = restaurantSlug ?? restaurant.slug;
   return (
     <div className={styles.shell} data-theme={themeMode}>
      <button
@@ -192,7 +196,7 @@ export function RestaurantAdminPanel() {
   <div className={styles.sidebarBrand}>
           <span className={styles.sidebarKicker}>Restaurant Admin</span>
           <strong>{restaurant.name}</strong>
-          <p>{restaurant.city}</p>
+          <p>{restaurant.city} · {currentRestaurantSlug}</p>
         </div>
 
         <nav className={styles.sidebarNav}>
