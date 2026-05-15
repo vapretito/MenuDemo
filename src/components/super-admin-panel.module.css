@@ -1,315 +1,472 @@
 .shell {
-  --bo-surface: rgba(11, 16, 28, 0.92);
-  --bo-surface-soft: rgba(19, 25, 39, 0.92);
-  --bo-border: rgba(88, 102, 143, 0.42);
-  --bo-border-strong: rgba(120, 138, 189, 0.58);
-  --bo-text: #eef2ff;
-  --bo-muted: #a6b1cf;
-  --bo-accent: #95a5ff;
-  --bo-accent-soft: rgba(93, 106, 170, 0.22);
+  --bg: #f4f6f8;
+  --surface: #ffffff;
+  --surface-soft: #f8fafc;
+  --border: #d7dce5;
+  --border-strong: #b9c0cc;
+  --text: #111827;
+  --muted: #667085;
+  --accent: #1d4ed8;
+  --accent-soft: #eef4ff;
+  --danger: #b42318;
+  --danger-bg: #fff1f0;
+  --success: #047857;
+  --success-bg: #ecfdf3;
+
   display: grid;
-  grid-template-columns: 360px minmax(0, 1fr);
-  gap: 0;
+  grid-template-columns: 270px minmax(0, 1fr);
   min-height: calc(100vh - 75px);
-  color: var(--bo-text);
+  background: var(--bg);
+  color: var(--text);
 }
 
-.listPanel,
-.detailPanel,
-.heroStats,
-.createGrid,
-.restaurantList,
-.detailGrid,
-.overviewGrid {
+.shell * {
+  box-sizing: border-box;
+}
+
+.sidebar {
   display: grid;
+  grid-template-rows: auto auto auto 1fr;
   gap: 1rem;
-}
-
-.listPanel {
+  min-height: calc(100vh - 75px);
   padding: 1rem;
-  border-right: 1px solid var(--bo-border);
-  background:
-    linear-gradient(180deg, rgba(12, 17, 29, 0.96), rgba(9, 14, 24, 0.98));
+  border-right: 1px solid var(--border);
+  background: #ffffff;
 }
 
-.detailPanel {
-  padding: 1rem 1.1rem 1.2rem;
+.sidebarBrand {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding-bottom: 1rem;
+  border-bottom: 1px solid var(--border);
 }
 
-.hero {
+.logoBox {
   display: grid;
-  grid-template-columns: minmax(0, 1.2fr) minmax(260px, 0.8fr);
+  place-items: center;
+  width: 2.4rem;
+  height: 2.4rem;
+  border: 1px solid #111827;
+  background: #111827;
+  color: #ffffff;
+  font-weight: 800;
+}
+
+.sidebarBrand strong {
+  display: block;
+  color: var(--text);
+  font-size: 1rem;
+}
+
+.sidebarBrand span {
+  display: block;
+  margin-top: 0.12rem;
+  color: var(--muted);
+  font-size: 0.82rem;
+}
+
+.sideNav {
+  display: grid;
+  gap: 0.35rem;
+}
+
+.sideNavButton,
+.sideNavButtonActive {
+  display: grid;
+  gap: 0.18rem;
+  width: 100%;
+  padding: 0.8rem;
+  border: 1px solid transparent;
+  background: transparent;
+  color: var(--text);
+  text-align: left;
+  cursor: pointer;
+}
+
+.sideNavButton:hover {
+  background: var(--surface-soft);
+  border-color: var(--border);
+}
+
+.sideNavButtonActive {
+  border-color: var(--accent);
+  background: var(--accent-soft);
+}
+
+.sideNavButton strong,
+.sideNavButtonActive strong {
+  font-size: 0.92rem;
+}
+
+.sideNavButton span,
+.sideNavButtonActive span {
+  color: var(--muted);
+  font-size: 0.78rem;
+}
+
+.sidebarPrimaryButton {
+  min-height: 2.65rem;
+  border: 1px solid var(--accent);
+  background: var(--accent);
+  color: #ffffff;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.sidebarPrimaryButton:hover {
+  background: #1e40af;
+}
+
+.sidebarFooter {
+  align-self: end;
+  display: grid;
+  gap: 0.25rem;
+  padding-top: 1rem;
+  border-top: 1px solid var(--border);
+}
+
+.sidebarFooter span {
+  color: var(--muted);
+  font-size: 0.78rem;
+}
+
+.sidebarFooter strong {
+  color: var(--text);
+  font-size: 0.88rem;
+}
+
+.content {
+  display: grid;
+  align-content: start;
   gap: 1rem;
+  min-width: 0;
+  padding: 1.25rem;
+}
+
+.contentHeader {
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
+  align-items: center;
   padding: 1rem;
-  border: 1px solid var(--bo-border);
-  border-radius: 1.2rem;
-  background: var(--bo-surface);
-  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.24);
+  border: 1px solid var(--border);
+  background: var(--surface);
+}
+
+.contentHeader h2 {
+  margin: 0.25rem 0 0;
+  color: var(--text);
+  font-size: 1.75rem;
+  line-height: 1;
+}
+
+.headerActions,
+.panelHeader,
+.detailHeader,
+.topRow,
+.detailActions,
+.formActions {
+  display: flex;
+  gap: 0.75rem;
+  align-items: center;
+}
+
+.headerActions,
+.panelHeader,
+.detailHeader {
+  justify-content: space-between;
 }
 
 .eyebrow {
   text-transform: uppercase;
-  letter-spacing: 0.14em;
-  font-size: 0.72rem;
-  color: #8ea0c9;
-}
-
-.hero h2,
-.panelHeader h3,
-.callout h4 {
-  font-family: "Segoe UI", "Trebuchet MS", sans-serif;
-  color: var(--bo-text);
-}
-
-.hero h2 {
-  font-size: clamp(2rem, 5vw, 3.4rem);
-  line-height: 0.96;
-  max-width: 12ch;
-}
-
-.hero p,
-.restaurantCard span,
-.detailGrid span,
-.callout li,
-.createGrid span,
-.overviewCard span {
-  color: var(--bo-muted);
-  line-height: 1.65;
-}
-
-.heroStats {
-  align-content: start;
-}
-
-.overviewGrid {
-  grid-template-columns: repeat(4, minmax(0, 1fr));
-}
-
-.overviewCard,
-.heroStats article,
-.panelSection,
-.restaurantCard,
-.detailCard,
-.callout {
-  border: 1px solid var(--bo-border);
-  border-radius: 1rem;
-  background: var(--bo-surface);
-}
-
-.overviewCard,
-.heroStats article,
-.restaurantCard,
-.detailCard,
-.callout,
-.panelSection {
-  padding: 1rem;
-}
-
-.overviewCard strong,
-.heroStats strong,
-.detailGrid strong,
-.restaurantCard strong {
-  font-family: "Segoe UI", "Trebuchet MS", sans-serif;
-  color: var(--bo-text);
-}
-
-.overviewCard strong {
-  font-size: 1.45rem;
-}
-
-.panelHeader,
-.restaurantCard,
-.detailHeader,
-.topRow {
-  display: flex;
-  justify-content: space-between;
-  gap: 0.8rem;
-  align-items: start;
-}
-
-.detailHeader {
-  align-items: start;
-}
-
-.calloutActions {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.75rem;
-  margin-top: 1rem;
-}
-
-.panelHeader h3 {
-  font-size: 1.35rem;
-}
-
-.createGrid label {
-  display: grid;
-  gap: 0.4rem;
-}
-
-.createGrid input,
-.actionButton {
-  min-height: 2.95rem;
-  padding: 0.85rem 0.95rem;
-  border: 1px solid var(--bo-border-strong);
-  border-radius: 0.95rem;
-  background: var(--bo-surface-soft);
-  color: var(--bo-text);
-}
-
-.actionButton {
-  background: linear-gradient(180deg, #8f9eff, #7383ef);
-  color: #0a1220;
+  letter-spacing: 0.08em;
+  color: var(--muted);
+  font-size: 0.7rem;
   font-weight: 700;
 }
 
-.secondaryAction,
-.statusSelect {
+.statusBadge,
+.countBadge,
+.badge {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  min-height: 2.95rem;
-  padding: 0.82rem 0.95rem;
-  border: 1px solid var(--bo-border-strong);
-  border-radius: 0.95rem;
-  background: var(--bo-surface-soft);
-  color: var(--bo-text);
+  min-height: 2.1rem;
+  padding: 0.4rem 0.65rem;
+  border: 1px solid var(--border);
+  background: var(--surface-soft);
+  color: var(--muted);
+  font-size: 0.78rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
 }
 
-.deleteButton {
-  min-height: 2.95rem;
-  padding: 0.82rem 0.95rem;
-  border: 1px solid rgba(255, 151, 182, 0.38);
-  border-radius: 0.95rem;
-  background: rgba(93, 31, 54, 0.32);
-  color: #ffd1df;
+.badge {
+  border-color: #abefc6;
+  background: var(--success-bg);
+  color: var(--success);
 }
 
-.restaurantList {
+.viewStack {
+  display: grid;
+  gap: 1rem;
+}
+
+.panelSection,
+.hero,
+.kpiCard,
+.detailCard,
+.restaurantCard,
+.infoGrid article,
+.heroStats article,
+.billingBox {
+  border: 1px solid var(--border);
+  background: var(--surface);
+}
+
+.panelSection,
+.billingBox {
+  display: grid;
+  gap: 1rem;
+  padding: 1rem;
+}
+
+.panelHeader h3,
+.detailHeader h3,
+.billingBox h4 {
+  margin: 0.25rem 0 0;
+  color: var(--text);
+  font-size: 1.08rem;
+}
+
+.hero {
+  display: grid;
+  grid-template-columns: minmax(0, 1.2fr) 320px;
+  gap: 1rem;
+  padding: 1.1rem;
+}
+
+.hero h1 {
+  max-width: 16ch;
+  margin: 0.45rem 0 0;
+  color: var(--text);
+  font-size: clamp(2rem, 4vw, 3rem);
+  line-height: 1;
+}
+
+.hero p,
+.infoGrid p,
+.billingBox p,
+.restaurantCard span,
+.detailCard span,
+.kpiCard span,
+.heroStats span,
+.createGrid span,
+.billingGrid span,
+.billingResult span {
+  color: var(--muted);
+  line-height: 1.5;
+  font-size: 0.88rem;
+}
+
+.heroStats {
+  display: grid;
   gap: 0.75rem;
 }
 
-.restaurantCard {
-  width: 100%;
-  text-align: left;
-  background: rgba(15, 21, 35, 0.94);
+.heroStats article {
+  display: grid;
+  gap: 0.35rem;
+  padding: 0.9rem;
 }
 
-.restaurantCard div {
+.heroStats strong {
+  color: var(--text);
+  font-size: 1.6rem;
+}
+
+.kpiGrid {
   display: grid;
-  gap: 0.25rem;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 1rem;
+}
+
+.kpiCard {
+  display: grid;
+  gap: 0.35rem;
+  min-height: 7rem;
+  padding: 1rem;
+}
+
+.kpiCard strong {
+  color: var(--text);
+  font-size: 1.15rem;
+  word-break: break-word;
+}
+
+.infoGrid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 1rem;
+}
+
+.infoGrid article {
+  display: grid;
+  gap: 0.35rem;
+  padding: 1rem;
+}
+
+.infoGrid strong {
+  color: var(--text);
+  word-break: break-word;
+}
+
+.twoColumn {
+  display: grid;
+  grid-template-columns: 360px minmax(0, 1fr);
+  gap: 1rem;
+}
+
+.restaurantList {
+  display: grid;
+  gap: 0.55rem;
+}
+
+.restaurantCard {
+  display: flex;
+  justify-content: space-between;
+  gap: 0.75rem;
+  align-items: flex-start;
+  width: 100%;
+  padding: 0.85rem;
+  text-align: left;
+  cursor: pointer;
+}
+
+.restaurantCard:hover {
+  border-color: var(--border-strong);
+  background: var(--surface-soft);
 }
 
 .restaurantCardActive {
-  border-color: var(--bo-border-strong);
-  background: var(--bo-accent-soft);
-  box-shadow: inset 0 0 0 1px rgba(149, 165, 255, 0.18);
+  border-color: var(--accent);
+  background: var(--accent-soft);
 }
 
-.restaurantCard small,
-.badge {
-  text-transform: uppercase;
+.restaurantCard strong {
+  display: block;
+  color: var(--text);
+  font-size: 0.92rem;
+}
+
+.restaurantCard small {
+  color: var(--muted);
   font-size: 0.72rem;
-  letter-spacing: 0.08em;
-}
-
-.badge {
-  display: inline-flex;
-  align-items: center;
-  min-height: 2.2rem;
-  padding: 0.45rem 0.75rem;
-  border: 1px solid var(--bo-border-strong);
-  border-radius: 999px;
-  background: var(--bo-accent-soft);
-  color: #dce4ff;
-}
-
-.detailPanel {
-  gap: 1rem;
-}
-
-.panelSection {
-  display: grid;
-  gap: 1rem;
+  font-weight: 700;
+  text-transform: uppercase;
 }
 
 .detailGrid {
+  display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.75rem;
 }
 
 .detailCard {
   display: grid;
-  gap: 0.28rem;
+  gap: 0.3rem;
+  min-height: 5.4rem;
+  padding: 0.85rem;
+}
+
+.detailCard strong {
+  color: var(--text);
+  font-size: 0.92rem;
+  line-height: 1.35;
+  word-break: break-word;
 }
 
 .full {
   grid-column: 1 / -1;
 }
 
-.callout {
-  background:
-    linear-gradient(180deg, rgba(149, 165, 255, 0.09), transparent),
-    rgba(15, 21, 35, 0.96);
-}
-
-.callout h4 {
-  margin-bottom: 0.6rem;
-  font-size: 1.1rem;
-}
-
-.callout ul {
+.createGrid {
   display: grid;
-  gap: 0.55rem;
-  padding-left: 1rem;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.85rem;
 }
 
-@media (max-width: 1180px) {
-  .shell {
-    grid-template-columns: 1fr;
-  }
-
-  .listPanel {
-    border-right: 0;
-    border-bottom: 1px solid var(--bo-border);
-  }
-
-  .hero,
-  .overviewGrid,
-  .detailGrid {
-    grid-template-columns: 1fr;
-  }
-}
-
-@media (max-width: 760px) {
-  .panelHeader,
-  .restaurantCard,
-  .detailHeader,
-  .topRow {
-    flex-direction: column;
-  }
-}
-.billingBox {
+.createGrid label,
+.billingGrid label {
   display: grid;
-  gap: 1rem;
+  gap: 0.35rem;
+}
+
+.createGrid input,
+.createGrid select,
+.billingInput,
+.statusSelect {
   width: 100%;
-  padding: 1rem;
-  border: 1px solid rgba(149, 165, 255, 0.28);
-  border-radius: 1rem;
-  background:
-    linear-gradient(135deg, rgba(149, 165, 255, 0.12), rgba(32, 211, 153, 0.05)),
-    rgba(15, 21, 35, 0.96);
+  min-height: 2.65rem;
+  padding: 0.75rem 0.8rem;
+  border: 1px solid var(--border-strong);
+  background: #ffffff;
+  color: var(--text);
+  font: inherit;
+  outline: none;
 }
 
-.billingBox h4 {
-  margin: 0.25rem 0 0;
-  color: var(--bo-text);
-  font-size: 1.05rem;
+.createGrid input:focus,
+.createGrid select:focus,
+.billingInput:focus,
+.statusSelect:focus {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px rgba(29, 78, 216, 0.12);
 }
 
-.billingBox p {
-  margin: 0.45rem 0 0;
-  color: var(--bo-muted);
-  line-height: 1.6;
+.formActions {
+  grid-column: 1 / -1;
+}
+
+.actionButton,
+.secondaryAction,
+.deleteButton,
+.statusSelect {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 2.65rem;
+  padding: 0.72rem 0.95rem;
+  border: 1px solid var(--border-strong);
+  background: #ffffff;
+  color: var(--text);
+  font: inherit;
+  font-size: 0.9rem;
+  font-weight: 700;
+  text-decoration: none;
+  cursor: pointer;
+}
+
+.actionButton {
+  border-color: var(--accent);
+  background: var(--accent);
+  color: #ffffff;
+}
+
+.actionButton:hover {
+  background: #1e40af;
+}
+
+.secondaryAction:hover {
+  background: var(--surface-soft);
+}
+
+.deleteButton {
+  border-color: #fecdca;
+  background: var(--danger-bg);
+  color: var(--danger);
 }
 
 .billingGrid {
@@ -319,62 +476,77 @@
   align-items: end;
 }
 
-.billingGrid label {
-  display: grid;
-  gap: 0.4rem;
-}
-
-.billingGrid span,
-.billingResult span {
-  color: var(--bo-muted);
-  font-size: 0.85rem;
-}
-
-.billingInput {
-  min-height: 2.95rem;
-  padding: 0.85rem 0.95rem;
-  border: 1px solid var(--bo-border-strong);
-  border-radius: 0.95rem;
-  background: var(--bo-surface-soft);
-  color: var(--bo-text);
-  font: inherit;
-  outline: none;
-}
-
-.billingInput:focus {
-  border-color: rgba(149, 165, 255, 0.7);
-  box-shadow: 0 0 0 4px rgba(149, 165, 255, 0.12);
-}
-
 .billingResult {
   display: grid;
   gap: 0.25rem;
-  padding: 0.85rem;
-  border: 1px solid var(--bo-border);
-  border-radius: 0.9rem;
-  background: rgba(9, 14, 24, 0.7);
+  padding: 0.8rem;
+  border: 1px solid var(--border);
+  background: var(--surface-soft);
 }
 
 .billingResult strong {
-  color: var(--bo-text);
+  color: var(--text);
   word-break: break-word;
 }
 
 .billingError {
-  padding: 0.75rem 0.85rem;
-  border: 1px solid rgba(255, 151, 182, 0.38);
-  border-radius: 0.85rem;
-  background: rgba(93, 31, 54, 0.32);
-  color: #ffd1df !important;
+  margin: 0;
+  padding: 0.75rem;
+  border: 1px solid #fecdca;
+  background: var(--danger-bg);
+  color: var(--danger);
 }
 
-.actionButton:disabled {
-  opacity: 0.65;
-  cursor: not-allowed;
+@media (max-width: 1180px) {
+  .shell,
+  .twoColumn,
+  .hero,
+  .kpiGrid,
+  .infoGrid {
+    grid-template-columns: 1fr;
+  }
+
+  .sidebar {
+    min-height: auto;
+    border-right: 0;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .sideNav {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
 }
 
 @media (max-width: 760px) {
+  .content,
+  .sidebar {
+    padding: 0.85rem;
+  }
+
+  .contentHeader,
+  .headerActions,
+  .panelHeader,
+  .detailHeader,
+  .topRow,
+  .detailActions,
+  .formActions,
+  .restaurantCard {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .sideNav,
+  .createGrid,
+  .detailGrid,
   .billingGrid {
     grid-template-columns: 1fr;
+  }
+
+  .actionButton,
+  .secondaryAction,
+  .deleteButton,
+  .statusSelect,
+  .sidebarPrimaryButton {
+    width: 100%;
   }
 }

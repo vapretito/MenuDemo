@@ -24,6 +24,30 @@ const defaultForm: RestaurantCreationInput = {
   billingMode: "mercado_pago_subscription",
 };
 
+type SuperAdminView = "dashboard" | "restaurants" | "billing";
+
+const sidebarItems: Array<{
+  id: SuperAdminView;
+  label: string;
+  description: string;
+}> = [
+  {
+    id: "dashboard",
+    label: "Dashboard",
+    description: "Resumen general",
+  },
+  {
+    id: "restaurants",
+    label: "Restaurantes",
+    description: "Clientes y demos",
+  },
+  {
+    id: "billing",
+    label: "Membresías",
+    description: "Mercado Pago",
+  },
+];
+
 const buildRestaurant = (input: RestaurantCreationInput): RestaurantRecord => {
   const selectedPlan = planCatalog.find((plan) => plan.id === input.planId) ?? planCatalog[0];
   const isManual = input.billingMode === "manual";
@@ -85,6 +109,8 @@ export function SuperAdminPanel() {
     platformSnapshot.restaurants[0]?.slug ?? ""
   );
   const [form, setForm] = useState<RestaurantCreationInput>(defaultForm);
+  const [activeView, setActiveView] = useState<SuperAdminView>("dashboard");
+const [isCreateOpen, setIsCreateOpen] = useState(false);
   
   const [mpPayerEmail, setMpPayerEmail] = useState("");
   const [mpLoading, setMpLoading] = useState(false);
@@ -129,6 +155,8 @@ export function SuperAdminPanel() {
     setRestaurants((current) => [...current, nextRestaurant]);
     setSelectedSlug(nextRestaurant.slug);
     setForm(defaultForm);
+    setIsCreateOpen(false);
+setActiveView("restaurants");
   };
 
   const deleteRestaurant = (slug: string) => {
@@ -238,372 +266,581 @@ export function SuperAdminPanel() {
   if (!selectedRestaurant) {
     return null;
   }
-
+  
   return (
     <div className={styles.shell}>
-      <aside className={styles.listPanel}>
-        <section className={styles.panelSection}>
-          <div className={styles.panelHeader}>
-            <div>
-              <span className={styles.eyebrow}>Alta comercial</span>
-              <h3>Agregar restaurante</h3>
-            </div>
-          </div>
-
-          <div className={styles.createGrid}>
-            <label>
-              <span>Nombre</span>
-              <input
-                value={form.name}
-                onChange={(event) =>
-                  setForm((current) => ({ ...current, name: event.target.value }))
-                }
-              />
-            </label>
-            <label>
-              <span>Slug interno</span>
-              <input
-                value={form.slug}
-                onChange={(event) =>
-                  setForm((current) => ({ ...current, slug: event.target.value }))
-                }
-              />
-            </label>
-            <label>
-              <span>Subdominio manual</span>
-              <input
-                placeholder="subway.menui.oi"
-                value={form.subdomain}
-                onChange={(event) =>
-                  setForm((current) => ({ ...current, subdomain: event.target.value }))
-                }
-              />
-            </label>
-            <label>
-              <span>Ciudad</span>
-              <input
-                value={form.city}
-                onChange={(event) =>
-                  setForm((current) => ({ ...current, city: event.target.value }))
-                }
-              />
-            </label>
-            <label>
-              <span>Tipo de cocina</span>
-              <input
-                value={form.cuisine}
-                onChange={(event) =>
-                  setForm((current) => ({ ...current, cuisine: event.target.value }))
-                }
-              />
-            </label>
-            <label>
-              <span>Responsable</span>
-              <input
-                value={form.adminName}
-                onChange={(event) =>
-                  setForm((current) => ({ ...current, adminName: event.target.value }))
-                }
-              />
-            </label>
-            <label>
-              <span>WhatsApp del local</span>
-              <input
-                value={form.customerWhatsapp}
-                onChange={(event) =>
-                  setForm((current) => ({
-                    ...current,
-                    customerWhatsapp: event.target.value,
-                  }))
-                }
-              />
-            </label>
-            <label>
-              <span>Plan</span>
-              <select
-                value={form.planId}
-                onChange={(event) =>
-                  setForm((current) => ({
-                    ...current,
-                    planId: event.target.value as RestaurantCreationInput["planId"],
-                  }))
-                }
-              >
-                {platformSnapshot.plans.map((plan) => (
-                  <option key={plan.id} value={plan.id}>
-                    {plan.name} - {money.format(plan.price)}
-                  </option>
-                ))}
-              </select>
-            </label>
-            <label>
-              <span>Estado inicial</span>
-              <select
-                value={form.status}
-                onChange={(event) =>
-                  setForm((current) => ({
-                    ...current,
-                    status: event.target.value as RestaurantCreationInput["status"],
-                  }))
-                }
-              >
-                <option value="trial">trial</option>
-                <option value="active">active</option>
-                <option value="past_due">past_due</option>
-                <option value="suspended">suspended</option>
-                <option value="cancelled">cancelled</option>
-                <option value="manual">manual</option>
-              </select>
-            </label>
-            <label>
-              <span>Modo de cobro</span>
-              <select
-                value={form.billingMode}
-                onChange={(event) =>
-                  setForm((current) => ({
-                    ...current,
-                    billingMode: event.target.value as RestaurantCreationInput["billingMode"],
-                  }))
-                }
-              >
-                <option value="mercado_pago_subscription">Mercado Pago</option>
-                <option value="manual">Manual</option>
-              </select>
-            </label>
-            <button className={styles.actionButton} onClick={createRestaurant} type="button">
-              Crear restaurante
-            </button>
-          </div>
-        </section>
-
-        <section className={styles.panelSection}>
-          <div className={styles.panelHeader}>
-            <div>
-              <span className={styles.eyebrow}>Portfolio</span>
-              <h3>Restaurantes activos</h3>
-            </div>
-          </div>
-
-          <div className={styles.restaurantList}>
-            {restaurants.map((restaurant) => (
-              <button
-                className={`${styles.restaurantCard} ${
-                  selectedSlug === restaurant.slug ? styles.restaurantCardActive : ""
-                }`}
-                key={restaurant.id}
-                onClick={() => setSelectedSlug(restaurant.slug)}
-                type="button"
-              >
-                <div>
-                  <strong>{restaurant.name}</strong>
-                  <span>{restaurant.subdomain}</span>
-                </div>
-                <small>{restaurant.status}</small>
-              </button>
-            ))}
-          </div>
-        </section>
-      </aside>
-
-      <section className={styles.detailPanel}>
-        <section className={styles.hero}>
+      <aside className={styles.sidebar}>
+        <div className={styles.sidebarBrand}>
+          <div className={styles.logoBox}>M</div>
           <div>
-            <span className={styles.eyebrow}>Backoffice producto</span>
-            <h2>Centro de control para subdominios, membresias y activacion comercial.</h2>
-            <p>
-              En MVP podes usar un link simple de suscripcion de Mercado Pago y activar
-              manualmente. El flujo ideal es generar suscripcion, recibir webhook y mover
-              estados automaticamente entre `active`, `past_due` o `suspended`.
-            </p>
+            <strong>Menui</strong>
+            <span>Control Center</span>
           </div>
-
-          <div className={styles.heroStats}>
-            <article>
-              <strong>{restaurants.length}</strong>
-              <span>restaurantes en plataforma</span>
-            </article>
-            <article>
-              <strong>{stats.activeCount}</strong>
-              <span>activos</span>
-            </article>
-            <article>
-              <strong>{stats.configuredCount}</strong>
-              <span>subdominios confirmados</span>
-            </article>
+        </div>
+  
+        <nav className={styles.sideNav}>
+          {sidebarItems.map((item) => (
+            <button
+              key={item.id}
+              className={
+                activeView === item.id
+                  ? styles.sideNavButtonActive
+                  : styles.sideNavButton
+              }
+              onClick={() => setActiveView(item.id)}
+              type="button"
+            >
+              <strong>{item.label}</strong>
+              <span>{item.description}</span>
+            </button>
+          ))}
+        </nav>
+  
+        <button
+          className={styles.sidebarPrimaryButton}
+          onClick={() => {
+            setActiveView("restaurants");
+            setIsCreateOpen(true);
+          }}
+          type="button"
+        >
+          + Agregar restaurante
+        </button>
+  
+        <div className={styles.sidebarFooter}>
+          <span>Dominio principal</span>
+          <strong>menui.online</strong>
+        </div>
+      </aside>
+  
+      <section className={styles.content}>
+        <header className={styles.contentHeader}>
+          <div>
+            <span className={styles.eyebrow}>
+              {activeView === "dashboard"
+                ? "Resumen"
+                : activeView === "restaurants"
+                  ? "Gestión comercial"
+                  : "Cobros y suscripciones"}
+            </span>
+            <h2>
+              {activeView === "dashboard"
+                ? "Dashboard"
+                : activeView === "restaurants"
+                  ? "Restaurantes"
+                  : "Membresías"}
+            </h2>
           </div>
-        </section>
-
-        <section className={styles.overviewGrid}>
-          <article className={styles.overviewCard}>
-            <strong>{stats.totalOrders}</strong>
-            <span>pedidos de referencia del mes</span>
-          </article>
-          <article className={styles.overviewCard}>
-            <strong>{selectedRestaurant.subscription.plan}</strong>
-            <span>plan actual</span>
-          </article>
-          <article className={styles.overviewCard}>
-            <strong>{selectedRestaurant.status}</strong>
-            <span>estado comercial</span>
-          </article>
-          <article className={styles.overviewCard}>
-            <strong>{selectedRestaurant.connectedToDemo ? "SI" : "NO"}</strong>
-            <span>conectado a demo publica</span>
-          </article>
-        </section>
-
-        <section className={styles.panelSection}>
-          <div className={styles.detailHeader}>
-            <div>
-              <span className={styles.eyebrow}>Ficha operativa</span>
-              <h3>{selectedRestaurant.name}</h3>
-            </div>
-            <div className={styles.topRow}>
-              <span className={styles.badge}>
-                {selectedRestaurant.dnsStatus === "configured"
-                  ? "hostinger configurado"
-                  : "hostinger pendiente"}
-              </span>
-              {!selectedRestaurant.connectedToDemo ? (
-                <button
-                  className={styles.deleteButton}
-                  onClick={() => deleteRestaurant(selectedRestaurant.slug)}
-                  type="button"
-                >
-                  Borrar restaurante
-                </button>
-              ) : null}
-            </div>
-          </div>
-
-          <div className={styles.detailGrid}>
-            <div className={styles.detailCard}>
-              <span>Slug interno</span>
-              <strong>{selectedRestaurant.slug}</strong>
-            </div>
-            <div className={styles.detailCard}>
-              <span>Subdominio manual</span>
-              <strong>{selectedRestaurant.subdomain}</strong>
-            </div>
-            <div className={styles.detailCard}>
-              <span>Plan</span>
-              <strong>{selectedRestaurant.subscription.plan}</strong>
-            </div>
-            <div className={styles.detailCard}>
-              <span>Modo de cobro</span>
-              <strong>{selectedRestaurant.billingMode}</strong>
-            </div>
-            <div className={styles.detailCard}>
-              <span>Estado</span>
-              <strong>{selectedRestaurant.status}</strong>
-            </div>
-            <div className={styles.detailCard}>
-              <span>Grace until</span>
-              <strong>{selectedRestaurant.graceUntil ?? "sin gracia"}</strong>
-            </div>
-            <div className={styles.detailCard}>
-              <span>Debito mensual</span>
-              <strong>{money.format(selectedRestaurant.subscription.amountArs)}</strong>
-            </div>
-            <div className={styles.detailCard}>
-              <span>Renovacion</span>
-              <strong>{selectedRestaurant.subscription.renewsOn}</strong>
-            </div>
-            <div className={`${styles.detailCard} ${styles.full}`}>
-              <span>Mercado Pago</span>
-              <strong>{selectedRestaurant.subscription.mercadopagoPreapprovalId}</strong>
-            </div>
-            <div className={`${styles.detailCard} ${styles.full}`}>
-              <span>Descripcion operativa</span>
-              <strong>{selectedRestaurant.description}</strong>
-            </div>
-          </div>
-        </section>
-
-        <section className={styles.callout}>
-          <h4>Flujo de cobro recomendado</h4>
-          <ul>
-            <li>Opcion A MVP: crear plan/link de suscripcion de Mercado Pago, enviarlo al restaurante y activarlo manualmente.</li>
-            <li>Flujo ideal: crear restaurante, elegir plan, generar suscripcion, recibir webhook y actualizar estado automaticamente.</li>
-            <li>Si el pago entra, mantener `active`. Si falla, pasar a `past_due`. Luego de la gracia, mover a `suspended`.</li>
-            <li>`Subway Central` queda como primer restaurante conectado a la demo publica para seguir evolucionando producto real.</li>
-          </ul>
-          <div className={styles.calloutActions}>
-            {selectedRestaurant.dnsStatus === "pending" ? (
+  
+          <div className={styles.headerActions}>
+            <span className={styles.statusBadge}>Backoffice activo</span>
+  
+            {activeView === "restaurants" ? (
               <button
                 className={styles.actionButton}
-                onClick={() => markDnsConfigured(selectedRestaurant.slug)}
+                onClick={() => setIsCreateOpen((current) => !current)}
                 type="button"
               >
-                Marcar Hostinger como configurado
+                {isCreateOpen ? "Cerrar formulario" : "Agregar restaurante"}
               </button>
             ) : null}
-            <div className={styles.billingBox}>
-  <div>
-    <span className={styles.eyebrow}>Mercado Pago</span>
-    <h4>Crear suscripción mensual</h4>
-    <p>
-      Genera un checkout de suscripción para este restaurante. Por ahora queda en memoria;
-      cuando conectemos base real, el webhook va a actualizar el estado automáticamente.
-    </p>
-  </div>
-
-  <div className={styles.billingGrid}>
-    <label>
-      <span>Email del dueño</span>
-      <input
-        className={styles.billingInput}
-        placeholder="cliente@email.com"
-        type="email"
-        value={mpPayerEmail}
-        onChange={(event) => setMpPayerEmail(event.target.value)}
-      />
-    </label>
-
-    <button
-      className={styles.actionButton}
-      disabled={mpLoading}
-      onClick={createMercadoPagoSubscription}
-      type="button"
-    >
-      {mpLoading ? "Generando..." : "Generar suscripción"}
-    </button>
-  </div>
-
-  {mpError ? <p className={styles.billingError}>{mpError}</p> : null}
-
-  {mpSubscriptionId ? (
-    <div className={styles.billingResult}>
-      <span>Preapproval ID</span>
-      <strong>{mpSubscriptionId}</strong>
-    </div>
-  ) : null}
-
-  {mpCheckoutUrl ? (
-    <a className={styles.secondaryAction} href={mpCheckoutUrl} rel="noreferrer" target="_blank">
-      Abrir checkout de Mercado Pago
-    </a>
-  ) : null}
-</div>
-            <select
-              className={styles.statusSelect}
-              value={selectedRestaurant.status}
-              onChange={(event) =>
-                setRestaurantStatus(
-                  selectedRestaurant.slug,
-                  event.target.value as RestaurantRecord["status"]
-                )
-              }
-            >
-              <option value="trial">trial</option>
-              <option value="active">active</option>
-              <option value="past_due">past_due</option>
-              <option value="suspended">suspended</option>
-              <option value="cancelled">cancelled</option>
-              <option value="manual">manual</option>
-            </select>
           </div>
-        </section>
+        </header>
+  
+        {activeView === "dashboard" ? (
+          <div className={styles.viewStack}>
+            <section className={styles.hero}>
+              <div>
+                <span className={styles.eyebrow}>Menui SaaS</span>
+                <h1>Centro de control para menús, subdominios y membresías.</h1>
+                <p>
+                  Desde este panel podés crear restaurantes, controlar estados de
+                  activación, revisar subdominios y preparar la operación mensual
+                  de cada cliente.
+                </p>
+              </div>
+  
+              <div className={styles.heroStats}>
+                <article>
+                  <strong>{restaurants.length}</strong>
+                  <span>restaurantes cargados</span>
+                </article>
+                <article>
+                  <strong>{stats.activeCount}</strong>
+                  <span>activos</span>
+                </article>
+                <article>
+                  <strong>{stats.configuredCount}</strong>
+                  <span>subdominios configurados</span>
+                </article>
+              </div>
+            </section>
+  
+            <section className={styles.kpiGrid}>
+              <article className={styles.kpiCard}>
+                <span>Pedidos de referencia</span>
+                <strong>{stats.totalOrders}</strong>
+              </article>
+  
+              <article className={styles.kpiCard}>
+                <span>MRR estimado</span>
+                <strong>{money.format(stats.monthlyRecurring)}</strong>
+              </article>
+  
+              <article className={styles.kpiCard}>
+                <span>Demo pública</span>
+                <strong>demo.menui.online</strong>
+              </article>
+  
+              <article className={styles.kpiCard}>
+                <span>Backoffice</span>
+                <strong>menui.online/backoffice</strong>
+              </article>
+            </section>
+  
+            <section className={styles.panelSection}>
+              <div className={styles.panelHeader}>
+                <div>
+                  <span className={styles.eyebrow}>Arquitectura</span>
+                  <h3>Flujo actual de Menui</h3>
+                </div>
+              </div>
+  
+              <div className={styles.infoGrid}>
+                <article>
+                  <span>Landing</span>
+                  <strong>menui.online</strong>
+                  <p>Clientes entran, ven el servicio y te contactan.</p>
+                </article>
+  
+                <article>
+                  <span>Demo</span>
+                  <strong>demo.menui.online</strong>
+                  <p>Demo pública con carrito y pedido por WhatsApp.</p>
+                </article>
+  
+                <article>
+                  <span>Admin restaurante</span>
+                  <strong>demo.menui.online/admin</strong>
+                  <p>Panel del restaurante para editar productos y categorías.</p>
+                </article>
+  
+                <article>
+                  <span>Superadmin</span>
+                  <strong>menui.online/backoffice</strong>
+                  <p>Panel privado para administrar clientes y membresías.</p>
+                </article>
+              </div>
+            </section>
+          </div>
+        ) : null}
+  
+        {activeView === "restaurants" ? (
+          <div className={styles.viewStack}>
+            {isCreateOpen ? (
+              <section className={styles.panelSection}>
+                <div className={styles.panelHeader}>
+                  <div>
+                    <span className={styles.eyebrow}>Alta comercial</span>
+                    <h3>Agregar restaurante</h3>
+                  </div>
+                </div>
+  
+                <div className={styles.createGrid}>
+                  <label>
+                    <span>Nombre</span>
+                    <input
+                      value={form.name}
+                      onChange={(event) =>
+                        setForm((current) => ({
+                          ...current,
+                          name: event.target.value,
+                        }))
+                      }
+                    />
+                  </label>
+  
+                  <label>
+                    <span>Slug interno</span>
+                    <input
+                      placeholder="demo"
+                      value={form.slug}
+                      onChange={(event) =>
+                        setForm((current) => ({
+                          ...current,
+                          slug: event.target.value,
+                        }))
+                      }
+                    />
+                  </label>
+  
+                  <label>
+                    <span>Subdominio</span>
+                    <input
+                      placeholder="demo.menui.online"
+                      value={form.subdomain}
+                      onChange={(event) =>
+                        setForm((current) => ({
+                          ...current,
+                          subdomain: event.target.value,
+                        }))
+                      }
+                    />
+                  </label>
+  
+                  <label>
+                    <span>Ciudad</span>
+                    <input
+                      value={form.city}
+                      onChange={(event) =>
+                        setForm((current) => ({
+                          ...current,
+                          city: event.target.value,
+                        }))
+                      }
+                    />
+                  </label>
+  
+                  <label>
+                    <span>Tipo de cocina</span>
+                    <input
+                      value={form.cuisine}
+                      onChange={(event) =>
+                        setForm((current) => ({
+                          ...current,
+                          cuisine: event.target.value,
+                        }))
+                      }
+                    />
+                  </label>
+  
+                  <label>
+                    <span>Responsable</span>
+                    <input
+                      value={form.adminName}
+                      onChange={(event) =>
+                        setForm((current) => ({
+                          ...current,
+                          adminName: event.target.value,
+                        }))
+                      }
+                    />
+                  </label>
+  
+                  <label>
+                    <span>WhatsApp del local</span>
+                    <input
+                      value={form.customerWhatsapp}
+                      onChange={(event) =>
+                        setForm((current) => ({
+                          ...current,
+                          customerWhatsapp: event.target.value,
+                        }))
+                      }
+                    />
+                  </label>
+  
+                  <label>
+                    <span>Plan</span>
+                    <select
+                      value={form.planId}
+                      onChange={(event) =>
+                        setForm((current) => ({
+                          ...current,
+                          planId:
+                            event.target
+                              .value as RestaurantCreationInput["planId"],
+                        }))
+                      }
+                    >
+                      {platformSnapshot.plans.map((plan) => (
+                        <option key={plan.id} value={plan.id}>
+                          {plan.name} - {money.format(plan.price)}
+                        </option>
+                      ))}
+                    </select>
+                  </label>
+  
+                  <label>
+                    <span>Estado inicial</span>
+                    <select
+                      value={form.status}
+                      onChange={(event) =>
+                        setForm((current) => ({
+                          ...current,
+                          status:
+                            event.target
+                              .value as RestaurantCreationInput["status"],
+                        }))
+                      }
+                    >
+                      <option value="trial">trial</option>
+                      <option value="active">active</option>
+                      <option value="past_due">past_due</option>
+                      <option value="suspended">suspended</option>
+                      <option value="cancelled">cancelled</option>
+                      <option value="manual">manual</option>
+                    </select>
+                  </label>
+  
+                  <label>
+                    <span>Modo de cobro</span>
+                    <select
+                      value={form.billingMode}
+                      onChange={(event) =>
+                        setForm((current) => ({
+                          ...current,
+                          billingMode:
+                            event.target
+                              .value as RestaurantCreationInput["billingMode"],
+                        }))
+                      }
+                    >
+                      <option value="mercado_pago_subscription">
+                        Mercado Pago
+                      </option>
+                      <option value="manual">Manual</option>
+                    </select>
+                  </label>
+  
+                  <div className={styles.formActions}>
+                    <button
+                      className={styles.actionButton}
+                      onClick={createRestaurant}
+                      type="button"
+                    >
+                      Crear restaurante
+                    </button>
+  
+                    <button
+                      className={styles.secondaryAction}
+                      onClick={() => setIsCreateOpen(false)}
+                      type="button"
+                    >
+                      Cancelar
+                    </button>
+                  </div>
+                </div>
+              </section>
+            ) : null}
+  
+            <section className={styles.twoColumn}>
+              <aside className={styles.panelSection}>
+                <div className={styles.panelHeader}>
+                  <div>
+                    <span className={styles.eyebrow}>Portfolio</span>
+                    <h3>Restaurantes</h3>
+                  </div>
+                  <span className={styles.countBadge}>{restaurants.length}</span>
+                </div>
+  
+                <div className={styles.restaurantList}>
+                  {restaurants.map((restaurant) => (
+                    <button
+                      className={`${styles.restaurantCard} ${
+                        selectedSlug === restaurant.slug
+                          ? styles.restaurantCardActive
+                          : ""
+                      }`}
+                      key={restaurant.id}
+                      onClick={() => setSelectedSlug(restaurant.slug)}
+                      type="button"
+                    >
+                      <div>
+                        <strong>{restaurant.name}</strong>
+                        <span>{restaurant.subdomain}</span>
+                      </div>
+                      <small>{restaurant.status}</small>
+                    </button>
+                  ))}
+                </div>
+              </aside>
+  
+              <section className={styles.panelSection}>
+                <div className={styles.detailHeader}>
+                  <div>
+                    <span className={styles.eyebrow}>Ficha operativa</span>
+                    <h3>{selectedRestaurant.name}</h3>
+                  </div>
+  
+                  <div className={styles.topRow}>
+                    <span className={styles.badge}>
+                      {selectedRestaurant.dnsStatus === "configured"
+                        ? "DNS configurado"
+                        : "DNS pendiente"}
+                    </span>
+  
+                    {!selectedRestaurant.connectedToDemo ? (
+                      <button
+                        className={styles.deleteButton}
+                        onClick={() =>
+                          deleteRestaurant(selectedRestaurant.slug)
+                        }
+                        type="button"
+                      >
+                        Borrar
+                      </button>
+                    ) : null}
+                  </div>
+                </div>
+  
+                <div className={styles.detailGrid}>
+                  <div className={styles.detailCard}>
+                    <span>Slug</span>
+                    <strong>{selectedRestaurant.slug}</strong>
+                  </div>
+  
+                  <div className={styles.detailCard}>
+                    <span>Subdominio</span>
+                    <strong>{selectedRestaurant.subdomain}</strong>
+                  </div>
+  
+                  <div className={styles.detailCard}>
+                    <span>Plan</span>
+                    <strong>{selectedRestaurant.subscription.plan}</strong>
+                  </div>
+  
+                  <div className={styles.detailCard}>
+                    <span>Modo de cobro</span>
+                    <strong>{selectedRestaurant.billingMode}</strong>
+                  </div>
+  
+                  <div className={styles.detailCard}>
+                    <span>Estado</span>
+                    <strong>{selectedRestaurant.status}</strong>
+                  </div>
+  
+                  <div className={styles.detailCard}>
+                    <span>Renovación</span>
+                    <strong>{selectedRestaurant.subscription.renewsOn}</strong>
+                  </div>
+  
+                  <div className={styles.detailCard}>
+                    <span>Débito mensual</span>
+                    <strong>
+                      {money.format(selectedRestaurant.subscription.amountArs)}
+                    </strong>
+                  </div>
+  
+                  <div className={styles.detailCard}>
+                    <span>WhatsApp</span>
+                    <strong>{selectedRestaurant.customerWhatsapp}</strong>
+                  </div>
+  
+                  <div className={`${styles.detailCard} ${styles.full}`}>
+                    <span>Mercado Pago</span>
+                    <strong>
+                      {selectedRestaurant.subscription.mercadopagoPreapprovalId}
+                    </strong>
+                  </div>
+  
+                  <div className={`${styles.detailCard} ${styles.full}`}>
+                    <span>Descripción operativa</span>
+                    <strong>{selectedRestaurant.description}</strong>
+                  </div>
+                </div>
+  
+                <div className={styles.detailActions}>
+                  {selectedRestaurant.dnsStatus === "pending" ? (
+                    <button
+                      className={styles.actionButton}
+                      onClick={() =>
+                        markDnsConfigured(selectedRestaurant.slug)
+                      }
+                      type="button"
+                    >
+                      Marcar DNS configurado
+                    </button>
+                  ) : null}
+  
+                  <select
+                    className={styles.statusSelect}
+                    value={selectedRestaurant.status}
+                    onChange={(event) =>
+                      setRestaurantStatus(
+                        selectedRestaurant.slug,
+                        event.target.value as RestaurantRecord["status"]
+                      )
+                    }
+                  >
+                    <option value="trial">trial</option>
+                    <option value="active">active</option>
+                    <option value="past_due">past_due</option>
+                    <option value="suspended">suspended</option>
+                    <option value="cancelled">cancelled</option>
+                    <option value="manual">manual</option>
+                  </select>
+                </div>
+              </section>
+            </section>
+          </div>
+        ) : null}
+  
+        {activeView === "billing" ? (
+          <section className={styles.panelSection}>
+            <div className={styles.panelHeader}>
+              <div>
+                <span className={styles.eyebrow}>Mercado Pago</span>
+                <h3>Membresía del restaurante seleccionado</h3>
+              </div>
+            </div>
+  
+            <div className={styles.billingBox}>
+              <div>
+                <span className={styles.eyebrow}>Restaurante</span>
+                <h4>{selectedRestaurant.name}</h4>
+                <p>
+                  Genera un checkout de suscripción para este restaurante. Más
+                  adelante el webhook actualizará el estado automáticamente.
+                </p>
+              </div>
+  
+              <div className={styles.billingGrid}>
+                <label>
+                  <span>Email del dueño</span>
+                  <input
+                    className={styles.billingInput}
+                    placeholder="cliente@email.com"
+                    type="email"
+                    value={mpPayerEmail}
+                    onChange={(event) => setMpPayerEmail(event.target.value)}
+                  />
+                </label>
+  
+                <button
+                  className={styles.actionButton}
+                  disabled={mpLoading}
+                  onClick={createMercadoPagoSubscription}
+                  type="button"
+                >
+                  {mpLoading ? "Generando..." : "Generar suscripción"}
+                </button>
+              </div>
+  
+              {mpError ? (
+                <p className={styles.billingError}>{mpError}</p>
+              ) : null}
+  
+              {mpSubscriptionId ? (
+                <div className={styles.billingResult}>
+                  <span>Preapproval ID</span>
+                  <strong>{mpSubscriptionId}</strong>
+                </div>
+              ) : null}
+  
+              {mpCheckoutUrl ? (
+                <a
+                  className={styles.secondaryAction}
+                  href={mpCheckoutUrl}
+                  rel="noreferrer"
+                  target="_blank"
+                >
+                  Abrir checkout de Mercado Pago
+                </a>
+              ) : null}
+            </div>
+          </section>
+        ) : null}
       </section>
     </div>
   );

@@ -14,13 +14,12 @@ const money = new Intl.NumberFormat("es-AR", {
 type AdminSection = "overview" | "identity" | "categories" | "products" | "publishing";
 
 const sections: Array<{ id: AdminSection; label: string; hint: string }> = [
-  { id: "overview", label: "Resumen", hint: "KPI y estado general" },
-  { id: "identity", label: "Identidad", hint: "Marca y datos del local" },
-  { id: "categories", label: "Categorias", hint: "Estructura del menu" },
-  { id: "products", label: "Productos", hint: "Items, fotos y disponibilidad" },
-  { id: "publishing", label: "Publicacion", hint: "Subdominio y recepcion" },
+  { id: "overview", label: "Dashboard", hint: "Resumen operativo" },
+  { id: "identity", label: "Mi restaurante", hint: "Marca y datos" },
+  { id: "categories", label: "Categorías", hint: "Estructura del menú" },
+  { id: "products", label: "Productos", hint: "Precios, fotos y estado" },
+  { id: "publishing", label: "Publicación", hint: "Subdominio y WhatsApp" },
 ];
-
 const slugify = (value: string) =>
   value
     .toLowerCase()
