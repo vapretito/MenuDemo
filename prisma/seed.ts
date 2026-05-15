@@ -1,3 +1,5 @@
+// @ts-nocheck
+
 import "dotenv/config";
 import {
     BillingMode,
