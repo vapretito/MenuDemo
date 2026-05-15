@@ -48,6 +48,7 @@ const createItem = (categoryId: string): MenuItem => ({
 
 type RestaurantAdminPanelProps = {
   restaurantSlug?: string;
+  initialRestaurant?: RestaurantRecord;
 };
 
 export function RestaurantAdminPanel({
