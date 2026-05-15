@@ -1,10 +1,19 @@
-import Link from "next/link";
 import { notFound } from "next/navigation";
 import { MobileMenu } from "@/components/mobile-menu";
 import { platformSnapshot } from "@/data/platform";
 
 type MenuPageProps = {
   params: Promise<{ slug: string }>;
+};
+
+const getMarketingUrl = () => {
+  const rootDomain = process.env.MENUI_ROOT_DOMAIN ?? "menui.online";
+
+  if (process.env.NODE_ENV === "development") {
+    return "/";
+  }
+
+  return `https://${rootDomain}`;
 };
 
 export default async function MenuPage({ params }: MenuPageProps) {
@@ -15,12 +24,16 @@ export default async function MenuPage({ params }: MenuPageProps) {
     notFound();
   }
 
+  const isDemoMenu = restaurant.slug === "demo";
+
   return (
     <main className="menuPage">
-      <div className="menuTopbar">
-        <Link href="/">Menui</Link>
-        <Link href="/admin">Admin</Link>
-      </div>
+      {isDemoMenu ? (
+        <a className="demoBackButton" href={getMarketingUrl()}>
+          ← Volver
+        </a>
+      ) : null}
+
       <MobileMenu restaurant={restaurant} />
     </main>
   );
