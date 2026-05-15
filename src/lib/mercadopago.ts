@@ -1,10 +1,11 @@
 type CreatePreapprovalInput = {
-    restaurantId: string;
-    restaurantName: string;
-    planName: string;
-    payerEmail: string;
-    amountArs: number;
-  };
+  restaurantId: string;
+  restaurantSlug: string;
+  restaurantName: string;
+  planName: string;
+  payerEmail: string;
+  amountArs: number;
+};
   
   type MercadoPagoPreapprovalResponse = {
     id: string;
@@ -59,7 +60,7 @@ type CreatePreapprovalInput = {
           transaction_amount: input.amountArs,
           currency_id: "ARS",
         },
-        back_url: `${getBaseUrl()}/backoffice`,
+        back_url: `${getBaseUrl()}/activar/${input.restaurantSlug}`,
         status: "pending",
       }),
     });

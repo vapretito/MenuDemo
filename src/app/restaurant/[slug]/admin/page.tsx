@@ -2,7 +2,7 @@ import { notFound } from "next/navigation";
 import { MobileMenu } from "@/components/mobile-menu";
 import { prisma } from "@/lib/prisma";
 import { mapRestaurantToRecord } from "@/lib/restaurant-mapper";
-
+import { redirect } from "next/navigation";
 type MenuPageProps = {
   params: Promise<{ slug: string }>;
 };
@@ -44,8 +44,12 @@ export default async function MenuPage({ params }: MenuPageProps) {
   }
 
   const record = mapRestaurantToRecord(restaurant);
-  const isDemoMenu = record.slug === "demo" || record.connectedToDemo;
 
+  
+  const isDemoMenu = record.slug === "demo" || record.connectedToDemo;
+  if (restaurant.status !== "ACTIVE" && restaurant.slug !== "demo") {
+    redirect(`/activar/${restaurant.slug}`);
+  }
   return (
     <main className="menuPage">
       {isDemoMenu ? (
