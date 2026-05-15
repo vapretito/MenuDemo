@@ -1,6 +1,7 @@
 import { notFound } from "next/navigation";
 import { MobileMenu } from "@/components/mobile-menu";
-import { platformSnapshot } from "@/data/platform";
+import { prisma } from "@/lib/prisma";
+import { mapRestaurantToRecord } from "@/lib/restaurant-mapper";
 
 type MenuPageProps = {
   params: Promise<{ slug: string }>;
@@ -18,13 +19,33 @@ const getMarketingUrl = () => {
 
 export default async function MenuPage({ params }: MenuPageProps) {
   const { slug } = await params;
-  const restaurant = platformSnapshot.restaurants.find((entry) => entry.slug === slug);
+
+  const restaurant = await prisma.restaurant.findUnique({
+    where: {
+      slug,
+    },
+    include: {
+      categories: {
+        orderBy: {
+          sortOrder: "asc",
+        },
+      },
+      products: {
+        orderBy: {
+          sortOrder: "asc",
+        },
+      },
+      subscription: true,
+    },
+  });
 
   if (!restaurant) {
     notFound();
   }
 
-  const isDemoMenu = restaurant.slug === "demo" || restaurant.connectedToDemo;
+  const record = mapRestaurantToRecord(restaurant);
+  const isDemoMenu = record.slug === "demo" || record.connectedToDemo;
+
   return (
     <main className="menuPage">
       {isDemoMenu ? (
@@ -33,7 +54,7 @@ export default async function MenuPage({ params }: MenuPageProps) {
         </a>
       ) : null}
 
-      <MobileMenu restaurant={restaurant} />
+      <MobileMenu restaurant={record} />
     </main>
   );
 }

@@ -1,15 +1,60 @@
-import { RestaurantAdminPanel } from "@/components/restaurant-admin-panel";
+import { notFound } from "next/navigation";
+import { MobileMenu } from "@/components/mobile-menu";
+import { prisma } from "@/lib/prisma";
+import { mapRestaurantToRecord } from "@/lib/restaurant-mapper";
 
-type RestaurantAdminPageProps = {
-  params: Promise<{
-    slug: string;
-  }>;
+type MenuPageProps = {
+  params: Promise<{ slug: string }>;
 };
 
-export default async function RestaurantAdminPage({
-  params,
-}: RestaurantAdminPageProps) {
+const getMarketingUrl = () => {
+  const rootDomain = process.env.MENUI_ROOT_DOMAIN ?? "menui.online";
+
+  if (process.env.NODE_ENV === "development") {
+    return "/";
+  }
+
+  return `https://${rootDomain}`;
+};
+
+export default async function MenuPage({ params }: MenuPageProps) {
   const { slug } = await params;
 
-  return <RestaurantAdminPanel restaurantSlug={slug} />;
+  const restaurant = await prisma.restaurant.findUnique({
+    where: {
+      slug,
+    },
+    include: {
+      categories: {
+        orderBy: {
+          sortOrder: "asc",
+        },
+      },
+      products: {
+        orderBy: {
+          sortOrder: "asc",
+        },
+      },
+      subscription: true,
+    },
+  });
+
+  if (!restaurant) {
+    notFound();
+  }
+
+  const record = mapRestaurantToRecord(restaurant);
+  const isDemoMenu = record.slug === "demo" || record.connectedToDemo;
+
+  return (
+    <main className="menuPage">
+      {isDemoMenu ? (
+        <a className="demoBackButton" href={getMarketingUrl()}>
+          ← Volver
+        </a>
+      ) : null}
+
+      <MobileMenu restaurant={record} />
+    </main>
+  );
 }

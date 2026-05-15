@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import styles from "./super-admin-panel.module.css";
 import { planCatalog, platformSnapshot } from "@/data/platform";
 import { RestaurantCreationInput, RestaurantRecord } from "@/types/platform";
@@ -117,7 +117,8 @@ const [isCreateOpen, setIsCreateOpen] = useState(false);
   const [mpError, setMpError] = useState<string | null>(null);
   const [mpCheckoutUrl, setMpCheckoutUrl] = useState<string | null>(null);
   const [mpSubscriptionId, setMpSubscriptionId] = useState<string | null>(null);
-
+  const [isLoadingRestaurants, setIsLoadingRestaurants] = useState(true);
+  const [backofficeError, setBackofficeError] = useState<string | null>(null);
   const selectedRestaurant =
     restaurants.find((restaurant) => restaurant.slug === selectedSlug) ?? restaurants[0];
 
@@ -140,7 +141,7 @@ const [isCreateOpen, setIsCreateOpen] = useState(false);
     return { activeCount, monthlyRecurring, totalOrders, configuredCount };
   }, [restaurants]);
 
-  const createRestaurant = () => {
+  const createRestaurant = async () => {
     if (
       !form.name ||
       !form.slug ||
@@ -148,53 +149,148 @@ const [isCreateOpen, setIsCreateOpen] = useState(false);
       !form.city ||
       !form.customerWhatsapp
     ) {
+      setBackofficeError("Completá nombre, slug, subdominio, ciudad y WhatsApp.");
       return;
     }
-
-    const nextRestaurant = buildRestaurant(form);
-    setRestaurants((current) => [...current, nextRestaurant]);
-    setSelectedSlug(nextRestaurant.slug);
-    setForm(defaultForm);
-    setIsCreateOpen(false);
-setActiveView("restaurants");
-  };
-
-  const deleteRestaurant = (slug: string) => {
-    setRestaurants((current) => {
-      if (current.length === 1) return current;
-
-      const next = current.filter((restaurant) => restaurant.slug !== slug);
-
-      if (selectedSlug === slug) {
-        setSelectedSlug(next[0]?.slug ?? "");
+  
+    setBackofficeError(null);
+  
+    try {
+      const response = await fetch("/api/backoffice/restaurants", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(form),
+      });
+  
+      const data = await response.json();
+  
+      if (!response.ok) {
+        throw new Error(data.error ?? "No se pudo crear el restaurante.");
       }
-
-      return next;
-    });
+  
+      setRestaurants((current) => [data.restaurant, ...current]);
+      setSelectedSlug(data.restaurant.slug);
+      setForm(defaultForm);
+      setIsCreateOpen(false);
+      setActiveView("restaurants");
+    } catch (error) {
+      setBackofficeError(
+        error instanceof Error
+          ? error.message
+          : "Error creando restaurante."
+      );
+    }
   };
 
-  const markDnsConfigured = (slug: string) => {
-    setRestaurants((current) =>
-      current.map((restaurant) =>
-        restaurant.slug === slug
-          ? { ...restaurant, dnsStatus: "configured" }
-          : restaurant
-      )
-    );
+  const deleteRestaurant = async (slug: string) => {
+    const target = restaurants.find((restaurant) => restaurant.slug === slug);
+  
+    if (!target) return;
+  
+    setBackofficeError(null);
+  
+    try {
+      const response = await fetch(`/api/backoffice/restaurants/${target.id}`, {
+        method: "DELETE",
+      });
+  
+      const data = await response.json();
+  
+      if (!response.ok) {
+        throw new Error(data.error ?? "No se pudo borrar el restaurante.");
+      }
+  
+      setRestaurants((current) => {
+        const next = current.filter((restaurant) => restaurant.slug !== slug);
+  
+        if (selectedSlug === slug) {
+          setSelectedSlug(next[0]?.slug ?? "");
+        }
+  
+        return next;
+      });
+    } catch (error) {
+      setBackofficeError(
+        error instanceof Error ? error.message : "Error borrando restaurante."
+      );
+    }
   };
 
-  const setRestaurantStatus = (slug: string, status: RestaurantRecord["status"]) => {
-    setRestaurants((current) =>
-      current.map((restaurant) =>
-        restaurant.slug === slug
-          ? {
-              ...restaurant,
-              status,
-              graceUntil: status === "past_due" ? "2026-06-08" : null,
-            }
-          : restaurant
-      )
-    );
+  const markDnsConfigured = async (slug: string) => {
+    const target = restaurants.find((restaurant) => restaurant.slug === slug);
+  
+    if (!target) return;
+  
+    setBackofficeError(null);
+  
+    try {
+      const response = await fetch(`/api/backoffice/restaurants/${target.id}`, {
+        method: "PATCH",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          dnsStatus: "configured",
+        }),
+      });
+  
+      const data = await response.json();
+  
+      if (!response.ok) {
+        throw new Error(data.error ?? "No se pudo actualizar DNS.");
+      }
+  
+      setRestaurants((current) =>
+        current.map((restaurant) =>
+          restaurant.id === target.id ? data.restaurant : restaurant
+        )
+      );
+    } catch (error) {
+      setBackofficeError(
+        error instanceof Error ? error.message : "Error actualizando DNS."
+      );
+    }
+  };
+
+  const setRestaurantStatus = async (
+    slug: string,
+    status: RestaurantRecord["status"]
+  ) => {
+    const target = restaurants.find((restaurant) => restaurant.slug === slug);
+  
+    if (!target) return;
+  
+    setBackofficeError(null);
+  
+    try {
+      const response = await fetch(`/api/backoffice/restaurants/${target.id}`, {
+        method: "PATCH",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          status,
+        }),
+      });
+  
+      const data = await response.json();
+  
+      if (!response.ok) {
+        throw new Error(data.error ?? "No se pudo actualizar estado.");
+      }
+  
+      setRestaurants((current) =>
+        current.map((restaurant) =>
+          restaurant.id === target.id ? data.restaurant : restaurant
+        )
+      );
+    } catch (error) {
+      setBackofficeError(
+        error instanceof Error ? error.message : "Error actualizando estado."
+      );
+    }
   };
   const createMercadoPagoSubscription = async () => {
     if (!selectedRestaurant) return;
@@ -266,6 +362,36 @@ setActiveView("restaurants");
   if (!selectedRestaurant) {
     return null;
   }
+  const loadRestaurants = async () => {
+    setIsLoadingRestaurants(true);
+    setBackofficeError(null);
+  
+    try {
+      const response = await fetch("/api/backoffice/restaurants", {
+        cache: "no-store",
+      });
+  
+      const data = await response.json();
+  
+      if (!response.ok) {
+        throw new Error(data.error ?? "No se pudieron cargar restaurantes.");
+      }
+  
+      setRestaurants(data.restaurants);
+  
+      if (data.restaurants[0]?.slug) {
+        setSelectedSlug((current) => current || data.restaurants[0].slug);
+      }
+    } catch (error) {
+      setBackofficeError(
+        error instanceof Error
+          ? error.message
+          : "Error cargando restaurantes."
+      );
+    } finally {
+      setIsLoadingRestaurants(false);
+    }
+  };
   
   return (
     <div className={styles.shell}>
@@ -314,6 +440,13 @@ setActiveView("restaurants");
       </aside>
   
       <section className={styles.content}>
+      {backofficeError ? (
+  <div className={styles.errorBox}>{backofficeError}</div>
+) : null}
+
+{isLoadingRestaurants ? (
+  <div className={styles.panelSection}>Cargando restaurantes...</div>
+) : null}
         <header className={styles.contentHeader}>
           <div>
             <span className={styles.eyebrow}>

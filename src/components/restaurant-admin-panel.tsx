@@ -50,8 +50,13 @@ type RestaurantAdminPanelProps = {
   restaurantSlug?: string;
 };
 
-export function RestaurantAdminPanel({ restaurantSlug }: RestaurantAdminPanelProps) {
-  const [restaurant, setRestaurant] = useState<RestaurantRecord>(demoRestaurant);
+export function RestaurantAdminPanel({
+  restaurantSlug,
+  initialRestaurant,
+}: RestaurantAdminPanelProps) {
+  const [restaurant, setRestaurant] = useState<RestaurantRecord>(
+    initialRestaurant ?? demoRestaurant
+  );
   const [newCategoryName, setNewCategoryName] = useState("");
   const [activeSection, setActiveSection] = useState<AdminSection>("overview");
   const [themeMode, setThemeMode] = useState<"light" | "dark">("light");

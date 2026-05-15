@@ -550,3 +550,10 @@
     width: 100%;
   }
 }
+.errorBox {
+  padding: 0.85rem 1rem;
+  border: 1px solid #fecdca;
+  background: #fff1f0;
+  color: #b42318;
+  font-weight: 700;
+}
