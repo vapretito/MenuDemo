@@ -1,9 +1,21 @@
 import type { Metadata } from "next";
+import { Manrope, Sora } from "next/font/google";
 import "./globals.css";
 
+const bodyFont = Manrope({
+  subsets: ["latin"],
+  variable: "--font-body",
+});
+
+const displayFont = Sora({
+  subsets: ["latin"],
+  variable: "--font-display",
+});
+
 export const metadata: Metadata = {
-  title: "Editorial Menu Demo",
-  description: "Landing, demo publica y panel admin para menus visuales de restaurantes.",
+  title: "Menui | Menu mobile para restaurantes",
+  description:
+    "Plataforma SaaS para restaurantes con menu mobile-first, carrito por WhatsApp, panel admin y superadmin con suscripciones en Mercado Pago.",
 };
 
 export default function RootLayout({
@@ -13,7 +25,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="es">
-      <body>{children}</body>
+      <body className={`${bodyFont.variable} ${displayFont.variable}`}>{children}</body>
     </html>
   );
 }

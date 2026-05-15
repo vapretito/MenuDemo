@@ -1,0 +1,259 @@
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+enum UserRole {
+  SUPER_ADMIN
+  RESTAURANT_ADMIN
+}
+
+enum RestaurantStatus {
+  TRIAL
+  ACTIVE
+  PAST_DUE
+  SUSPENDED
+  CANCELLED
+  MANUAL
+}
+
+enum DnsStatus {
+  PENDING
+  CONFIGURED
+  ERROR
+}
+
+enum BillingMode {
+  MERCADO_PAGO_SUBSCRIPTION
+  MANUAL
+}
+
+enum SubscriptionStatus {
+  SCHEDULED
+  PENDING
+  AUTHORIZED
+  ACTIVE
+  PAUSED
+  CANCELLED
+  PAST_DUE
+  ENDED
+}
+
+enum CollectionMethod {
+  AUTOMATIC
+  MANUAL
+}
+
+enum PaymentStatus {
+  PENDING
+  APPROVED
+  AUTHORIZED
+  IN_PROCESS
+  REJECTED
+  CANCELLED
+  REFUNDED
+  CHARGED_BACK
+}
+
+enum WebhookProcessStatus {
+  RECEIVED
+  PROCESSED
+  IGNORED
+  FAILED
+}
+
+model User {
+  id           String   @id @default(cuid())
+  name         String
+  email        String   @unique
+  passwordHash String?
+  role         UserRole @default(RESTAURANT_ADMIN)
+
+  restaurantId String?
+  restaurant   Restaurant? @relation(fields: [restaurantId], references: [id], onDelete: SetNull)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([role])
+  @@index([restaurantId])
+}
+
+model Restaurant {
+  id              String           @id @default(cuid())
+  name            String
+  slug            String           @unique
+  subdomain       String           @unique
+  city            String
+  cuisine         String
+  description     String
+  status          RestaurantStatus @default(TRIAL)
+  dnsStatus       DnsStatus        @default(PENDING)
+  billingMode     BillingMode      @default(MERCADO_PAGO_SUBSCRIPTION)
+  connectedToDemo Boolean          @default(false)
+
+  adminName      String?
+  adminWhatsapp  String?
+  customerWhatsapp String
+
+  onboardingNote String?
+  graceUntil     DateTime?
+
+  accent       String @default("#f0c400")
+  accentSoft   String @default("#fff1ac")
+  surface      String @default("#fffdf7")
+  surfaceAlt   String @default("#f4f2e8")
+  border       String @default("#1f4723")
+  text         String @default("#162218")
+  muted        String @default("#58705c")
+  heroGradient String @default("linear-gradient(180deg, #2f7f3a 0%, #1f4723 100%)")
+
+  users         User[]
+  categories    Category[]
+  products      Product[]
+  subscription  Subscription?
+  payments      Payment[]
+  webhookEvents WebhookEvent[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([status])
+  @@index([dnsStatus])
+  @@index([billingMode])
+}
+
+model Category {
+  id           String     @id @default(cuid())
+  restaurantId String
+  restaurant   Restaurant @relation(fields: [restaurantId], references: [id], onDelete: Cascade)
+
+  name        String
+  description String
+  sortOrder   Int @default(0)
+
+  products Product[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([restaurantId])
+}
+
+model Product {
+  id           String     @id @default(cuid())
+  restaurantId String
+  restaurant   Restaurant @relation(fields: [restaurantId], references: [id], onDelete: Cascade)
+
+  categoryId String
+  category   Category @relation(fields: [categoryId], references: [id], onDelete: Cascade)
+
+  name        String
+  description String
+  priceArs    Int
+  image       String?
+  featured    Boolean @default(false)
+  available   Boolean @default(true)
+  prepTime    String  @default("15 min")
+  sortOrder   Int     @default(0)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([restaurantId])
+  @@index([categoryId])
+  @@index([available])
+  @@index([featured])
+}
+
+model Subscription {
+  id           String     @id @default(cuid())
+  restaurantId String     @unique
+  restaurant   Restaurant @relation(fields: [restaurantId], references: [id], onDelete: Cascade)
+
+  planId    String
+  planName  String
+  amountArs Int
+  cycle     String @default("monthly")
+
+  collectionMethod CollectionMethod   @default(AUTOMATIC)
+  status           SubscriptionStatus @default(SCHEDULED)
+
+  mercadopagoPreapprovalId String? @unique
+  mercadopagoPayerEmail    String?
+  mercadopagoInitPoint     String?
+
+  renewsOn       DateTime?
+  lastPaymentAt  DateTime?
+  nextPaymentAt  DateTime?
+  cancelledAt    DateTime?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  payments Payment[]
+
+  @@index([status])
+  @@index([planId])
+}
+
+model Payment {
+  id           String     @id @default(cuid())
+  restaurantId String
+  restaurant   Restaurant @relation(fields: [restaurantId], references: [id], onDelete: Cascade)
+
+  subscriptionId String?
+  subscription   Subscription? @relation(fields: [subscriptionId], references: [id], onDelete: SetNull)
+
+  amountArs Int
+  currency  String @default("ARS")
+  status    PaymentStatus @default(PENDING)
+
+  mercadopagoPaymentId       String? @unique
+  mercadopagoPreapprovalId   String?
+  mercadopagoRawStatus       String?
+  mercadopagoStatusDetail    String?
+
+  paidAt DateTime?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([restaurantId])
+  @@index([subscriptionId])
+  @@index([status])
+  @@index([mercadopagoPreapprovalId])
+}
+
+model WebhookEvent {
+  id           String @id @default(cuid())
+  restaurantId String?
+  restaurant   Restaurant? @relation(fields: [restaurantId], references: [id], onDelete: SetNull)
+
+  provider String @default("mercadopago")
+
+  eventType  String
+  action     String?
+  resourceId String?
+
+  requestId String?
+  signatureValidated Boolean @default(false)
+
+  processStatus WebhookProcessStatus @default(RECEIVED)
+  errorMessage   String?
+
+  payload Json
+
+  createdAt   DateTime @default(now())
+  processedAt DateTime?
+
+  @@index([restaurantId])
+  @@index([provider])
+  @@index([eventType])
+  @@index([resourceId])
+  @@index([processStatus])
+}

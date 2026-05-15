@@ -1,0 +1,65 @@
+.shell {
+  min-height: 100vh;
+  padding: 0;
+  background:
+    linear-gradient(180deg, #f8f3fb 0%, #eef3f9 100%);
+}
+
+.topbar {
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
+  align-items: center;
+  padding: 0.9rem 1.2rem;
+  border-bottom: 1px solid rgba(196, 203, 226, 0.8);
+  background: rgba(255, 255, 255, 0.7);
+  backdrop-filter: blur(14px);
+}
+
+.brand {
+  display: grid;
+  gap: 0.25rem;
+}
+
+.kicker {
+  text-transform: uppercase;
+  letter-spacing: 0.14em;
+  font-size: 0.72rem;
+  color: #76819c;
+}
+
+.brand strong {
+  font-family: "Segoe UI", "Trebuchet MS", sans-serif;
+  font-size: 1.05rem;
+  color: #25304b;
+}
+
+.links {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.7rem;
+}
+
+.links a {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 2.55rem;
+  padding: 0.7rem 0.95rem;
+  border: 1px solid rgba(196, 203, 226, 0.9);
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.75);
+  color: #25304b;
+}
+
+@media (max-width: 760px) {
+  .topbar {
+    flex-direction: column;
+    align-items: stretch;
+    padding: 0.85rem;
+  }
+
+  .links a {
+    width: 100%;
+  }
+}
