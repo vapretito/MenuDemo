@@ -20,8 +20,9 @@ export async function POST(request: Request) {
     const planName = String(body.planName ?? "").trim();
     const payerEmail = String(body.payerEmail ?? "").trim();
     const amountArs = Number(body.amountArs ?? 0);
+    const restaurantSlug = String(body.restaurantSlug ?? "").trim();
 
-    if (!restaurantId || !restaurantName || !planName || !payerEmail || amountArs <= 0) {
+    if (!restaurantId || !restaurantSlug || !restaurantName || !planName || !payerEmail || amountArs <= 0) {
       return NextResponse.json(
         { error: "Faltan datos para crear la suscripción." },
         { status: 400 }
@@ -30,6 +31,7 @@ export async function POST(request: Request) {
 
     const subscription = await createMercadoPagoPreapproval({
       restaurantId,
+      restaurantSlug,
       restaurantName,
       planName,
       payerEmail,

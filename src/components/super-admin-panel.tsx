@@ -315,6 +315,7 @@ const [isCreateOpen, setIsCreateOpen] = useState(false);
         },
         body: JSON.stringify({
           restaurantId: selectedRestaurant.id,
+          restaurantSlug: selectedRestaurant.slug,
           restaurantName: selectedRestaurant.name,
           planName: selectedRestaurant.subscription.plan,
           amountArs: selectedRestaurant.subscription.amountArs,
