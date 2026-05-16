@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useState } from "react";
 import styles from "./super-admin-panel.module.css";
-import { planCatalog, platformSnapshot } from "@/data/platform";
+import { platformSnapshot } from "@/data/platform";
 import { RestaurantCreationInput, RestaurantRecord } from "@/types/platform";
 
 const money = new Intl.NumberFormat("es-AR", {
@@ -48,59 +48,7 @@ const sidebarItems: Array<{
   },
 ];
 
-const buildRestaurant = (input: RestaurantCreationInput): RestaurantRecord => {
-  const selectedPlan = planCatalog.find((plan) => plan.id === input.planId) ?? planCatalog[0];
-  const isManual = input.billingMode === "manual";
 
-  return {
-    id: `rest-${Date.now()}`,
-    name: input.name,
-    slug: input.slug,
-    subdomain: input.subdomain,
-    dnsStatus: "pending",
-    connectedToDemo: false,
-    billingMode: input.billingMode,
-    city: input.city,
-    cuisine: input.cuisine,
-    description:
-      "Nuevo restaurante cargado desde backoffice y listo para personalizar sobre la base del producto.",
-    status: input.status,
-    adminName: input.adminName,
-    adminWhatsapp: input.customerWhatsapp,
-    customerWhatsapp: input.customerWhatsapp,
-    onboardingNote: isManual
-      ? "Cliente cargado con modalidad manual. Subdominio y cobro se gestionan por fuera del flujo automatico."
-      : "Subdominio cargado manualmente. Pendiente de confirmar configuracion en Hostinger y activar branding final.",
-    graceUntil: input.status === "past_due" ? "2026-06-08" : null,
-    subscription: {
-      planId: selectedPlan.id,
-      plan: selectedPlan.name,
-      amountArs: selectedPlan.price,
-      cycle: "monthly",
-      mercadopagoPreapprovalId: isManual ? "manual" : "pendiente",
-      collectionMethod: isManual ? "manual" : "automatic",
-      status: input.status === "active" ? "active" : "scheduled",
-      renewsOn: "2026-06-01",
-    },
-    metrics: {
-      monthlyOrders: 0,
-      monthlyRevenueArs: 0,
-      conversionRate: 0,
-    },
-    theme: {
-      accent: "#f0c400",
-      accentSoft: "#fff1ac",
-      surface: "#fffdf7",
-      surfaceAlt: "#f4f2e8",
-      border: "#1f4723",
-      text: "#162218",
-      muted: "#58705c",
-      heroGradient: "linear-gradient(180deg, #2f7f3a 0%, #1f4723 100%)",
-    },
-    categories: [],
-    items: [],
-  };
-};
 
 
 export function SuperAdminPanel() {
