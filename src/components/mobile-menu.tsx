@@ -79,6 +79,10 @@ export function MobileMenu({ restaurant }: MobileMenuProps) {
   const heroVisualImage = restaurant.coverImageUrl || heroItem?.image || "";
   const restaurantLogo = restaurant.logoUrl || "";
 
+  const templateId = restaurant.menuTemplate ?? "classic-delivery";
+
+
+
   const groupedCategories = useMemo(
     () =>
       restaurant.categories.map((category) => {
@@ -151,24 +155,25 @@ export function MobileMenu({ restaurant }: MobileMenuProps) {
 
   return (
     <div
-      className={styles.shell}
-      style={
-        {
-          ["--accent" as string]: restaurant.theme.accent,
-          ["--accent-soft" as string]: restaurant.theme.accentSoft,
-          ["--surface" as string]: restaurant.theme.surface,
-          ["--surface-alt" as string]: restaurant.theme.surfaceAlt,
-          ["--border" as string]: restaurant.theme.border,
-          ["--text" as string]: restaurant.theme.text,
-          ["--muted" as string]: restaurant.theme.muted,
-          ["--hero-gradient" as string]: restaurant.theme.heroGradient,
-          ["--hero-image" as string]: heroVisualImage
-          ? `url(${heroVisualImage})`
-          : "none",
-                } as CSSProperties
-      }
-    >
-      <header className={styles.hero}>
+  className={styles.shell}
+  data-template={templateId}
+  style={
+    {
+      ["--accent" as string]: restaurant.theme.accent,
+      ["--accent-soft" as string]: restaurant.theme.accentSoft,
+      ["--surface" as string]: restaurant.theme.surface,
+      ["--surface-alt" as string]: restaurant.theme.surfaceAlt,
+      ["--border" as string]: restaurant.theme.border,
+      ["--text" as string]: restaurant.theme.text,
+      ["--muted" as string]: restaurant.theme.muted,
+      ["--hero-gradient" as string]: restaurant.theme.heroGradient,
+      ["--hero-image" as string]: heroVisualImage
+        ? `url(${heroVisualImage})`
+        : "none",
+    } as CSSProperties
+  }
+>
+<header className={styles.hero}>
   {heroVisualImage ? (
     <img
       className={styles.heroCoverImage}
