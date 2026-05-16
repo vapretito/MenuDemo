@@ -166,6 +166,45 @@ export function RestaurantAdminPanel({
     };
     reader.readAsDataURL(file);
   };
+  const handleAppearanceImageUpload = (
+    field: "logoUrl" | "coverImageUrl",
+    event: ChangeEvent<HTMLInputElement>
+  ) => {
+    const file = event.target.files?.[0];
+  
+    if (!file) return;
+  
+    if (!file.type.startsWith("image/")) {
+      setAppearanceError("El archivo debe ser una imagen.");
+      return;
+    }
+  
+    const maxSizeMb = field === "logoUrl" ? 2 : 4;
+    const maxSizeBytes = maxSizeMb * 1024 * 1024;
+  
+    if (file.size > maxSizeBytes) {
+      setAppearanceError(
+        field === "logoUrl"
+          ? "El logo no debería pesar más de 2MB."
+          : "La imagen de portada no debería pesar más de 4MB."
+      );
+      return;
+    }
+  
+    const reader = new FileReader();
+  
+    reader.onload = () => {
+      const result = reader.result;
+  
+      if (typeof result === "string") {
+        updateAppearanceDraft(field, result);
+        setAppearanceError(null);
+        setAppearanceSuccess(null);
+      }
+    };
+  
+    reader.readAsDataURL(file);
+  };
 
   const handleCategoryKeyDown = (event: KeyboardEvent<HTMLInputElement>) => {
     if (event.key === "Enter") {
@@ -847,37 +886,87 @@ export function RestaurantAdminPanel({
     </section>
 
     <section className={styles.panel}>
-      <div className={styles.panelHeader}>
-        <div>
-          <span className={styles.eyebrow}>Marca</span>
-          <h3>Logo e imagen principal</h3>
+  <div className={styles.panelHeader}>
+    <div>
+      <span className={styles.eyebrow}>Marca</span>
+      <h3>Logo e imagen principal</h3>
+      <p>
+        Subí el logo y una portada para personalizar el menú público del
+        restaurante.
+      </p>
+    </div>
+  </div>
+
+  <div className={styles.imageUploadGrid}>
+    <label className={styles.uploadBox}>
+      <span>Logo del restaurante</span>
+
+      <input
+        accept="image/*"
+        type="file"
+        onChange={(event) =>
+          handleAppearanceImageUpload("logoUrl", event)
+        }
+      />
+
+      {appearanceDraft.logoUrl ? (
+        <img
+          className={styles.logoUploadPreview}
+          src={appearanceDraft.logoUrl}
+          alt="Logo del restaurante"
+        />
+      ) : (
+        <div className={styles.emptyUploadPreview}>
+          Sin logo cargado
         </div>
-      </div>
+      )}
 
-      <div className={styles.formGrid}>
-        <label className={styles.full}>
-          <span>Logo URL</span>
-          <input
-            placeholder="https://..."
-            value={appearanceDraft.logoUrl}
-            onChange={(event) =>
-              updateAppearanceDraft("logoUrl", event.target.value)
-            }
-          />
-        </label>
+      {appearanceDraft.logoUrl ? (
+        <button
+          className={styles.secondaryButton}
+          onClick={() => updateAppearanceDraft("logoUrl", "")}
+          type="button"
+        >
+          Quitar logo
+        </button>
+      ) : null}
+    </label>
 
-        <label className={styles.full}>
-          <span>Imagen portada URL</span>
-          <input
-            placeholder="https://..."
-            value={appearanceDraft.coverImageUrl}
-            onChange={(event) =>
-              updateAppearanceDraft("coverImageUrl", event.target.value)
-            }
-          />
-        </label>
-      </div>
-    </section>
+    <label className={styles.uploadBox}>
+      <span>Imagen de portada</span>
+
+      <input
+        accept="image/*"
+        type="file"
+        onChange={(event) =>
+          handleAppearanceImageUpload("coverImageUrl", event)
+        }
+      />
+
+      {appearanceDraft.coverImageUrl ? (
+        <img
+          className={styles.coverUploadPreview}
+          src={appearanceDraft.coverImageUrl}
+          alt="Imagen de portada"
+        />
+      ) : (
+        <div className={styles.emptyUploadPreview}>
+          Sin portada cargada
+        </div>
+      )}
+
+      {appearanceDraft.coverImageUrl ? (
+        <button
+          className={styles.secondaryButton}
+          onClick={() => updateAppearanceDraft("coverImageUrl", "")}
+          type="button"
+        >
+          Quitar portada
+        </button>
+      ) : null}
+    </label>
+  </div>
+</section>
 
     <section className={styles.panel}>
       <div className={styles.panelHeader}>
@@ -1009,11 +1098,13 @@ export function RestaurantAdminPanel({
         }}
       >
         <div
-          className={styles.menuPreviewHero}
-          style={{
-            background: appearanceDraft.heroGradient,
-          }}
-        >
+  className={styles.menuPreviewHero}
+  style={{
+    background: appearanceDraft.coverImageUrl
+      ? `${appearanceDraft.heroGradient}, url(${appearanceDraft.coverImageUrl}) center/cover`
+      : appearanceDraft.heroGradient,
+  }}
+>
           {appearanceDraft.logoUrl ? (
             <img src={appearanceDraft.logoUrl} alt="Logo del restaurante" />
           ) : (
