@@ -1,4 +1,6 @@
-import Link from "next/link";
+import { notFound } from "next/navigation";
+import { prisma } from "@/lib/prisma";
+import { RestaurantLoginForm } from "./restaurant-login-form";
 import styles from "./page.module.css";
 
 type RestaurantLoginPageProps = {
@@ -7,18 +9,26 @@ type RestaurantLoginPageProps = {
   }>;
 };
 
-const formatRestaurantName = (slug: string) =>
-  slug
-    .split("-")
-    .filter(Boolean)
-    .map((part) => part.charAt(0).toUpperCase() + part.slice(1))
-    .join(" ");
-
 export default async function RestaurantLoginPage({
   params,
 }: RestaurantLoginPageProps) {
   const { slug } = await params;
-  const restaurantName = formatRestaurantName(slug);
+
+  const restaurant = await prisma.restaurant.findUnique({
+    where: {
+      slug,
+    },
+    select: {
+      name: true,
+      slug: true,
+      subdomain: true,
+      status: true,
+    },
+  });
+
+  if (!restaurant) {
+    notFound();
+  }
 
   return (
     <main className={styles.shell}>
@@ -27,7 +37,7 @@ export default async function RestaurantLoginPage({
           <div className={styles.logoBox}>M</div>
           <div>
             <span>Menui Restaurant Admin</span>
-            <strong>{restaurantName}</strong>
+            <strong>{restaurant.name}</strong>
           </div>
         </div>
 
@@ -57,57 +67,11 @@ export default async function RestaurantLoginPage({
         </div>
       </section>
 
-      <section className={styles.loginPanel}>
-        <div className={styles.loginCard}>
-          <div className={styles.loginHeader}>
-            <span className={styles.eyebrow}>Ingresar</span>
-            <h2>Acceso del restaurante</h2>
-            <p>
-              Entrá con las credenciales asignadas para administrar el menú de{" "}
-              <strong>{restaurantName}</strong>.
-            </p>
-          </div>
-
-          <form className={styles.form}>
-            <label>
-              <span>Email</span>
-              <input
-                autoComplete="email"
-                name="email"
-                placeholder="admin@restaurante.com"
-                type="email"
-              />
-            </label>
-
-            <label>
-              <span>Contraseña</span>
-              <input
-                autoComplete="current-password"
-                name="password"
-                placeholder="••••••••"
-                type="password"
-              />
-            </label>
-
-            <button className={styles.primaryButton} type="button">
-              Entrar al panel
-            </button>
-          </form>
-
-          <div className={styles.demoBox}>
-            <span>Demo activa</span>
-            <p>
-              Este acceso todavía está en modo visual/demo. Luego conectamos
-              autenticación real por restaurante.
-            </p>
-          </div>
-
-          <div className={styles.footerActions}>
-            <Link href="/">Ver menú público</Link>
-            <Link href="/admin">Ir al admin demo</Link>
-          </div>
-        </div>
-      </section>
+      <RestaurantLoginForm
+        restaurantName={restaurant.name}
+        restaurantSlug={restaurant.slug}
+        restaurantStatus={restaurant.status}
+      />
     </main>
   );
 }
