@@ -104,8 +104,8 @@ const buildRestaurant = (input: RestaurantCreationInput): RestaurantRecord => {
 
 
 export function SuperAdminPanel() {
-  const [restaurants, setRestaurants] = useState(platformSnapshot.restaurants);
-  const [selectedSlug, setSelectedSlug] = useState(
+  const [restaurants, setRestaurants] = useState<RestaurantRecord[]>([]);
+    const [selectedSlug, setSelectedSlug] = useState(
     platformSnapshot.restaurants[0]?.slug ?? ""
   );
   const [form, setForm] = useState<RestaurantCreationInput>(defaultForm);
@@ -372,17 +372,29 @@ const [isCreateOpen, setIsCreateOpen] = useState(false);
         cache: "no-store",
       });
   
-      const data = await response.json();
+      const rawResponse = await response.text();
+  
+      let data: {
+        restaurants?: RestaurantRecord[];
+        error?: string;
+      } = {};
+  
+      try {
+        data = rawResponse ? JSON.parse(rawResponse) : {};
+      } catch {
+        throw new Error(
+          `La API no devolvió JSON. Status: ${response.status}.`
+        );
+      }
   
       if (!response.ok) {
         throw new Error(data.error ?? "No se pudieron cargar restaurantes.");
       }
   
-      setRestaurants(data.restaurants);
+      const nextRestaurants = data.restaurants ?? [];
   
-      if (data.restaurants[0]?.slug) {
-        setSelectedSlug((current) => current || data.restaurants[0].slug);
-      }
+      setRestaurants(nextRestaurants);
+      setSelectedSlug(nextRestaurants[0]?.slug ?? "");
     } catch (error) {
       setBackofficeError(
         error instanceof Error
@@ -393,7 +405,9 @@ const [isCreateOpen, setIsCreateOpen] = useState(false);
       setIsLoadingRestaurants(false);
     }
   };
-  
+  useEffect(() => {
+    loadRestaurants();
+  }, []);
   return (
     <div className={styles.shell}>
       <aside className={styles.sidebar}>

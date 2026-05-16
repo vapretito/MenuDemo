@@ -32,6 +32,18 @@ const planCatalog: Record<
   },
 };
 
+const reservedSlugs = new Set([
+  "www",
+  "api",
+  "admin",
+  "login",
+  "backoffice",
+  "superadmin",
+  "activar",
+  "contratar",
+  "demo",
+]);
+
 const slugify = (value: string) =>
   value
     .toLowerCase()
@@ -40,12 +52,30 @@ const slugify = (value: string) =>
     .replace(/[^a-z0-9]+/g, "-")
     .replace(/(^-|-$)/g, "");
 
-const getBaseUrl = () =>
-  (process.env.MENUI_BASE_URL ?? "https://menui.online").replace(/\/$/, "");
+const getBaseUrl = () => {
+  const baseUrl = process.env.MENUI_BASE_URL?.trim() ?? "https://menui.online";
+
+  if (!baseUrl.startsWith("http://") && !baseUrl.startsWith("https://")) {
+    throw new Error(
+      "MENUI_BASE_URL debe ser una URL completa. Ejemplo: https://menui.online"
+    );
+  }
+
+  return baseUrl.replace(/\/$/, "");
+};
 
 const getRootDomain = () => process.env.MENUI_ROOT_DOMAIN ?? "menui.online";
 
+export async function GET() {
+  return NextResponse.json({
+    ok: true,
+    message: "Onboarding API activa.",
+  });
+}
+
 export async function POST(request: Request) {
+  let createdRestaurantId: string | null = null;
+
   try {
     const body = await request.json();
 
@@ -60,7 +90,7 @@ export async function POST(request: Request) {
     const wantedSlug = String(body.slug ?? "").trim();
     const slug = slugify(wantedSlug || restaurantName);
     const selectedPlan = planCatalog[planId] ?? planCatalog.basic;
-    const subdomain = `${slug}.${getRootDomain()}`;
+    const subdomain = `${slug}.${getRootDomain()}`.toLowerCase();
 
     if (!restaurantName || !ownerName || !ownerEmail || !whatsapp || !city || !slug) {
       return NextResponse.json(
@@ -75,6 +105,16 @@ export async function POST(request: Request) {
     if (!ownerEmail.includes("@")) {
       return NextResponse.json(
         { error: "El email del responsable no parece válido." },
+        { status: 400 }
+      );
+    }
+
+    if (reservedSlugs.has(slug)) {
+      return NextResponse.json(
+        {
+          error:
+            "Ese slug está reservado por Menui. Probá con otro nombre para el restaurante.",
+        },
         { status: 400 }
       );
     }
@@ -177,6 +217,8 @@ export async function POST(request: Request) {
       },
     });
 
+    createdRestaurantId = restaurant.id;
+
     const mercadoPagoSubscription = await createMercadoPagoPreapproval({
       restaurantId: restaurant.id,
       restaurantSlug: restaurant.slug,
@@ -189,13 +231,7 @@ export async function POST(request: Request) {
     const checkoutUrl = mercadoPagoSubscription.initPoint;
 
     if (!checkoutUrl) {
-      return NextResponse.json(
-        {
-          error:
-            "El restaurante fue creado, pero Mercado Pago no devolvió link de pago.",
-        },
-        { status: 500 }
-      );
+      throw new Error("Mercado Pago no devolvió link de pago.");
     }
 
     await prisma.subscription.update({
@@ -228,6 +264,20 @@ export async function POST(request: Request) {
       },
     });
   } catch (error) {
+    if (createdRestaurantId) {
+      await prisma.user.deleteMany({
+        where: {
+          restaurantId: createdRestaurantId,
+        },
+      });
+
+      await prisma.restaurant.delete({
+        where: {
+          id: createdRestaurantId,
+        },
+      });
+    }
+
     console.error("[Public Onboarding Error]", error);
 
     return NextResponse.json(
