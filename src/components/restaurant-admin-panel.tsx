@@ -908,6 +908,13 @@ const [categorySuccess, setCategorySuccess] = useState<string | null>(null);
   </button>
 </div>
                         </div>
+                        {productError ? (
+  <div className={styles.errorBox}>{productError}</div>
+) : null}
+
+{productSuccess ? (
+  <div className={styles.successBox}>{productSuccess}</div>
+) : null}
 
                         <div className={styles.formGrid}>
                           <label>

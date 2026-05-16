@@ -73,6 +73,10 @@ export function MobileMenu({ restaurant }: MobileMenuProps) {
   const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>("efectivo");
   const [customerNote, setCustomerNote] = useState("");
 
+  const [selectedProduct, setSelectedProduct] = useState<
+  RestaurantRecord["items"][number] | null
+>(null);
+
   const featuredItems = restaurant.items.filter((item) => item.featured);
   const heroItem = featuredItems[0] ?? restaurant.items[0];
 
@@ -129,6 +133,15 @@ export function MobileMenu({ restaurant }: MobileMenuProps) {
 
   const total = cartItems.reduce((sum, line) => sum + line.item.price * line.quantity, 0);
   const totalUnits = cartItems.reduce((sum, line) => sum + line.quantity, 0);
+
+  const selectedProductQuantity = selectedProduct
+  ? cart.find((line) => line.itemId === selectedProduct.id)?.quantity ?? 0
+  : 0;
+
+const closeProductModal = () => {
+  setSelectedProduct(null);
+};
+
   const whatsappUrl = buildWhatsappUrl(
     restaurant,
     cart,
@@ -282,11 +295,25 @@ export function MobileMenu({ restaurant }: MobileMenuProps) {
                   const quantity = cart.find((line) => line.itemId === item.id)?.quantity ?? 0;
 
                   return (
-                    <article className={styles.card} key={item.id}>
-                      <div
-                        className={styles.cardImage}
-                        style={{ backgroundImage: `url(${item.image})` }}
-                      />
+                    <article
+  className={styles.card}
+  key={item.id}
+  role="button"
+  tabIndex={0}
+  onClick={() => setSelectedProduct(item)}
+  onKeyDown={(event) => {
+    if (event.key === "Enter" || event.key === " ") {
+      event.preventDefault();
+      setSelectedProduct(item);
+    }
+  }}
+>
+  <div
+    className={styles.cardImage}
+    style={{ backgroundImage: item.image ? `url(${item.image})` : undefined }}
+  >
+    <span className={styles.cardImageHint}>Ver detalle</span>
+  </div>
                       <div className={styles.cardBody}>
                         <div className={styles.cardMeta}>
                           <span>{item.prepTime}</span>
@@ -294,7 +321,10 @@ export function MobileMenu({ restaurant }: MobileMenuProps) {
                         </div>
                         <h3>{item.name}</h3>
                         <p>{item.description}</p>
-                        <div className={styles.cardFooter}>
+                        <div
+  className={styles.cardFooter}
+  onClick={(event) => event.stopPropagation()}
+>
                           <strong>{money.format(item.price)}</strong>
                           {quantity ? (
                             <div className={styles.quantityBox}>
@@ -335,6 +365,90 @@ export function MobileMenu({ restaurant }: MobileMenuProps) {
           </section>
         )}
       </main>
+
+
+      {selectedProduct ? (
+  <div
+    className={styles.productModalLayer}
+    role="dialog"
+    aria-modal="true"
+    aria-labelledby="product-modal-title"
+  >
+    <button
+      className={styles.productModalBackdrop}
+      onClick={closeProductModal}
+      type="button"
+      aria-label="Cerrar detalle del producto"
+    />
+
+    <article className={styles.productModal}>
+      <button
+        className={styles.productModalClose}
+        onClick={closeProductModal}
+        type="button"
+      >
+        Cerrar
+      </button>
+
+      <div className={styles.productModalImageWrap}>
+        {selectedProduct.image ? (
+          <img
+            src={selectedProduct.image}
+            alt={selectedProduct.name}
+            className={styles.productModalImage}
+          />
+        ) : (
+          <div className={styles.productModalEmptyImage}>
+            Sin imagen cargada
+          </div>
+        )}
+      </div>
+
+      <div className={styles.productModalBody}>
+        <div className={styles.productModalMeta}>
+          <span>{selectedProduct.prepTime}</span>
+          <span>{selectedProduct.available ? "Disponible" : "Agotado"}</span>
+        </div>
+
+        <h2 id="product-modal-title">{selectedProduct.name}</h2>
+
+        <p>{selectedProduct.description}</p>
+
+        <div className={styles.productModalFooter}>
+          <strong>{money.format(selectedProduct.price)}</strong>
+
+          {selectedProductQuantity ? (
+            <div className={styles.quantityBox}>
+              <button
+                onClick={() => changeQuantity(selectedProduct.id, -1)}
+                type="button"
+              >
+                -
+              </button>
+              <span>{selectedProductQuantity}</span>
+              <button
+                disabled={!selectedProduct.available}
+                onClick={() => changeQuantity(selectedProduct.id, 1)}
+                type="button"
+              >
+                +
+              </button>
+            </div>
+          ) : (
+            <button
+              className={styles.addButton}
+              disabled={!selectedProduct.available}
+              onClick={() => changeQuantity(selectedProduct.id, 1)}
+              type="button"
+            >
+              Agregar al carrito
+            </button>
+          )}
+        </div>
+      </div>
+    </article>
+  </div>
+) : null}
 
       <button className={styles.fab} onClick={() => setIsDrawerOpen(true)} type="button">
         <span className={styles.fabIcon}>Carrito</span>
