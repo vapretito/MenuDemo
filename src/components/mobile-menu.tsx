@@ -76,6 +76,9 @@ export function MobileMenu({ restaurant }: MobileMenuProps) {
   const featuredItems = restaurant.items.filter((item) => item.featured);
   const heroItem = featuredItems[0] ?? restaurant.items[0];
 
+  const heroVisualImage = restaurant.coverImageUrl || heroItem?.image || "";
+  const restaurantLogo = restaurant.logoUrl || "";
+
   const groupedCategories = useMemo(
     () =>
       restaurant.categories.map((category) => {
@@ -159,18 +162,39 @@ export function MobileMenu({ restaurant }: MobileMenuProps) {
           ["--text" as string]: restaurant.theme.text,
           ["--muted" as string]: restaurant.theme.muted,
           ["--hero-gradient" as string]: restaurant.theme.heroGradient,
-          ["--hero-image" as string]: `url(${heroItem?.image ?? ""})`,
-        } as CSSProperties
+          ["--hero-image" as string]: heroVisualImage
+          ? `url(${heroVisualImage})`
+          : "none",
+                } as CSSProperties
       }
     >
       <header className={styles.hero}>
-        <div className={styles.heroOverlay} />
-        <div className={styles.heroContent}>
-          <div className={styles.heroTop}>
-            <span className={styles.badge}>Menu delivery</span>
-            <span className={styles.badgeMuted}>{restaurant.subdomain}</span>
-          </div>
-          <h1>{restaurant.name}</h1>
+  {heroVisualImage ? (
+    <img
+      className={styles.heroCoverImage}
+      src={heroVisualImage}
+      alt=""
+      aria-hidden="true"
+    />
+  ) : null}
+
+  <div className={styles.heroOverlay} />
+
+  <div className={styles.heroContent}>
+    {restaurantLogo ? (
+      <img
+        className={styles.restaurantLogo}
+        src={restaurantLogo}
+        alt={`Logo de ${restaurant.name}`}
+      />
+    ) : null}
+
+    <div className={styles.heroTop}>
+      <span className={styles.badge}>Menu delivery</span>
+      <span className={styles.badgeMuted}>{restaurant.subdomain}</span>
+    </div>
+
+    <h1>{restaurant.name}</h1>
           <p>{restaurant.description}</p>
           <div className={styles.heroActions}>
             <button className={styles.ctaPrimary} onClick={() => setShowAllCategories(true)} type="button">

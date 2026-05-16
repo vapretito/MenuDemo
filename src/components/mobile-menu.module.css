@@ -512,3 +512,46 @@
     bottom: 0.75rem;
   }
 }
+
+
+.hero {
+  position: relative;
+  overflow: hidden;
+  background: var(--hero-gradient);
+}
+
+.heroCoverImage {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.heroOverlay {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  background:
+    linear-gradient(
+      180deg,
+      rgba(0, 0, 0, 0.28) 0%,
+      rgba(0, 0, 0, 0.68) 48%,
+      rgba(0, 0, 0, 0.9) 100%
+    );
+}
+
+.heroContent {
+  position: relative;
+  z-index: 2;
+}
+
+.restaurantLogo {
+  width: 5.4rem;
+  height: 5.4rem;
+  object-fit: cover;
+  border: 1px solid rgba(255, 255, 255, 0.55);
+  background: rgba(255, 255, 255, 0.16);
+  margin-bottom: 0.85rem;
+}
