@@ -56,7 +56,6 @@ type CreatePreapprovalInput = {
         auto_recurring: {
           frequency: 1,
           frequency_type: "months",
-          end_date: getSubscriptionEndDate(),
           transaction_amount: input.amountArs,
           currency_id: "ARS",
         },
@@ -64,22 +63,39 @@ type CreatePreapprovalInput = {
         status: "pending",
       }),
     });
-  
-    const data = (await response.json()) as MercadoPagoPreapprovalResponse;
-  
+    
+    const rawResponse = await response.text();
+    
+    let data: any = {};
+    
+    try {
+      data = rawResponse ? JSON.parse(rawResponse) : {};
+    } catch {
+      data = { rawResponse };
+    }
+    
     if (!response.ok) {
+      console.error("[Mercado Pago Preapproval Error]", {
+        status: response.status,
+        data,
+        payerEmail: input.payerEmail,
+        restaurantSlug: input.restaurantSlug,
+        backUrl: `${getBaseUrl()}/activar/${input.restaurantSlug}`,
+      });
+    
       throw new Error(
         data.message ??
           data.error ??
-          "Mercado Pago rechazó la creación de la suscripción."
+          data.cause?.[0]?.description ??
+          `Mercado Pago rechazó la suscripción. Status: ${response.status}`
       );
     }
-  
+    
     return {
       id: data.id,
       status: data.status,
-      initPoint: data.init_point ?? data.sandbox_init_point ?? null,
-      externalReference: data.external_reference ?? input.restaurantId,
+      initPoint: data.init_point ?? data.initPoint,
+      externalReference: data.external_reference ?? data.externalReference,
     };
 
     
