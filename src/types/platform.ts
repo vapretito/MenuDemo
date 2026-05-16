@@ -67,6 +67,12 @@ export type RestaurantMetrics = {
   monthlyRevenueArs: number;
   conversionRate: number;
 };
+export type MenuTemplateId =
+  | "classic-delivery"
+  | "dark-premium"
+  | "fresh-green"
+  | "coffee-cream"
+  | "burger-pop";
 
 export type RestaurantRecord = {
   id: string;
@@ -90,6 +96,9 @@ export type RestaurantRecord = {
   theme: RestaurantTheme;
   categories: MenuCategory[];
   items: MenuItem[];
+  menuTemplate?: MenuTemplateId;
+  logoUrl?: string | null;
+  coverImageUrl?: string | null;
 };
 
 export type RestaurantCreationInput = {

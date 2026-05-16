@@ -1,4 +1,3 @@
-
 generator client {
   provider = "prisma-client"
   output   = "../src/generated/prisma"
@@ -85,24 +84,30 @@ model User {
 }
 
 model Restaurant {
-  id              String           @id @default(cuid())
-  name            String
-  slug            String           @unique
-  subdomain       String           @unique
-  city            String
-  cuisine         String
-  description     String
-  status          RestaurantStatus @default(TRIAL)
-  dnsStatus       DnsStatus        @default(PENDING)
-  billingMode     BillingMode      @default(MERCADO_PAGO_SUBSCRIPTION)
-  connectedToDemo Boolean          @default(false)
+  id        String @id @default(cuid())
+  name      String
+  slug      String @unique
+  subdomain String @unique
 
-  adminName      String?
-  adminWhatsapp  String?
+  city        String
+  cuisine     String
+  description String
+
+  status      RestaurantStatus @default(TRIAL)
+  dnsStatus   DnsStatus        @default(PENDING)
+  billingMode BillingMode      @default(MERCADO_PAGO_SUBSCRIPTION)
+
+  connectedToDemo Boolean @default(false)
+
+  adminName        String?
+  adminWhatsapp    String?
   customerWhatsapp String
+  onboardingNote   String?
+  graceUntil       DateTime?
 
-  onboardingNote String?
-  graceUntil     DateTime?
+  menuTemplate  String  @default("classic-delivery")
+  logoUrl       String?
+  coverImageUrl String?
 
   accent       String @default("#f0c400")
   accentSoft   String @default("#fff1ac")
@@ -113,15 +118,15 @@ model Restaurant {
   muted        String @default("#58705c")
   heroGradient String @default("linear-gradient(180deg, #2f7f3a 0%, #1f4723 100%)")
 
-  users         User[]
-  categories    Category[]
-  products      Product[]
-  subscription  Subscription?
-  payments      Payment[]
-  webhookEvents WebhookEvent[]
-
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+
+  users         User[]
+  subscription  Subscription?
+  categories    Category[]
+  products      Product[]
+  payments      Payment[]
+  webhookEvents WebhookEvent[]
 
   @@index([status])
   @@index([dnsStatus])
@@ -135,7 +140,7 @@ model Category {
 
   name        String
   description String
-  sortOrder   Int @default(0)
+  sortOrder   Int    @default(0)
 
   products Product[]
 
@@ -188,10 +193,10 @@ model Subscription {
   mercadopagoPayerEmail    String?
   mercadopagoInitPoint     String?
 
-  renewsOn       DateTime?
-  lastPaymentAt  DateTime?
-  nextPaymentAt  DateTime?
-  cancelledAt    DateTime?
+  renewsOn      DateTime?
+  lastPaymentAt DateTime?
+  nextPaymentAt DateTime?
+  cancelledAt   DateTime?
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -211,13 +216,13 @@ model Payment {
   subscription   Subscription? @relation(fields: [subscriptionId], references: [id], onDelete: SetNull)
 
   amountArs Int
-  currency  String @default("ARS")
+  currency  String        @default("ARS")
   status    PaymentStatus @default(PENDING)
 
-  mercadopagoPaymentId       String? @unique
-  mercadopagoPreapprovalId   String?
-  mercadopagoRawStatus       String?
-  mercadopagoStatusDetail    String?
+  mercadopagoPaymentId     String? @unique
+  mercadopagoPreapprovalId String?
+  mercadopagoRawStatus     String?
+  mercadopagoStatusDetail  String?
 
   paidAt DateTime?
 
@@ -231,7 +236,7 @@ model Payment {
 }
 
 model WebhookEvent {
-  id           String @id @default(cuid())
+  id           String      @id @default(cuid())
   restaurantId String?
   restaurant   Restaurant? @relation(fields: [restaurantId], references: [id], onDelete: SetNull)
 
@@ -241,15 +246,15 @@ model WebhookEvent {
   action     String?
   resourceId String?
 
-  requestId String?
+  requestId          String?
   signatureValidated Boolean @default(false)
 
   processStatus WebhookProcessStatus @default(RECEIVED)
-  errorMessage   String?
+  errorMessage  String?
 
   payload Json
 
-  createdAt   DateTime @default(now())
+  createdAt   DateTime  @default(now())
   processedAt DateTime?
 
   @@index([restaurantId])

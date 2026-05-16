@@ -11,7 +11,7 @@ const money = new Intl.NumberFormat("es-AR", {
   maximumFractionDigits: 0,
 });
 
-type AdminSection = "overview" | "identity" | "categories" | "products" | "publishing";
+type AdminSection = "overview" | "identity" | "categories" | "products" | "publishing" |"appearance";
 
 const sections: Array<{ id: AdminSection; label: string; hint: string }> = [
   { id: "overview", label: "Dashboard", hint: "Resumen operativo" },
@@ -19,6 +19,7 @@ const sections: Array<{ id: AdminSection; label: string; hint: string }> = [
   { id: "categories", label: "Categorías", hint: "Estructura del menú" },
   { id: "products", label: "Productos", hint: "Precios, fotos y estado" },
   { id: "publishing", label: "Publicación", hint: "Subdominio y WhatsApp" },
+  { id: "appearance", label: "Estética", hint: "Diseño del menú" },
 ];
 const slugify = (value: string) =>
   value
@@ -479,6 +480,24 @@ export function RestaurantAdminPanel({
             </div>
           </section>
         ) : null}
+
+{activeSection === "appearance" ? (
+  <section className={styles.panel}>
+    <div className={styles.panelHeader}>
+      <div>
+        <span className={styles.eyebrow}>Personalización</span>
+        <h3>Estética del menú</h3>
+      </div>
+    </div>
+
+    <p>
+      Elegí una plantilla visual y ajustá colores, logo e imagen principal del
+      menú público.
+    </p>
+
+    {/* acá metemos selector de templates + inputs */}
+  </section>
+) : null}
 
         {activeSection === "publishing" ? (
           <div className={styles.stack}>

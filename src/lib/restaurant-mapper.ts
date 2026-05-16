@@ -114,6 +114,11 @@ export function mapRestaurantToRecord(
     name: restaurant.name,
     slug: restaurant.slug,
     subdomain: restaurant.subdomain,
+  
+    menuTemplate: restaurant.menuTemplate as RestaurantRecord["menuTemplate"],
+    logoUrl: restaurant.logoUrl,
+    coverImageUrl: restaurant.coverImageUrl,
+  
     dnsStatus: normalizeDnsStatus(restaurant.dnsStatus),
     connectedToDemo: restaurant.connectedToDemo,
     billingMode: normalizeBillingMode(restaurant.billingMode),
