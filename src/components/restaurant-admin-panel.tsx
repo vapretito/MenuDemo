@@ -88,6 +88,11 @@ export function RestaurantAdminPanel({
   const [productError, setProductError] = useState<string | null>(null);
   const [productSuccess, setProductSuccess] = useState<string | null>(null);
 
+
+  const [categorySavingId, setCategorySavingId] = useState<string | null>(null);
+const [categoryError, setCategoryError] = useState<string | null>(null);
+const [categorySuccess, setCategorySuccess] = useState<string | null>(null);
+
   const updateRestaurant = <K extends keyof RestaurantRecord>(
     field: K,
     value: RestaurantRecord[K]
@@ -104,29 +109,155 @@ export function RestaurantAdminPanel({
     }));
   };
 
-  const addCategory = () => {
-    const normalized = newCategoryName.trim();
-    if (!normalized) return;
-
-    const category = createCategory(normalized);
-    setRestaurant((current) => ({
-      ...current,
-      categories: [...current.categories, category],
-    }));
-    setNewCategoryName("");
+  const saveCategory = async (categoryId: string) => {
+    const category = restaurant.categories.find((entry) => entry.id === categoryId);
+  
+    if (!category) return;
+  
+    setCategorySavingId(categoryId);
+    setCategoryError(null);
+    setCategorySuccess(null);
+  
+    try {
+      const response = await fetch(`/api/restaurant-admin/categories/${categoryId}`, {
+        method: "PATCH",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(category),
+      });
+  
+      const rawResponse = await response.text();
+  
+      let data: {
+        category?: MenuCategory;
+        error?: string;
+      } = {};
+  
+      try {
+        data = rawResponse ? JSON.parse(rawResponse) : {};
+      } catch {
+        throw new Error(`La API no devolvió JSON. Status: ${response.status}.`);
+      }
+  
+      if (!response.ok || !data.category) {
+        throw new Error(data.error ?? "No se pudo guardar la categoría.");
+      }
+  
+      setRestaurant((current) => ({
+        ...current,
+        categories: current.categories.map((entry) =>
+          entry.id === categoryId ? (data.category as MenuCategory) : entry
+        ),
+      }));
+  
+      setCategorySuccess("Categoría guardada correctamente.");
+    } catch (error) {
+      setCategoryError(
+        error instanceof Error ? error.message : "No se pudo guardar la categoría."
+      );
+    } finally {
+      setCategorySavingId(null);
+    }
   };
 
-  const deleteCategory = (categoryId: string) => {
-    setRestaurant((current) => {
-      const categories = current.categories.filter((category) => category.id !== categoryId);
-      if (!categories.length) return current;
-
-      return {
+  const addCategory = async () => {
+    const normalized = newCategoryName.trim();
+  
+    if (!normalized) return;
+  
+    setCategorySavingId("new");
+    setCategoryError(null);
+    setCategorySuccess(null);
+  
+    try {
+      const response = await fetch("/api/restaurant-admin/categories", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          name: normalized,
+          description: "Nueva categoría lista para ordenar productos.",
+        }),
+      });
+  
+      const rawResponse = await response.text();
+  
+      let data: {
+        category?: MenuCategory;
+        error?: string;
+      } = {};
+  
+      try {
+        data = rawResponse ? JSON.parse(rawResponse) : {};
+      } catch {
+        throw new Error(`La API no devolvió JSON. Status: ${response.status}.`);
+      }
+  
+      if (!response.ok || !data.category) {
+        throw new Error(data.error ?? "No se pudo crear la categoría.");
+      }
+  
+      setRestaurant((current) => ({
         ...current,
-        categories,
+        categories: [...current.categories, data.category as MenuCategory],
+      }));
+  
+      setNewCategoryName("");
+      setCategorySuccess("Categoría creada correctamente.");
+    } catch (error) {
+      setCategoryError(
+        error instanceof Error ? error.message : "No se pudo crear la categoría."
+      );
+    } finally {
+      setCategorySavingId(null);
+    }
+  };
+
+  const deleteCategory = async (categoryId: string) => {
+    if (restaurant.categories.length <= 1) return;
+  
+    setCategorySavingId(categoryId);
+    setCategoryError(null);
+    setCategorySuccess(null);
+  
+    try {
+      const response = await fetch(`/api/restaurant-admin/categories/${categoryId}`, {
+        method: "DELETE",
+      });
+  
+      const rawResponse = await response.text();
+  
+      let data: {
+        deleted?: boolean;
+        error?: string;
+      } = {};
+  
+      try {
+        data = rawResponse ? JSON.parse(rawResponse) : {};
+      } catch {
+        throw new Error(`La API no devolvió JSON. Status: ${response.status}.`);
+      }
+  
+      if (!response.ok || !data.deleted) {
+        throw new Error(data.error ?? "No se pudo eliminar la categoría.");
+      }
+  
+      setRestaurant((current) => ({
+        ...current,
+        categories: current.categories.filter((category) => category.id !== categoryId),
         items: current.items.filter((item) => item.categoryId !== categoryId),
-      };
-    });
+      }));
+  
+      setCategorySuccess("Categoría eliminada correctamente.");
+    } catch (error) {
+      setCategoryError(
+        error instanceof Error ? error.message : "No se pudo eliminar la categoría."
+      );
+    } finally {
+      setCategorySavingId(null);
+    }
   };
 
   const addItem = (categoryId?: string) => {
@@ -209,7 +340,7 @@ export function RestaurantAdminPanel({
   const handleCategoryKeyDown = (event: KeyboardEvent<HTMLInputElement>) => {
     if (event.key === "Enter") {
       event.preventDefault();
-      addCategory();
+      void addCategory();
     }
   };
 
@@ -641,16 +772,29 @@ export function RestaurantAdminPanel({
             </div>
 
             <div className={styles.inlineCreate}>
-              <input
-                placeholder="Nueva categoria"
-                value={newCategoryName}
-                onChange={(event) => setNewCategoryName(event.target.value)}
-                onKeyDown={handleCategoryKeyDown}
-              />
-              <button className={styles.primaryButton} onClick={addCategory} type="button">
-                Agregar categoria
-              </button>
-            </div>
+  <input
+    placeholder="Nueva categoria"
+    value={newCategoryName}
+    onChange={(event) => setNewCategoryName(event.target.value)}
+    onKeyDown={handleCategoryKeyDown}
+  />
+  <button
+    className={styles.primaryButton}
+    disabled={categorySavingId === "new"}
+    onClick={() => void addCategory()}
+    type="button"
+  >
+    {categorySavingId === "new" ? "Creando..." : "Agregar categoria"}
+  </button>
+</div>
+
+{categoryError ? (
+  <div className={styles.errorBox}>{categoryError}</div>
+) : null}
+
+{categorySuccess ? (
+  <div className={styles.successBox}>{categorySuccess}</div>
+) : null}
 
             <div className={styles.stack}>
               {restaurant.categories.map((category) => (
@@ -666,16 +810,28 @@ export function RestaurantAdminPanel({
                     </label>
                   </div>
                   <div className={styles.rowActions}>
-                    <span>{restaurant.items.filter((item) => item.categoryId === category.id).length} productos asignados</span>
-                    <button
-                      className={styles.ghostDanger}
-                      disabled={restaurant.categories.length === 1}
-                      onClick={() => deleteCategory(category.id)}
-                      type="button"
-                    >
-                      Eliminar categoria
-                    </button>
-                  </div>
+  <span>
+    {restaurant.items.filter((item) => item.categoryId === category.id).length} productos asignados
+  </span>
+
+  <button
+    className={styles.primaryButton}
+    disabled={categorySavingId === category.id}
+    onClick={() => void saveCategory(category.id)}
+    type="button"
+  >
+    {categorySavingId === category.id ? "Guardando..." : "Guardar categoria"}
+  </button>
+
+  <button
+    className={styles.ghostDanger}
+    disabled={restaurant.categories.length === 1 || categorySavingId === category.id}
+    onClick={() => void deleteCategory(category.id)}
+    type="button"
+  >
+    Eliminar categoria
+  </button>
+</div>
                 </article>
               ))}
             </div>
