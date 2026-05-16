@@ -4,6 +4,7 @@ import { ChangeEvent, KeyboardEvent, useMemo, useState } from "react";
 import styles from "./restaurant-admin-panel.module.css";
 import { demoRestaurant } from "@/data/platform";
 import { MenuCategory, MenuItem, RestaurantRecord } from "@/types/platform";
+import { menuTemplates } from "@/data/menu-templates";
 
 const money = new Intl.NumberFormat("es-AR", {
   style: "currency",
@@ -59,6 +60,25 @@ export function RestaurantAdminPanel({
   const [restaurant, setRestaurant] = useState<RestaurantRecord>(
     initialRestaurant ?? demoRestaurant
   );
+
+  const [appearanceDraft, setAppearanceDraft] = useState({
+    menuTemplate: restaurant.menuTemplate ?? "classic-delivery",
+    logoUrl: restaurant.logoUrl ?? "",
+    coverImageUrl: restaurant.coverImageUrl ?? "",
+    accent: restaurant.theme.accent,
+    accentSoft: restaurant.theme.accentSoft,
+    surface: restaurant.theme.surface,
+    surfaceAlt: restaurant.theme.surfaceAlt,
+    border: restaurant.theme.border,
+    text: restaurant.theme.text,
+    muted: restaurant.theme.muted,
+    heroGradient: restaurant.theme.heroGradient,
+  });
+  
+  const [appearanceSaving, setAppearanceSaving] = useState(false);
+  const [appearanceError, setAppearanceError] = useState<string | null>(null);
+  const [appearanceSuccess, setAppearanceSuccess] = useState<string | null>(null);
+
   const [newCategoryName, setNewCategoryName] = useState("");
   const [activeSection, setActiveSection] = useState<AdminSection>("overview");
   const [themeMode, setThemeMode] = useState<"light" | "dark">("light");
@@ -163,6 +183,92 @@ export function RestaurantAdminPanel({
   const adminWhatsappUrl = `https://wa.me/${restaurant.customerWhatsapp}`;
   const activeMeta = sections.find((section) => section.id === activeSection) ?? sections[0];
   const currentRestaurantSlug = restaurantSlug ?? restaurant.slug;
+
+  const updateAppearanceDraft = (
+    field: keyof typeof appearanceDraft,
+    value: string
+  ) => {
+    setAppearanceDraft((current) => ({
+      ...current,
+      [field]: value,
+    }));
+  };
+  
+  const applyTemplate = (templateId: string) => {
+    const template = menuTemplates.find((entry) => entry.id === templateId);
+  
+    if (!template) return;
+  
+    setAppearanceDraft((current) => ({
+      ...current,
+      menuTemplate: template.id,
+      accent: template.accent,
+      accentSoft: template.accentSoft,
+      surface: template.surface,
+      surfaceAlt: template.surfaceAlt,
+      border: template.border,
+      text: template.text,
+      muted: template.muted,
+      heroGradient: template.heroGradient,
+    }));
+  };
+  
+  const saveAppearance = async () => {
+    setAppearanceSaving(true);
+    setAppearanceError(null);
+    setAppearanceSuccess(null);
+  
+    try {
+      const response = await fetch("/api/restaurant-admin/appearance", {
+        method: "PATCH",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(appearanceDraft),
+      });
+  
+      const rawResponse = await response.text();
+  
+      let data: {
+        ok?: boolean;
+        error?: string;
+        restaurant?: {
+          menuTemplate?: string;
+          logoUrl?: string | null;
+          coverImageUrl?: string | null;
+          theme?: RestaurantRecord["theme"];
+        };
+      } = {};
+  
+      try {
+        data = rawResponse ? JSON.parse(rawResponse) : {};
+      } catch {
+        throw new Error(`La API no devolvió JSON. Status: ${response.status}.`);
+      }
+  
+      if (!response.ok || !data.ok) {
+        throw new Error(data.error ?? "No se pudo guardar la estética.");
+      }
+  
+      setRestaurant((current) => ({
+        ...current,
+        menuTemplate: data.restaurant?.menuTemplate as RestaurantRecord["menuTemplate"],
+        logoUrl: data.restaurant?.logoUrl ?? "",
+        coverImageUrl: data.restaurant?.coverImageUrl ?? "",
+        theme: data.restaurant?.theme ?? current.theme,
+      }));
+  
+      setAppearanceSuccess("Estética guardada correctamente.");
+    } catch (error) {
+      setAppearanceError(
+        error instanceof Error ? error.message : "No se pudo guardar la estética."
+      );
+    } finally {
+      setAppearanceSaving(false);
+    }
+  };
+
+
   return (
     <div className={styles.shell} data-theme={themeMode}>
      <button
@@ -482,21 +588,288 @@ export function RestaurantAdminPanel({
         ) : null}
 
 {activeSection === "appearance" ? (
-  <section className={styles.panel}>
-    <div className={styles.panelHeader}>
-      <div>
-        <span className={styles.eyebrow}>Personalización</span>
-        <h3>Estética del menú</h3>
+  <div className={styles.stack}>
+    <section className={styles.panel}>
+      <div className={styles.panelHeader}>
+        <div>
+          <span className={styles.eyebrow}>Personalización</span>
+          <h3>Estética del menú</h3>
+          <p>
+            Elegí una plantilla visual y ajustá colores, logo e imagen principal
+            del menú público.
+          </p>
+        </div>
+
+        <button
+          className={styles.primaryButton}
+          disabled={appearanceSaving}
+          onClick={saveAppearance}
+          type="button"
+        >
+          {appearanceSaving ? "Guardando..." : "Guardar estética"}
+        </button>
       </div>
-    </div>
 
-    <p>
-      Elegí una plantilla visual y ajustá colores, logo e imagen principal del
-      menú público.
-    </p>
+      {appearanceError ? (
+        <div className={styles.errorBox}>{appearanceError}</div>
+      ) : null}
 
-    {/* acá metemos selector de templates + inputs */}
-  </section>
+      {appearanceSuccess ? (
+        <div className={styles.successBox}>{appearanceSuccess}</div>
+      ) : null}
+    </section>
+
+    <section className={styles.panel}>
+      <div className={styles.panelHeader}>
+        <div>
+          <span className={styles.eyebrow}>Plantillas</span>
+          <h3>Elegí un estilo base</h3>
+        </div>
+      </div>
+
+      <div className={styles.templateGrid}>
+        {menuTemplates.map((template) => (
+          <button
+            key={template.id}
+            className={
+              appearanceDraft.menuTemplate === template.id
+                ? styles.templateCardActive
+                : styles.templateCard
+            }
+            onClick={() => applyTemplate(template.id)}
+            type="button"
+          >
+            <div
+              className={styles.templatePreview}
+              style={{
+                background: template.heroGradient,
+                borderColor: template.border,
+              }}
+            >
+              <span
+                style={{
+                  background: template.accent,
+                  color: template.text,
+                }}
+              />
+              <strong style={{ color: "#ffffff" }}>{template.name}</strong>
+            </div>
+
+            <div>
+              <strong>{template.name}</strong>
+              <p>{template.description}</p>
+            </div>
+          </button>
+        ))}
+      </div>
+    </section>
+
+    <section className={styles.panel}>
+      <div className={styles.panelHeader}>
+        <div>
+          <span className={styles.eyebrow}>Marca</span>
+          <h3>Logo e imagen principal</h3>
+        </div>
+      </div>
+
+      <div className={styles.formGrid}>
+        <label className={styles.full}>
+          <span>Logo URL</span>
+          <input
+            placeholder="https://..."
+            value={appearanceDraft.logoUrl}
+            onChange={(event) =>
+              updateAppearanceDraft("logoUrl", event.target.value)
+            }
+          />
+        </label>
+
+        <label className={styles.full}>
+          <span>Imagen portada URL</span>
+          <input
+            placeholder="https://..."
+            value={appearanceDraft.coverImageUrl}
+            onChange={(event) =>
+              updateAppearanceDraft("coverImageUrl", event.target.value)
+            }
+          />
+        </label>
+      </div>
+    </section>
+
+    <section className={styles.panel}>
+      <div className={styles.panelHeader}>
+        <div>
+          <span className={styles.eyebrow}>Colores</span>
+          <h3>Ajustes visuales</h3>
+        </div>
+      </div>
+
+      <div className={styles.colorGrid}>
+        <label>
+          <span>Color principal</span>
+          <input
+            type="color"
+            value={appearanceDraft.accent}
+            onChange={(event) =>
+              updateAppearanceDraft("accent", event.target.value)
+            }
+          />
+          <input
+            value={appearanceDraft.accent}
+            onChange={(event) =>
+              updateAppearanceDraft("accent", event.target.value)
+            }
+          />
+        </label>
+
+        <label>
+          <span>Color suave</span>
+          <input
+            type="color"
+            value={appearanceDraft.accentSoft}
+            onChange={(event) =>
+              updateAppearanceDraft("accentSoft", event.target.value)
+            }
+          />
+          <input
+            value={appearanceDraft.accentSoft}
+            onChange={(event) =>
+              updateAppearanceDraft("accentSoft", event.target.value)
+            }
+          />
+        </label>
+
+        <label>
+          <span>Fondo</span>
+          <input
+            type="color"
+            value={appearanceDraft.surface}
+            onChange={(event) =>
+              updateAppearanceDraft("surface", event.target.value)
+            }
+          />
+          <input
+            value={appearanceDraft.surface}
+            onChange={(event) =>
+              updateAppearanceDraft("surface", event.target.value)
+            }
+          />
+        </label>
+
+        <label>
+          <span>Fondo alternativo</span>
+          <input
+            type="color"
+            value={appearanceDraft.surfaceAlt}
+            onChange={(event) =>
+              updateAppearanceDraft("surfaceAlt", event.target.value)
+            }
+          />
+          <input
+            value={appearanceDraft.surfaceAlt}
+            onChange={(event) =>
+              updateAppearanceDraft("surfaceAlt", event.target.value)
+            }
+          />
+        </label>
+
+        <label>
+          <span>Borde</span>
+          <input
+            type="color"
+            value={appearanceDraft.border}
+            onChange={(event) =>
+              updateAppearanceDraft("border", event.target.value)
+            }
+          />
+          <input
+            value={appearanceDraft.border}
+            onChange={(event) =>
+              updateAppearanceDraft("border", event.target.value)
+            }
+          />
+        </label>
+
+        <label>
+          <span>Texto</span>
+          <input
+            type="color"
+            value={appearanceDraft.text}
+            onChange={(event) =>
+              updateAppearanceDraft("text", event.target.value)
+            }
+          />
+          <input
+            value={appearanceDraft.text}
+            onChange={(event) =>
+              updateAppearanceDraft("text", event.target.value)
+            }
+          />
+        </label>
+      </div>
+    </section>
+
+    <section className={styles.panel}>
+      <div className={styles.panelHeader}>
+        <div>
+          <span className={styles.eyebrow}>Vista previa</span>
+          <h3>Preview del menú</h3>
+        </div>
+      </div>
+
+      <div
+        className={styles.menuPreview}
+        style={{
+          background: appearanceDraft.surface,
+          color: appearanceDraft.text,
+          borderColor: appearanceDraft.border,
+        }}
+      >
+        <div
+          className={styles.menuPreviewHero}
+          style={{
+            background: appearanceDraft.heroGradient,
+          }}
+        >
+          {appearanceDraft.logoUrl ? (
+            <img src={appearanceDraft.logoUrl} alt="Logo del restaurante" />
+          ) : (
+            <div className={styles.previewLogoFallback}>
+              {restaurant.name.slice(0, 1)}
+            </div>
+          )}
+
+          <span>Menu Delivery</span>
+          <h4>{restaurant.name}</h4>
+          <p>{restaurant.description}</p>
+
+          <button
+            type="button"
+            style={{
+              background: appearanceDraft.accent,
+              color: appearanceDraft.text,
+              borderColor: appearanceDraft.border,
+            }}
+          >
+            Ver menú
+          </button>
+        </div>
+
+        <div className={styles.previewProducts}>
+          <article style={{ background: appearanceDraft.surfaceAlt }}>
+            <strong>Producto destacado</strong>
+            <span>$ 9.900</span>
+          </article>
+
+          <article style={{ background: appearanceDraft.surfaceAlt }}>
+            <strong>Combo especial</strong>
+            <span>$ 12.500</span>
+          </article>
+        </div>
+      </div>
+    </section>
+  </div>
 ) : null}
 
         {activeSection === "publishing" ? (
