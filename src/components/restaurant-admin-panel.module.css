@@ -837,3 +837,35 @@
     max-width: 100%;
   }
 }
+.productActions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+}
+
+.successBox {
+  padding: 0.85rem 1rem;
+  border: 1px solid #abefc6;
+  background: #ecfdf3;
+  color: #047857;
+  font-weight: 700;
+}
+
+.errorBox {
+  padding: 0.85rem 1rem;
+  border: 1px solid #fecdca;
+  background: #fff1f0;
+  color: #b42318;
+  font-weight: 700;
+}
+
+@media (max-width: 760px) {
+  .productActions {
+    flex-direction: column;
+  }
+
+  .productActions button {
+    width: 100%;
+  }
+}

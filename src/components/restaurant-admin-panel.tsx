@@ -84,6 +84,10 @@ export function RestaurantAdminPanel({
   const [themeMode, setThemeMode] = useState<"light" | "dark">("light");
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 
+  const [productSavingId, setProductSavingId] = useState<string | null>(null);
+  const [productError, setProductError] = useState<string | null>(null);
+  const [productSuccess, setProductSuccess] = useState<string | null>(null);
+
   const updateRestaurant = <K extends keyof RestaurantRecord>(
     field: K,
     value: RestaurantRecord[K]
@@ -265,6 +269,151 @@ export function RestaurantAdminPanel({
       );
     } finally {
       setAppearanceSaving(false);
+    }
+  };
+
+
+  const createProduct = async (categoryId: string) => {
+    setProductError(null);
+    setProductSuccess(null);
+    setProductSavingId("new");
+  
+    try {
+      const response = await fetch("/api/restaurant-admin/products", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          categoryId,
+        }),
+      });
+  
+      const rawResponse = await response.text();
+  
+      let data: {
+        product?: RestaurantRecord["items"][number];
+        error?: string;
+      } = {};
+  
+      try {
+        data = rawResponse ? JSON.parse(rawResponse) : {};
+      } catch {
+        throw new Error(`La API no devolvió JSON. Status: ${response.status}.`);
+      }
+  
+      if (!response.ok || !data.product) {
+        throw new Error(data.error ?? "No se pudo crear el producto.");
+      }
+  
+      setRestaurant((current) => ({
+        ...current,
+        items: [...current.items, data.product as RestaurantRecord["items"][number]],
+      }));
+  
+      setProductSuccess("Producto creado. Ahora podés editarlo y guardar cambios.");
+    } catch (error) {
+      setProductError(
+        error instanceof Error ? error.message : "No se pudo crear el producto."
+      );
+    } finally {
+      setProductSavingId(null);
+    }
+  };
+  
+  const saveProduct = async (productId: string) => {
+    const product = restaurant.items.find((item) => item.id === productId);
+  
+    if (!product) return;
+  
+    setProductError(null);
+    setProductSuccess(null);
+    setProductSavingId(productId);
+  
+    try {
+      const response = await fetch(`/api/restaurant-admin/products/${productId}`, {
+        method: "PATCH",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(product),
+      });
+  
+      const rawResponse = await response.text();
+  
+      let data: {
+        product?: RestaurantRecord["items"][number];
+        error?: string;
+      } = {};
+  
+      try {
+        data = rawResponse ? JSON.parse(rawResponse) : {};
+      } catch {
+        throw new Error(`La API no devolvió JSON. Status: ${response.status}.`);
+      }
+  
+      if (!response.ok || !data.product) {
+        throw new Error(data.error ?? "No se pudo guardar el producto.");
+      }
+  
+      setRestaurant((current) => ({
+        ...current,
+        items: current.items.map((item) =>
+          item.id === productId
+            ? (data.product as RestaurantRecord["items"][number])
+            : item
+        ),
+      }));
+  
+      setProductSuccess("Producto guardado correctamente.");
+    } catch (error) {
+      setProductError(
+        error instanceof Error ? error.message : "No se pudo guardar el producto."
+      );
+    } finally {
+      setProductSavingId(null);
+    }
+  };
+  
+  const deleteProduct = async (productId: string) => {
+    setProductError(null);
+    setProductSuccess(null);
+    setProductSavingId(productId);
+  
+    try {
+      const response = await fetch(`/api/restaurant-admin/products/${productId}`, {
+        method: "DELETE",
+      });
+  
+      const rawResponse = await response.text();
+  
+      let data: {
+        deleted?: boolean;
+        error?: string;
+      } = {};
+  
+      try {
+        data = rawResponse ? JSON.parse(rawResponse) : {};
+      } catch {
+        throw new Error(`La API no devolvió JSON. Status: ${response.status}.`);
+      }
+  
+      if (!response.ok || !data.deleted) {
+        throw new Error(data.error ?? "No se pudo borrar el producto.");
+      }
+  
+      setRestaurant((current) => ({
+        ...current,
+        items: current.items.filter((item) => item.id !== productId),
+      }));
+  
+      setProductSuccess("Producto eliminado correctamente.");
+    } catch (error) {
+      setProductError(
+        error instanceof Error ? error.message : "No se pudo borrar el producto."
+      );
+    } finally {
+      setProductSavingId(null);
     }
   };
 
@@ -501,9 +650,21 @@ export function RestaurantAdminPanel({
                 <span className={styles.eyebrow}>Productos</span>
                 <h3>Items, fotos, precios y borrado</h3>
               </div>
-              <button className={styles.primaryButton} onClick={() => addItem()} type="button">
-                Agregar producto
-              </button>
+              <button
+  className={styles.primaryButton}
+  disabled={productSavingId === "new" || restaurant.categories.length === 0}
+  onClick={() => {
+    const firstCategory = restaurant.categories[0];
+
+    if (firstCategory) {
+      createProduct(firstCategory.id);
+    }
+  }}
+  type="button"
+>
+  {productSavingId === "new" ? "Creando..." : "Agregar producto"}
+</button>
+
             </div>
 
             <div className={styles.stack}>
@@ -514,9 +675,14 @@ export function RestaurantAdminPanel({
                       <span className={styles.eyebrow}>{category.name}</span>
                       <h3>{category.description}</h3>
                     </div>
-                    <button className={styles.secondaryButton} onClick={() => addItem(category.id)} type="button">
-                      Agregar en categoria
-                    </button>
+                    <button
+  className={styles.secondaryButton}
+  disabled={productSavingId === "new"}
+  onClick={() => createProduct(category.id)}
+  type="button"
+>
+  Agregar en categoría
+</button>
                   </div>
 
                   <div className={styles.stack}>
@@ -527,9 +693,25 @@ export function RestaurantAdminPanel({
                             <strong>{item.name}</strong>
                             <span>{money.format(item.price)}</span>
                           </div>
-                          <button className={styles.ghostDanger} onClick={() => deleteItem(item.id)} type="button">
-                            Eliminar producto
-                          </button>
+                          <div className={styles.productActions}>
+  <button
+    className={styles.primaryButton}
+    disabled={productSavingId === item.id}
+    onClick={() => saveProduct(item.id)}
+    type="button"
+  >
+    {productSavingId === item.id ? "Guardando..." : "Guardar producto"}
+  </button>
+
+  <button
+    className={styles.ghostDanger}
+    disabled={productSavingId === item.id}
+    onClick={() => deleteProduct(item.id)}
+    type="button"
+  >
+    Eliminar producto
+  </button>
+</div>
                         </div>
 
                         <div className={styles.formGrid}>
