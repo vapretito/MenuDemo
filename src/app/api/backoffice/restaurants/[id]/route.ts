@@ -59,6 +59,10 @@ export async function PATCH(request: Request, { params }: RouteProps) {
   if (body.dnsStatus === "pending") {
     data.dnsStatus = DnsStatus.PENDING;
   }
+  if (body.dnsStatus === "error") {
+    data.dnsStatus = DnsStatus.ERROR;
+  }
+  
 
   const restaurant = await prisma.restaurant.update({
     where: {
