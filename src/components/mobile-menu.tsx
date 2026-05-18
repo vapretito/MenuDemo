@@ -86,6 +86,15 @@ export function MobileMenu({ restaurant }: MobileMenuProps) {
   RestaurantRecord["items"][number] | null
 >(null);
 
+
+const isAcceptingOrders = restaurant.isAcceptingOrders ?? true;
+const closedMessage =
+  restaurant.closedMessage ??
+  "Estamos cerrados por ahora. Podés revisar el menú y consultarnos por WhatsApp.";
+
+
+
+
   const featuredItems = restaurant.items.filter((item) => item.featured);
   const heroItem = featuredItems[0] ?? restaurant.items[0];
 
@@ -264,6 +273,13 @@ const closeProductModal = () => {
           </button>
         ))}
       </nav>
+
+      {!isAcceptingOrders ? (
+  <section className={styles.closedNotice}>
+    <strong>Menú cerrado por ahora</strong>
+    <p>{closedMessage}</p>
+  </section>
+) : null}
 
       <section className={styles.toolbar}>
         <div className={styles.searchWrap}>
@@ -557,15 +573,18 @@ const closeProductModal = () => {
               <strong>{money.format(total)}</strong>
             </div>
             <a
-  aria-disabled={!cartItems.length}
-  className={!cartItems.length ? styles.ctaDisabled : styles.cta}
-  href={cartItems.length ? whatsappUrl : "#"}
+  aria-disabled={!cartItems.length || !isAcceptingOrders}
+  className={!cartItems.length || !isAcceptingOrders ? styles.ctaDisabled : styles.cta}
+  href={cartItems.length && isAcceptingOrders ? whatsappUrl : "#"}
   rel="noreferrer"
   target="_blank"
-  onClick={() => {
-    if (cartItems.length) {
-      void trackCartEvent();
+  onClick={(event) => {
+    if (!cartItems.length || !isAcceptingOrders) {
+      event.preventDefault();
+      return;
     }
+  
+    void trackCartEvent();
   }}
 >
   Enviar pedido por WhatsApp

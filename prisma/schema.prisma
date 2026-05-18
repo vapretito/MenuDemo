@@ -133,6 +133,9 @@ model Restaurant {
 
   cartEvents CartEvent[]
 
+  isAcceptingOrders Boolean @default(true)
+  closedMessage     String  @default("Estamos cerrados por ahora. Podés revisar el menú y consultarnos por WhatsApp.")
+
   @@index([status])
   @@index([dnsStatus])
   @@index([billingMode])

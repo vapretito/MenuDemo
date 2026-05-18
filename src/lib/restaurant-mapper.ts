@@ -121,6 +121,9 @@ export function mapRestaurantToRecord(
 
     whatsappIntroMessage: restaurant.whatsappIntroMessage,
 whatsappFooterMessage: restaurant.whatsappFooterMessage,
+
+isAcceptingOrders: restaurant.isAcceptingOrders,
+closedMessage: restaurant.closedMessage,
   
     dnsStatus: normalizeDnsStatus(restaurant.dnsStatus),
     connectedToDemo: restaurant.connectedToDemo,

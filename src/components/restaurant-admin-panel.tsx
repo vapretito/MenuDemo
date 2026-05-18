@@ -128,6 +128,18 @@ const [whatsappError, setWhatsappError] = useState<string | null>(null);
 const [whatsappSuccess, setWhatsappSuccess] = useState<string | null>(null);
 
 
+const [orderingDraft, setOrderingDraft] = useState({
+  isAcceptingOrders: restaurant.isAcceptingOrders ?? true,
+  closedMessage:
+    restaurant.closedMessage ??
+    "Estamos cerrados por ahora. Podés revisar el menú y consultarnos por WhatsApp.",
+});
+
+const [orderingSaving, setOrderingSaving] = useState(false);
+const [orderingError, setOrderingError] = useState<string | null>(null);
+const [orderingSuccess, setOrderingSuccess] = useState<string | null>(null);
+
+
   const updateRestaurant = <K extends keyof RestaurantRecord>(
     field: K,
     value: RestaurantRecord[K]
@@ -775,6 +787,60 @@ const [whatsappSuccess, setWhatsappSuccess] = useState<string | null>(null);
   useEffect(() => {
     void loadCartSummary();
   }, []);
+
+
+  const saveOrderingStatus = async () => {
+    setOrderingSaving(true);
+    setOrderingError(null);
+    setOrderingSuccess(null);
+  
+    try {
+      const response = await fetch("/api/restaurant-admin/ordering-status", {
+        method: "PATCH",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(orderingDraft),
+      });
+  
+      const rawResponse = await response.text();
+  
+      let data: {
+        ok?: boolean;
+        error?: string;
+        restaurant?: {
+          isAcceptingOrders: boolean;
+          closedMessage: string;
+        };
+      } = {};
+  
+      try {
+        data = rawResponse ? JSON.parse(rawResponse) : {};
+      } catch {
+        throw new Error(`La API no devolvió JSON. Status: ${response.status}.`);
+      }
+  
+      if (!response.ok || !data.ok || !data.restaurant) {
+        throw new Error(data.error ?? "No se pudo guardar el estado.");
+      }
+  
+      setRestaurant((current) => ({
+        ...current,
+        isAcceptingOrders: data.restaurant?.isAcceptingOrders ?? true,
+        closedMessage: data.restaurant?.closedMessage ?? current.closedMessage,
+      }));
+  
+      setOrderingSuccess("Estado del restaurante guardado correctamente.");
+    } catch (error) {
+      setOrderingError(
+        error instanceof Error
+          ? error.message
+          : "No se pudo guardar el estado del restaurante."
+      );
+    } finally {
+      setOrderingSaving(false);
+    }
+  };
 
 
   return (
@@ -1683,6 +1749,82 @@ const [whatsappSuccess, setWhatsappSuccess] = useState<string | null>(null);
       Dirección de entrega: A confirmar<br />
       Forma de pago: Efectivo<br />
       {whatsappDraft.whatsappFooterMessage}
+    </p>
+  </div>
+</section>
+
+<section className={styles.panel}>
+  <div className={styles.panelHeader}>
+    <div>
+      <span className={styles.eyebrow}>Estado del menú</span>
+      <h3>Pedidos abiertos o pausados</h3>
+      <p>
+        Cuando el menú está cerrado, los clientes pueden verlo, pero no pueden
+        enviar pedidos por WhatsApp desde el carrito.
+      </p>
+    </div>
+
+    <button
+      className={styles.primaryButton}
+      disabled={orderingSaving}
+      onClick={saveOrderingStatus}
+      type="button"
+    >
+      {orderingSaving ? "Guardando..." : "Guardar estado"}
+    </button>
+  </div>
+
+  {orderingError ? (
+    <div className={styles.errorBox}>{orderingError}</div>
+  ) : null}
+
+  {orderingSuccess ? (
+    <div className={styles.successBox}>{orderingSuccess}</div>
+  ) : null}
+
+  <div className={styles.formGrid}>
+    <label className={styles.full}>
+      <span>Estado de pedidos</span>
+
+      <select
+        value={orderingDraft.isAcceptingOrders ? "open" : "closed"}
+        onChange={(event) =>
+          setOrderingDraft((current) => ({
+            ...current,
+            isAcceptingOrders: event.target.value === "open",
+          }))
+        }
+      >
+        <option value="open">Abierto - recibir pedidos</option>
+        <option value="closed">Cerrado - pausar pedidos</option>
+      </select>
+    </label>
+
+    <label className={styles.full}>
+      <span>Mensaje cuando está cerrado</span>
+      <textarea
+        value={orderingDraft.closedMessage}
+        onChange={(event) =>
+          setOrderingDraft((current) => ({
+            ...current,
+            closedMessage: event.target.value,
+          }))
+        }
+      />
+    </label>
+  </div>
+
+  <div className={styles.publishCard}>
+    <span>Vista previa</span>
+    <strong>
+      {orderingDraft.isAcceptingOrders
+        ? "Menú abierto"
+        : "Menú cerrado"}
+    </strong>
+    <p>
+      {orderingDraft.isAcceptingOrders
+        ? "Los clientes pueden enviar pedidos por WhatsApp."
+        : orderingDraft.closedMessage}
     </p>
   </div>
 </section>

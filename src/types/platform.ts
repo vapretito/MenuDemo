@@ -101,6 +101,8 @@ export type RestaurantRecord = {
   coverImageUrl?: string | null;
   whatsappIntroMessage?: string;
 whatsappFooterMessage?: string;
+isAcceptingOrders?: boolean;
+closedMessage?: string;
 };
 
 export type RestaurantCreationInput = {
