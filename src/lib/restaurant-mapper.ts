@@ -125,6 +125,13 @@ whatsappFooterMessage: restaurant.whatsappFooterMessage,
 isAcceptingOrders: restaurant.isAcceptingOrders,
 closedMessage: restaurant.closedMessage,
   
+
+openingHours: Array.isArray(restaurant.openingHours)
+  ? (restaurant.openingHours as RestaurantRecord["openingHours"])
+  : [],
+openingHoursNote: restaurant.openingHoursNote,
+
+
     dnsStatus: normalizeDnsStatus(restaurant.dnsStatus),
     connectedToDemo: restaurant.connectedToDemo,
     billingMode: normalizeBillingMode(restaurant.billingMode),
