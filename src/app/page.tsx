@@ -68,10 +68,18 @@ export default function Home() {
         <div className={styles.orbTwo} />
 
         <header className={styles.topbar}>
-          <Link href="/" className={styles.brand} aria-label="Menui inicio">
-            <span className={styles.brandMark}>M</span>
-            <span className={styles.brandName}>Menui</span>
-          </Link>
+  <Link href="/" className={styles.brand} aria-label="Menui inicio">
+    <span className={styles.brandLogoRotator} aria-hidden="true">
+      <img src="/logos/menui-logo-navy.png" alt="" className={styles.logoVariant} />
+      <img src="/logos/menui-logo-green.png" alt="" className={styles.logoVariant} />
+      <img src="/logos/menui-logo-purple.png" alt="" className={styles.logoVariant} />
+      <img src="/logos/menui-logo-teal.png" alt="" className={styles.logoVariant} />
+      <img src="/logos/menui-logo-black-gold.png" alt="" className={styles.logoVariant} />
+      <img src="/logos/menui-logo-burgundy.png" alt="" className={styles.logoVariant} />
+    </span>
+
+    <span className={styles.brandName}>Menui</span>
+  </Link>
 
           <nav className={styles.nav} aria-label="Navegación principal">
             <a href="#plataforma">Plataforma</a>
