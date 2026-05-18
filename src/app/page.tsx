@@ -97,8 +97,7 @@ export default function Home() {
               Tu app menú con pedidos por WhatsApp, lista para vender.
             </h1>
             <p className={styles.heroLead}>
-              Diseñás una experiencia mobile para cada restaurante, le das su subdominio,
-              su panel privado y un carrito simple que convierte el pedido en mensaje de
+              Subdominio, panel privado y un carrito simple que convierte el pedido en mensaje de
               WhatsApp.
             </p>
 
