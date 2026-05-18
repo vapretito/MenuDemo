@@ -70,7 +70,7 @@ export default function Home() {
         <header className={styles.topbar}>
           <Link href="/" className={styles.brand} aria-label="Menui inicio">
             <span className={styles.brandMark}>M</span>
-            <span className={styles.brandName}>MENUI</span>
+            <span className={styles.brandName}>Menui</span>
           </Link>
 
           <nav className={styles.nav} aria-label="Navegación principal">
