@@ -93,6 +93,11 @@ export function RestaurantAdminPanel({
 const [categoryError, setCategoryError] = useState<string | null>(null);
 const [categorySuccess, setCategorySuccess] = useState<string | null>(null);
 
+const [profileSaving, setProfileSaving] = useState(false);
+const [profileError, setProfileError] = useState<string | null>(null);
+const [profileSuccess, setProfileSuccess] = useState<string | null>(null);
+
+
   const updateRestaurant = <K extends keyof RestaurantRecord>(
     field: K,
     value: RestaurantRecord[K]
@@ -587,7 +592,71 @@ const [categorySuccess, setCategorySuccess] = useState<string | null>(null);
     }
   };
 
-
+  const saveRestaurantProfile = async () => {
+    setProfileSaving(true);
+    setProfileError(null);
+    setProfileSuccess(null);
+  
+    try {
+      const response = await fetch("/api/restaurant-admin/profile", {
+        method: "PATCH",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          name: restaurant.name,
+          city: restaurant.city,
+          cuisine: restaurant.cuisine,
+          customerWhatsapp: restaurant.customerWhatsapp,
+          description: restaurant.description,
+        }),
+      });
+  
+      const rawResponse = await response.text();
+  
+      let data: {
+        ok?: boolean;
+        error?: string;
+        restaurant?: {
+          name: string;
+          city: string;
+          cuisine: string;
+          customerWhatsapp: string;
+          description: string;
+        };
+      } = {};
+  
+      try {
+        data = rawResponse ? JSON.parse(rawResponse) : {};
+      } catch {
+        throw new Error(`La API no devolvió JSON. Status: ${response.status}.`);
+      }
+  
+      if (!response.ok || !data.ok || !data.restaurant) {
+        throw new Error(data.error ?? "No se pudieron guardar los datos.");
+      }
+  
+      setRestaurant((current) => ({
+        ...current,
+        name: data.restaurant?.name ?? current.name,
+        city: data.restaurant?.city ?? current.city,
+        cuisine: data.restaurant?.cuisine ?? current.cuisine,
+        customerWhatsapp:
+          data.restaurant?.customerWhatsapp ?? current.customerWhatsapp,
+        description: data.restaurant?.description ?? current.description,
+      }));
+  
+      setProfileSuccess("Datos del restaurante guardados correctamente.");
+    } catch (error) {
+      setProfileError(
+        error instanceof Error
+          ? error.message
+          : "No se pudieron guardar los datos del restaurante."
+      );
+    } finally {
+      setProfileSaving(false);
+    }
+  };
   return (
     <div className={styles.shell} data-theme={themeMode}>
      <button
@@ -727,39 +796,89 @@ const [categorySuccess, setCategorySuccess] = useState<string | null>(null);
           </div>
         ) : null}
 
-        {activeSection === "identity" ? (
-          <section className={styles.panel}>
-            <div className={styles.panelHeader}>
-              <div>
-                <span className={styles.eyebrow}>Identidad</span>
-                <h3>Datos comerciales del restaurante</h3>
-              </div>
-            </div>
+{activeSection === "identity" ? (
+  <section className={styles.panel}>
+    <div className={styles.panelHeader}>
+      <div>
+        <span className={styles.eyebrow}>Identidad</span>
+        <h3>Datos comerciales del restaurante</h3>
+        <p>
+          Estos datos se muestran en el menú público y se usan para enviar los
+          pedidos por WhatsApp.
+        </p>
+      </div>
 
-            <div className={styles.formGrid}>
-              <label>
-                <span>Nombre del restaurante</span>
-                <input value={restaurant.name} onChange={(event) => updateRestaurant("name", event.target.value)} />
-              </label>
-              <label>
-                <span>Ciudad</span>
-                <input value={restaurant.city} onChange={(event) => updateRestaurant("city", event.target.value)} />
-              </label>
-              <label>
-                <span>Tipo de cocina</span>
-                <input value={restaurant.cuisine} onChange={(event) => updateRestaurant("cuisine", event.target.value)} />
-              </label>
-              <label>
-                <span>WhatsApp pedidos</span>
-                <input value={restaurant.customerWhatsapp} onChange={(event) => updateRestaurant("customerWhatsapp", event.target.value)} />
-              </label>
-              <label className={styles.full}>
-                <span>Descripcion corta del local</span>
-                <textarea value={restaurant.description} onChange={(event) => updateRestaurant("description", event.target.value)} />
-              </label>
-            </div>
-          </section>
-        ) : null}
+      <button
+        className={styles.primaryButton}
+        disabled={profileSaving}
+        onClick={saveRestaurantProfile}
+        type="button"
+      >
+        {profileSaving ? "Guardando..." : "Guardar datos"}
+      </button>
+    </div>
+
+    {profileError ? (
+      <div className={styles.errorBox}>{profileError}</div>
+    ) : null}
+
+    {profileSuccess ? (
+      <div className={styles.successBox}>{profileSuccess}</div>
+    ) : null}
+
+    <div className={styles.formGrid}>
+      <label>
+        <span>Nombre del restaurante</span>
+        <input
+          value={restaurant.name}
+          onChange={(event) =>
+            updateRestaurant("name", event.target.value)
+          }
+        />
+      </label>
+
+      <label>
+        <span>Ciudad</span>
+        <input
+          value={restaurant.city}
+          onChange={(event) =>
+            updateRestaurant("city", event.target.value)
+          }
+        />
+      </label>
+
+      <label>
+        <span>Tipo de cocina</span>
+        <input
+          value={restaurant.cuisine}
+          onChange={(event) =>
+            updateRestaurant("cuisine", event.target.value)
+          }
+        />
+      </label>
+
+      <label>
+        <span>WhatsApp pedidos</span>
+        <input
+          value={restaurant.customerWhatsapp}
+          onChange={(event) =>
+            updateRestaurant("customerWhatsapp", event.target.value)
+          }
+        />
+      </label>
+
+      <label className={styles.full}>
+        <span>Descripción corta del local</span>
+        <textarea
+          value={restaurant.description}
+          onChange={(event) =>
+            updateRestaurant("description", event.target.value)
+          }
+        />
+      </label>
+    </div>
+  </section>
+) : null}
 
         {activeSection === "categories" ? (
           <section className={styles.panel}>
