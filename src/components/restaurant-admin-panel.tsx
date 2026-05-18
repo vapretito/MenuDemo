@@ -12,8 +12,14 @@ const money = new Intl.NumberFormat("es-AR", {
   maximumFractionDigits: 0,
 });
 
-type AdminSection = "overview" | "identity" | "categories" | "products" | "publishing" |"appearance";
-
+type AdminSection =
+  | "overview"
+  | "identity"
+  | "categories"
+  | "products"
+  | "publishing"
+  | "appearance"
+  | "security";
 const sections: Array<{ id: AdminSection; label: string; hint: string }> = [
   { id: "overview", label: "Dashboard", hint: "Resumen operativo" },
   { id: "identity", label: "Mi restaurante", hint: "Marca y datos" },
@@ -21,6 +27,7 @@ const sections: Array<{ id: AdminSection; label: string; hint: string }> = [
   { id: "products", label: "Productos", hint: "Precios, fotos y estado" },
   { id: "publishing", label: "Publicación", hint: "Subdominio y WhatsApp" },
   { id: "appearance", label: "Estética", hint: "Diseño del menú" },
+  { id: "security", label: "Seguridad", hint: "Cuenta y acceso" },
 ];
 
 
@@ -168,6 +175,16 @@ const [hoursSaving, setHoursSaving] = useState(false);
 const [hoursError, setHoursError] = useState<string | null>(null);
 const [hoursSuccess, setHoursSuccess] = useState<string | null>(null);
 
+
+const [passwordDraft, setPasswordDraft] = useState({
+  currentPassword: "",
+  newPassword: "",
+  confirmPassword: "",
+});
+
+const [passwordSaving, setPasswordSaving] = useState(false);
+const [passwordError, setPasswordError] = useState<string | null>(null);
+const [passwordSuccess, setPasswordSuccess] = useState<string | null>(null);
 
 
 
@@ -957,6 +974,58 @@ const [hoursSuccess, setHoursSuccess] = useState<string | null>(null);
       window.location.href = "/login";
     }
   };
+
+
+  const changeRestaurantPassword = async () => {
+    setPasswordSaving(true);
+    setPasswordError(null);
+    setPasswordSuccess(null);
+  
+    try {
+      const response = await fetch("/api/restaurant-auth/change-password", {
+        method: "PATCH",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(passwordDraft),
+      });
+  
+      const rawResponse = await response.text();
+  
+      let data: {
+        ok?: boolean;
+        error?: string;
+        message?: string;
+      } = {};
+  
+      try {
+        data = rawResponse ? JSON.parse(rawResponse) : {};
+      } catch {
+        throw new Error(`La API no devolvió JSON. Status: ${response.status}.`);
+      }
+  
+      if (!response.ok || !data.ok) {
+        throw new Error(data.error ?? "No se pudo cambiar la contraseña.");
+      }
+  
+      setPasswordDraft({
+        currentPassword: "",
+        newPassword: "",
+        confirmPassword: "",
+      });
+  
+      setPasswordSuccess(data.message ?? "Contraseña actualizada correctamente.");
+    } catch (error) {
+      setPasswordError(
+        error instanceof Error
+          ? error.message
+          : "No se pudo cambiar la contraseña."
+      );
+    } finally {
+      setPasswordSaving(false);
+    }
+  };
+
 
   return (
     <div className={styles.shell} data-theme={themeMode}>
@@ -1778,6 +1847,106 @@ const [hoursSuccess, setHoursSuccess] = useState<string | null>(null);
     </section>
   </div>
 ) : null}
+
+
+{activeSection === "security" ? (
+  <div className={styles.stack}>
+    <section className={styles.panel}>
+      <div className={styles.panelHeader}>
+        <div>
+          <span className={styles.eyebrow}>Seguridad</span>
+          <h3>Cambiar contraseña</h3>
+          <p>
+            Usá esta opción para reemplazar la contraseña temporal asignada al
+            restaurante.
+          </p>
+        </div>
+
+        <button
+          className={styles.primaryButton}
+          disabled={passwordSaving}
+          onClick={changeRestaurantPassword}
+          type="button"
+        >
+          {passwordSaving ? "Guardando..." : "Cambiar contraseña"}
+        </button>
+      </div>
+
+      {passwordError ? (
+        <div className={styles.errorBox}>{passwordError}</div>
+      ) : null}
+
+      {passwordSuccess ? (
+        <div className={styles.successBox}>{passwordSuccess}</div>
+      ) : null}
+
+      <div className={styles.formGrid}>
+        <label className={styles.full}>
+          <span>Contraseña actual</span>
+          <input
+            autoComplete="current-password"
+            type="password"
+            value={passwordDraft.currentPassword}
+            onChange={(event) =>
+              setPasswordDraft((current) => ({
+                ...current,
+                currentPassword: event.target.value,
+              }))
+            }
+          />
+        </label>
+
+        <label>
+          <span>Nueva contraseña</span>
+          <input
+            autoComplete="new-password"
+            type="password"
+            value={passwordDraft.newPassword}
+            onChange={(event) =>
+              setPasswordDraft((current) => ({
+                ...current,
+                newPassword: event.target.value,
+              }))
+            }
+          />
+        </label>
+
+        <label>
+          <span>Confirmar nueva contraseña</span>
+          <input
+            autoComplete="new-password"
+            type="password"
+            value={passwordDraft.confirmPassword}
+            onChange={(event) =>
+              setPasswordDraft((current) => ({
+                ...current,
+                confirmPassword: event.target.value,
+              }))
+            }
+          />
+        </label>
+      </div>
+    </section>
+
+    <section className={styles.panel}>
+      <div className={styles.panelHeader}>
+        <div>
+          <span className={styles.eyebrow}>Recomendación</span>
+          <h3>Usá una contraseña segura</h3>
+        </div>
+      </div>
+
+      <ul className={styles.todoList}>
+        <li>Mínimo 8 caracteres.</li>
+        <li>Mezclar letras, números y símbolos.</li>
+        <li>No compartir la contraseña con empleados no autorizados.</li>
+        <li>Cambiarla si alguien deja de trabajar en el restaurante.</li>
+      </ul>
+    </section>
+  </div>
+) : null}
+
+
 
         {activeSection === "publishing" ? (
           
