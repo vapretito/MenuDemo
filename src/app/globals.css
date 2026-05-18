@@ -32,7 +32,7 @@ body {
   background:
     radial-gradient(circle at top left, rgba(233, 169, 47, 0.2), transparent 28%),
     radial-gradient(circle at 88% 12%, rgba(76, 123, 79, 0.12), transparent 24%),
-    linear-gradient(180deg, #fffdf8 0%, #f7f2e9 48%, #f3eadc 100%);
+    linear-gradient(180deg, #000000 0%, #000000 48%, #000000 100%);
   color: var(--ink);
   font-family: var(--font-body), "Segoe UI", sans-serif;
 }
