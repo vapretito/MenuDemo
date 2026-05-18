@@ -74,6 +74,7 @@ export default function Home() {
       <img src="/logos/menui-logo-green.png" alt="" className={styles.logoVariant} />
       <img src="/logos/menui-logo-purple.png" alt="" className={styles.logoVariant} />
       <img src="/logos/menui-logo-teal.png" alt="" className={styles.logoVariant} />
+      <img src="/logos/menui-logo-rojiblanco.png" alt="" className={styles.logoVariant} />
       <img src="/logos/menui-logo-black-gold.png" alt="" className={styles.logoVariant} />
       <img src="/logos/menui-logo-burgundy.png" alt="" className={styles.logoVariant} />
     </span>
@@ -304,13 +305,22 @@ export default function Home() {
         </section>
 
         <footer className={styles.footer} id="footer">
-          <div className={styles.footerBrand}>
-            <span className={styles.brandMark}>M</span>
-            <div>
-              <strong>MENUI</strong>
-              <p>Plataforma de menú digital para restaurantes con carrito y admin privado.</p>
-            </div>
-          </div>
+        <div className={styles.footerBrand}>
+  <span className={styles.footerLogoRotator} aria-hidden="true">
+    <img src="/logos/menui-logo-navy.png" alt="" className={styles.footerLogoVariant} />
+    <img src="/logos/menui-logo-green.png" alt="" className={styles.footerLogoVariant} />
+    <img src="/logos/menui-logo-purple.png" alt="" className={styles.footerLogoVariant} />
+    <img src="/logos/menui-logo-teal.png" alt="" className={styles.footerLogoVariant} />
+    <img src="/logos/menui-logo-black-gold.png" alt="" className={styles.footerLogoVariant} />
+    <img src="/logos/menui-logo-burgundy.png" alt="" className={styles.footerLogoVariant} />
+    <img src="/logos/menui-logo-red-white.png" alt="" className={styles.footerLogoVariant} />
+  </span>
+
+  <div>
+    <strong>MENUI</strong>
+    <p>Plataforma de menú digital para restaurantes con carrito y admin privado.</p>
+  </div>
+</div>
 
           <div className={styles.footerColumns}>
             <div>
