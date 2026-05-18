@@ -1,6 +1,6 @@
 "use client";
 
-import { ChangeEvent, KeyboardEvent, useMemo, useState } from "react";
+import { ChangeEvent, KeyboardEvent, useEffect, useMemo, useState } from "react";
 import styles from "./restaurant-admin-panel.module.css";
 import { demoRestaurant } from "@/data/platform";
 import { MenuCategory, MenuItem, RestaurantRecord } from "@/types/platform";
@@ -60,6 +60,22 @@ export function RestaurantAdminPanel({
   const [restaurant, setRestaurant] = useState<RestaurantRecord>(
     initialRestaurant ?? demoRestaurant
   );
+
+  const [cartSummary, setCartSummary] = useState({
+    totalEvents: 0,
+    totalEstimatedArs: 0,
+    totalItems: 0,
+    averageTicketArs: 0,
+    lastEvents: [] as Array<{
+      id: string;
+      totalArs: number;
+      itemCount: number;
+      paymentMethod: string;
+      createdAt: string;
+    }>,
+  });
+
+
 
   const [appearanceDraft, setAppearanceDraft] = useState({
     menuTemplate: restaurant.menuTemplate ?? "classic-delivery",
@@ -728,6 +744,39 @@ const [whatsappSuccess, setWhatsappSuccess] = useState<string | null>(null);
   };
 
 
+
+  const loadCartSummary = async () => {
+    try {
+      const response = await fetch("/api/restaurant-admin/cart-events/summary", {
+        cache: "no-store",
+      });
+  
+      const rawResponse = await response.text();
+  
+      let data: {
+        ok?: boolean;
+        summary?: typeof cartSummary;
+      } = {};
+  
+      try {
+        data = rawResponse ? JSON.parse(rawResponse) : {};
+      } catch {
+        return;
+      }
+  
+      if (response.ok && data.ok && data.summary) {
+        setCartSummary(data.summary);
+      }
+    } catch (error) {
+      console.error("[Load Cart Summary Error]", error);
+    }
+  };
+  
+  useEffect(() => {
+    void loadCartSummary();
+  }, []);
+
+
   return (
     <div className={styles.shell} data-theme={themeMode}>
      <button
@@ -849,7 +898,50 @@ const [whatsappSuccess, setWhatsappSuccess] = useState<string | null>(null);
                 <strong>{restaurant.customerWhatsapp}</strong>
                 <span>whatsapp receptor</span>
               </article>
+              <article className={styles.metricCard}>
+  <strong>{cartSummary.totalEvents}</strong>
+  <span>pedidos enviados por WhatsApp</span>
+</article>
+
+<article className={styles.metricCard}>
+  <strong>{money.format(cartSummary.totalEstimatedArs)}</strong>
+  <span>total estimado generado</span>
+</article>
+
+<article className={styles.metricCard}>
+  <strong>{money.format(cartSummary.averageTicketArs)}</strong>
+  <span>ticket promedio estimado</span>
+</article>
             </section>
+
+            <section className={styles.panel}>
+  <div className={styles.panelHeader}>
+    <div>
+      <span className={styles.eyebrow}>Pedidos aproximados</span>
+      <h3>Últimos carritos enviados por WhatsApp</h3>
+      <p>
+        Estos datos representan pedidos enviados a WhatsApp, no ventas
+        confirmadas por el restaurante.
+      </p>
+    </div>
+  </div>
+
+  <div className={styles.stack}>
+    {cartSummary.lastEvents.length ? (
+      cartSummary.lastEvents.map((event) => (
+        <article className={styles.publishCard} key={event.id}>
+          <span>{new Date(event.createdAt).toLocaleString("es-AR")}</span>
+          <strong>{money.format(event.totalArs)}</strong>
+          <p>
+            {event.itemCount} productos · Pago: {event.paymentMethod}
+          </p>
+        </article>
+      ))
+    ) : (
+      <p>Todavía no hay pedidos enviados por WhatsApp.</p>
+    )}
+  </div>
+</section>
 
             <section className={styles.panel}>
               <div className={styles.panelHeader}>

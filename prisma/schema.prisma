@@ -131,9 +131,30 @@ model Restaurant {
   whatsappIntroMessage  String @default("Hola, quiero hacer este pedido desde el menú online:")
   whatsappFooterMessage String @default("Por favor confirmar disponibilidad y tiempo estimado.")
 
+  cartEvents CartEvent[]
+
   @@index([status])
   @@index([dnsStatus])
   @@index([billingMode])
+}
+
+model CartEvent {
+  id             String   @id @default(cuid())
+  restaurantId   String
+  restaurantSlug String
+  totalArs       Int
+  itemCount      Int
+  paymentMethod  String
+  deliveryAddress String?
+  customerNote    String?
+  itemsSnapshot  Json
+  createdAt      DateTime @default(now())
+
+  restaurant Restaurant @relation(fields: [restaurantId], references: [id], onDelete: Cascade)
+
+  @@index([restaurantId])
+  @@index([restaurantSlug])
+  @@index([createdAt])
 }
 
 model Category {

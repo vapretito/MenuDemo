@@ -159,6 +159,33 @@ const closeProductModal = () => {
     customerNote
   );
 
+
+  const trackCartEvent = async () => {
+    if (!cartItems.length) return;
+  
+    try {
+      await fetch("/api/menu/cart-events", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        keepalive: true,
+        body: JSON.stringify({
+          restaurantSlug: restaurant.slug,
+          paymentMethod,
+          deliveryAddress,
+          customerNote,
+          items: cartItems.map((line) => ({
+            itemId: line.item.id,
+            quantity: line.quantity,
+          })),
+        }),
+      });
+    } catch (error) {
+      console.error("[Track Cart Event Error]", error);
+    }
+  };
+
   const changeQuantity = (itemId: string, delta: number) => {
     setCart((current) => {
       const found = current.find((line) => line.itemId === itemId);
@@ -530,14 +557,19 @@ const closeProductModal = () => {
               <strong>{money.format(total)}</strong>
             </div>
             <a
-              aria-disabled={!cartItems.length}
-              className={!cartItems.length ? styles.ctaDisabled : styles.cta}
-              href={cartItems.length ? whatsappUrl : "#"}
-              rel="noreferrer"
-              target="_blank"
-            >
-              Enviar pedido por WhatsApp
-            </a>
+  aria-disabled={!cartItems.length}
+  className={!cartItems.length ? styles.ctaDisabled : styles.cta}
+  href={cartItems.length ? whatsappUrl : "#"}
+  rel="noreferrer"
+  target="_blank"
+  onClick={() => {
+    if (cartItems.length) {
+      void trackCartEvent();
+    }
+  }}
+>
+  Enviar pedido por WhatsApp
+</a>
             <button className={styles.clearButton} onClick={() => setCart([])} type="button">
               Vaciar carrito
             </button>
