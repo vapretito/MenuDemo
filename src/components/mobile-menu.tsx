@@ -45,19 +45,28 @@ const buildWhatsappUrl = (
     return sum + (item ? item.price * line.quantity : 0);
   }, 0);
 
-  const message = [
-    `Hola ${restaurant.name}, quiero hacer este pedido:`,
-    "",
-    lines,
-    "",
-    `Total estimado: ${money.format(total)}`,
-    `Direccion de entrega: ${deliveryAddress.trim() || "A confirmar"}`,
-    `Forma de pago: ${paymentLabels[paymentMethod]}`,
-    customerNote.trim() ? `Notas: ${customerNote.trim()}` : null,
-    `Menu: ${restaurant.subdomain}`,
-  ]
-    .filter(Boolean)
-    .join("\n");
+  const introMessage =
+  restaurant.whatsappIntroMessage?.trim() ||
+  `Hola ${restaurant.name}, quiero hacer este pedido:`;
+
+const footerMessage = restaurant.whatsappFooterMessage?.trim();
+
+const message = [
+  introMessage,
+  "",
+  lines,
+  "",
+  `Total estimado: ${money.format(total)}`,
+  `Direccion de entrega: ${deliveryAddress.trim() || "A confirmar"}`,
+  `Forma de pago: ${paymentLabels[paymentMethod]}`,
+  customerNote.trim() ? `Notas: ${customerNote.trim()}` : null,
+  footerMessage ? "" : null,
+  footerMessage || null,
+  "",
+  `Menu: ${restaurant.subdomain}`,
+]
+  .filter(Boolean)
+  .join("\n");
 
   return `https://wa.me/${restaurant.customerWhatsapp}?text=${encodeURIComponent(message)}`;
 };

@@ -99,6 +99,8 @@ export type RestaurantRecord = {
   menuTemplate?: MenuTemplateId;
   logoUrl?: string | null;
   coverImageUrl?: string | null;
+  whatsappIntroMessage?: string;
+whatsappFooterMessage?: string;
 };
 
 export type RestaurantCreationInput = {

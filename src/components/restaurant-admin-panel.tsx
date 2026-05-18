@@ -98,6 +98,20 @@ const [profileError, setProfileError] = useState<string | null>(null);
 const [profileSuccess, setProfileSuccess] = useState<string | null>(null);
 
 
+const [whatsappDraft, setWhatsappDraft] = useState({
+  whatsappIntroMessage:
+    restaurant.whatsappIntroMessage ??
+    "Hola, quiero hacer este pedido desde el menú online:",
+  whatsappFooterMessage:
+    restaurant.whatsappFooterMessage ??
+    "Por favor confirmar disponibilidad y tiempo estimado.",
+});
+
+const [whatsappSaving, setWhatsappSaving] = useState(false);
+const [whatsappError, setWhatsappError] = useState<string | null>(null);
+const [whatsappSuccess, setWhatsappSuccess] = useState<string | null>(null);
+
+
   const updateRestaurant = <K extends keyof RestaurantRecord>(
     field: K,
     value: RestaurantRecord[K]
@@ -657,6 +671,63 @@ const [profileSuccess, setProfileSuccess] = useState<string | null>(null);
       setProfileSaving(false);
     }
   };
+
+
+
+  const saveWhatsappMessage = async () => {
+    setWhatsappSaving(true);
+    setWhatsappError(null);
+    setWhatsappSuccess(null);
+  
+    try {
+      const response = await fetch("/api/restaurant-admin/whatsapp-message", {
+        method: "PATCH",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(whatsappDraft),
+      });
+  
+      const rawResponse = await response.text();
+  
+      let data: {
+        ok?: boolean;
+        error?: string;
+        restaurant?: {
+          whatsappIntroMessage: string;
+          whatsappFooterMessage: string;
+        };
+      } = {};
+  
+      try {
+        data = rawResponse ? JSON.parse(rawResponse) : {};
+      } catch {
+        throw new Error(`La API no devolvió JSON. Status: ${response.status}.`);
+      }
+  
+      if (!response.ok || !data.ok || !data.restaurant) {
+        throw new Error(data.error ?? "No se pudo guardar el mensaje.");
+      }
+  
+      setRestaurant((current) => ({
+        ...current,
+        whatsappIntroMessage: data.restaurant?.whatsappIntroMessage,
+        whatsappFooterMessage: data.restaurant?.whatsappFooterMessage,
+      }));
+  
+      setWhatsappSuccess("Mensaje de WhatsApp guardado correctamente.");
+    } catch (error) {
+      setWhatsappError(
+        error instanceof Error
+          ? error.message
+          : "No se pudo guardar el mensaje de WhatsApp."
+      );
+    } finally {
+      setWhatsappSaving(false);
+    }
+  };
+
+
   return (
     <div className={styles.shell} data-theme={themeMode}>
      <button
@@ -1428,6 +1499,7 @@ const [profileSuccess, setProfileSuccess] = useState<string | null>(null);
 ) : null}
 
         {activeSection === "publishing" ? (
+          
           <div className={styles.stack}>
             <section className={styles.panel}>
               <div className={styles.panelHeader}>
@@ -1451,6 +1523,77 @@ const [profileSuccess, setProfileSuccess] = useState<string | null>(null);
                 </div>
               </div>
             </section>
+            
+            <section className={styles.panel}>
+  <div className={styles.panelHeader}>
+    <div>
+      <span className={styles.eyebrow}>WhatsApp</span>
+      <h3>Mensaje personalizado del carrito</h3>
+      <p>
+        Este texto se usa cuando el cliente toca “Enviar pedido por WhatsApp”.
+      </p>
+    </div>
+
+    <button
+      className={styles.primaryButton}
+      disabled={whatsappSaving}
+      onClick={saveWhatsappMessage}
+      type="button"
+    >
+      {whatsappSaving ? "Guardando..." : "Guardar mensaje"}
+    </button>
+  </div>
+
+  {whatsappError ? (
+    <div className={styles.errorBox}>{whatsappError}</div>
+  ) : null}
+
+  {whatsappSuccess ? (
+    <div className={styles.successBox}>{whatsappSuccess}</div>
+  ) : null}
+
+  <div className={styles.formGrid}>
+    <label className={styles.full}>
+      <span>Mensaje inicial</span>
+      <textarea
+        value={whatsappDraft.whatsappIntroMessage}
+        onChange={(event) =>
+          setWhatsappDraft((current) => ({
+            ...current,
+            whatsappIntroMessage: event.target.value,
+          }))
+        }
+      />
+    </label>
+
+    <label className={styles.full}>
+      <span>Mensaje final</span>
+      <textarea
+        value={whatsappDraft.whatsappFooterMessage}
+        onChange={(event) =>
+          setWhatsappDraft((current) => ({
+            ...current,
+            whatsappFooterMessage: event.target.value,
+          }))
+        }
+      />
+    </label>
+  </div>
+
+  <div className={styles.publishCard}>
+    <span>Vista previa</span>
+    <strong>
+      {whatsappDraft.whatsappIntroMessage || "Mensaje inicial"}
+    </strong>
+    <p>
+      - 2x Producto ejemplo - $ 10.000<br />
+      Total estimado: $ 10.000<br />
+      Dirección de entrega: A confirmar<br />
+      Forma de pago: Efectivo<br />
+      {whatsappDraft.whatsappFooterMessage}
+    </p>
+  </div>
+</section>
 
             <section className={styles.panel}>
               <div className={styles.panelHeader}>
