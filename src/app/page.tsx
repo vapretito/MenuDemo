@@ -175,11 +175,11 @@ export default function Home() {
       <section className={styles.infoSection} id="plataforma">
         <div className={styles.sectionIntro}>
           <span className={styles.eyebrowLight}>Plataforma</span>
-          <h2>Más vivo que un QR. Más simple que una app de delivery.</h2>
-          <p>
-            MENUI funciona como una base SaaS: vos diseñás el menú del restaurante,
+          <h2>Más simple para tus clientes realizar un pedido.</h2>
+          {/* <p>
+            MENUI: vos diseñás el menú del restaurante,
             el dueño lo administra y el cliente final compra desde el celular.
-          </p>
+          </p> */}
         </div>
 
         <div className={styles.featureGrid}>
