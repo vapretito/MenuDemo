@@ -90,13 +90,16 @@ export function MobileMenu({ restaurant }: MobileMenuProps) {
 
 
 const isAcceptingOrders = restaurant.isAcceptingOrders ?? true;
+
 const closedMessage =
   restaurant.closedMessage ??
   "Estamos cerrados por ahora. Podés revisar el menú y consultarnos por WhatsApp.";
 
+const openingHours = Array.isArray(restaurant.openingHours)
+  ? restaurant.openingHours
+  : [];
 
-  const openingHours = restaurant.openingHours ?? [];
-  const openingHoursNote = restaurant.openingHoursNote ?? "";
+const openingHoursNote = restaurant.openingHoursNote ?? "";
 
 
   const featuredItems = restaurant.items.filter((item) => item.featured);
