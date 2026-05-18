@@ -3,7 +3,7 @@
 import { ChangeEvent, KeyboardEvent, useEffect, useMemo, useState } from "react";
 import styles from "./restaurant-admin-panel.module.css";
 import { demoRestaurant } from "@/data/platform";
-import { MenuCategory, MenuItem, RestaurantRecord } from "@/types/platform";
+import { MenuCategory, MenuItem, OpeningHour, RestaurantRecord } from "@/types/platform";
 import { menuTemplates } from "@/data/menu-templates";
 
 const money = new Intl.NumberFormat("es-AR", {
@@ -22,6 +22,19 @@ const sections: Array<{ id: AdminSection; label: string; hint: string }> = [
   { id: "publishing", label: "Publicación", hint: "Subdominio y WhatsApp" },
   { id: "appearance", label: "Estética", hint: "Diseño del menú" },
 ];
+
+
+const defaultOpeningHours: OpeningHour[] = [
+  { day: "monday", label: "Lunes", enabled: true, openTime: "10:00", closeTime: "23:00" },
+  { day: "tuesday", label: "Martes", enabled: true, openTime: "10:00", closeTime: "23:00" },
+  { day: "wednesday", label: "Miércoles", enabled: true, openTime: "10:00", closeTime: "23:00" },
+  { day: "thursday", label: "Jueves", enabled: true, openTime: "10:00", closeTime: "23:00" },
+  { day: "friday", label: "Viernes", enabled: true, openTime: "10:00", closeTime: "23:30" },
+  { day: "saturday", label: "Sábado", enabled: true, openTime: "12:00", closeTime: "00:00" },
+  { day: "sunday", label: "Domingo", enabled: false, openTime: "12:00", closeTime: "22:00" },
+];
+
+
 const slugify = (value: string) =>
   value
     .toLowerCase()
@@ -138,6 +151,23 @@ const [orderingDraft, setOrderingDraft] = useState({
 const [orderingSaving, setOrderingSaving] = useState(false);
 const [orderingError, setOrderingError] = useState<string | null>(null);
 const [orderingSuccess, setOrderingSuccess] = useState<string | null>(null);
+
+
+
+const [hoursDraft, setHoursDraft] = useState({
+  openingHours: restaurant.openingHours?.length
+    ? restaurant.openingHours
+    : defaultOpeningHours,
+  openingHoursNote:
+    restaurant.openingHoursNote ??
+    "Horarios sujetos a disponibilidad del restaurante.",
+});
+
+const [hoursSaving, setHoursSaving] = useState(false);
+const [hoursError, setHoursError] = useState<string | null>(null);
+const [hoursSuccess, setHoursSuccess] = useState<string | null>(null);
+
+
 
 
   const updateRestaurant = <K extends keyof RestaurantRecord>(
@@ -839,6 +869,75 @@ const [orderingSuccess, setOrderingSuccess] = useState<string | null>(null);
       );
     } finally {
       setOrderingSaving(false);
+    }
+  };
+
+
+
+  const updateOpeningHour = (
+    day: string,
+    field: keyof OpeningHour,
+    value: string | boolean
+  ) => {
+    setHoursDraft((current) => ({
+      ...current,
+      openingHours: current.openingHours.map((hour) =>
+        hour.day === day ? { ...hour, [field]: value } : hour
+      ),
+    }));
+  };
+  
+  const saveOpeningHours = async () => {
+    setHoursSaving(true);
+    setHoursError(null);
+    setHoursSuccess(null);
+  
+    try {
+      const response = await fetch("/api/restaurant-admin/opening-hours", {
+        method: "PATCH",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(hoursDraft),
+      });
+  
+      const rawResponse = await response.text();
+  
+      let data: {
+        ok?: boolean;
+        error?: string;
+        restaurant?: {
+          openingHours: OpeningHour[];
+          openingHoursNote: string;
+        };
+      } = {};
+  
+      try {
+        data = rawResponse ? JSON.parse(rawResponse) : {};
+      } catch {
+        throw new Error(`La API no devolvió JSON. Status: ${response.status}.`);
+      }
+  
+      if (!response.ok || !data.ok || !data.restaurant) {
+        throw new Error(data.error ?? "No se pudieron guardar los horarios.");
+      }
+  
+      setRestaurant((current) => ({
+        ...current,
+        openingHours: data.restaurant?.openingHours ?? current.openingHours,
+        openingHoursNote:
+          data.restaurant?.openingHoursNote ?? current.openingHoursNote,
+      }));
+  
+      setHoursSuccess("Horarios guardados correctamente.");
+    } catch (error) {
+      setHoursError(
+        error instanceof Error
+          ? error.message
+          : "No se pudieron guardar los horarios."
+      );
+    } finally {
+      setHoursSaving(false);
     }
   };
 
@@ -1826,6 +1925,102 @@ const [orderingSuccess, setOrderingSuccess] = useState<string | null>(null);
         ? "Los clientes pueden enviar pedidos por WhatsApp."
         : orderingDraft.closedMessage}
     </p>
+  </div>
+</section>
+
+<section className={styles.panel}>
+  <div className={styles.panelHeader}>
+    <div>
+      <span className={styles.eyebrow}>Horarios</span>
+      <h3>Horarios de atención</h3>
+      <p>
+        Mostrá en el menú público cuándo el restaurante atiende pedidos.
+      </p>
+    </div>
+
+    <button
+      className={styles.primaryButton}
+      disabled={hoursSaving}
+      onClick={saveOpeningHours}
+      type="button"
+    >
+      {hoursSaving ? "Guardando..." : "Guardar horarios"}
+    </button>
+  </div>
+
+  {hoursError ? (
+    <div className={styles.errorBox}>{hoursError}</div>
+  ) : null}
+
+  {hoursSuccess ? (
+    <div className={styles.successBox}>{hoursSuccess}</div>
+  ) : null}
+
+  <div className={styles.stack}>
+    {hoursDraft.openingHours.map((hour) => (
+      <article className={styles.categoryCard} key={hour.day}>
+        <div className={styles.formGrid}>
+          <label>
+            <span>Día</span>
+            <input value={hour.label} readOnly />
+          </label>
+
+          <label>
+            <span>Estado</span>
+            <select
+              value={hour.enabled ? "open" : "closed"}
+              onChange={(event) =>
+                updateOpeningHour(
+                  hour.day,
+                  "enabled",
+                  event.target.value === "open"
+                )
+              }
+            >
+              <option value="open">Abierto</option>
+              <option value="closed">Cerrado</option>
+            </select>
+          </label>
+
+          <label>
+            <span>Apertura</span>
+            <input
+              type="time"
+              value={hour.openTime}
+              onChange={(event) =>
+                updateOpeningHour(hour.day, "openTime", event.target.value)
+              }
+            />
+          </label>
+
+          <label>
+            <span>Cierre</span>
+            <input
+              type="time"
+              value={hour.closeTime}
+              onChange={(event) =>
+                updateOpeningHour(hour.day, "closeTime", event.target.value)
+              }
+            />
+          </label>
+        </div>
+      </article>
+    ))}
+  </div>
+
+  <div className={styles.formGrid}>
+    <label className={styles.full}>
+      <span>Nota sobre horarios</span>
+      <textarea
+        value={hoursDraft.openingHoursNote}
+        onChange={(event) =>
+          setHoursDraft((current) => ({
+            ...current,
+            openingHoursNote: event.target.value,
+          }))
+        }
+      />
+    </label>
   </div>
 </section>
 

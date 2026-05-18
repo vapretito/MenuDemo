@@ -87,12 +87,16 @@ export function MobileMenu({ restaurant }: MobileMenuProps) {
 >(null);
 
 
+
+
 const isAcceptingOrders = restaurant.isAcceptingOrders ?? true;
 const closedMessage =
   restaurant.closedMessage ??
   "Estamos cerrados por ahora. Podés revisar el menú y consultarnos por WhatsApp.";
 
 
+  const openingHours = restaurant.openingHours ?? [];
+  const openingHoursNote = restaurant.openingHoursNote ?? "";
 
 
   const featuredItems = restaurant.items.filter((item) => item.featured);
@@ -278,6 +282,27 @@ const closeProductModal = () => {
   <section className={styles.closedNotice}>
     <strong>Menú cerrado por ahora</strong>
     <p>{closedMessage}</p>
+  </section>
+) : null}
+
+
+{openingHours.length ? (
+  <section className={styles.hoursCard}>
+    <div>
+      <strong>Horarios de atención</strong>
+      {openingHoursNote ? <p>{openingHoursNote}</p> : null}
+    </div>
+
+    <div className={styles.hoursList}>
+      {openingHours.map((hour) => (
+        <div className={styles.hoursRow} key={hour.day}>
+          <span>{hour.label}</span>
+          <strong>
+            {hour.enabled ? `${hour.openTime} - ${hour.closeTime}` : "Cerrado"}
+          </strong>
+        </div>
+      ))}
+    </div>
   </section>
 ) : null}
 

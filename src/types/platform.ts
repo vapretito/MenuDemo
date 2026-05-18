@@ -74,6 +74,14 @@ export type MenuTemplateId =
   | "coffee-cream"
   | "burger-pop";
 
+  export type OpeningHour = {
+    day: string;
+    label: string;
+    enabled: boolean;
+    openTime: string;
+    closeTime: string;
+  };
+
 export type RestaurantRecord = {
   id: string;
   name: string;
@@ -103,7 +111,11 @@ export type RestaurantRecord = {
 whatsappFooterMessage?: string;
 isAcceptingOrders?: boolean;
 closedMessage?: string;
+openingHours?: OpeningHour[] | null;
+openingHoursNote?: string;
 };
+
+
 
 export type RestaurantCreationInput = {
   name: string;
