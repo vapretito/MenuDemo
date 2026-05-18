@@ -1187,8 +1187,8 @@
 
 .restaurantLogoFixed {
   position: absolute;
-  top: clamp(5.5rem, 12vh, 8rem);
-  left: 1rem;
+  top: clamp(4.5rem, 10vh, 6.5rem);
+    left: 1rem;
   z-index: 3;
   width: 5.4rem;
   height: 5.4rem;
