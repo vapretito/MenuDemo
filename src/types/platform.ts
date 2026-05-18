@@ -113,6 +113,7 @@ isAcceptingOrders?: boolean;
 closedMessage?: string;
 openingHours?: OpeningHour[] | null;
 openingHoursNote?: string;
+showOpeningHours?: boolean;
 };
 
 

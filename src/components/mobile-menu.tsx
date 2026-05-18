@@ -100,6 +100,7 @@ const openingHours = Array.isArray(restaurant.openingHours)
   : [];
 
 const openingHoursNote = restaurant.openingHoursNote ?? "";
+const showOpeningHours = restaurant.showOpeningHours ?? true;
 
 
   const featuredItems = restaurant.items.filter((item) => item.featured);
@@ -289,8 +290,8 @@ const closeProductModal = () => {
 ) : null}
 
 
-{openingHours.length ? (
-  <section className={styles.hoursCard}>
+{showOpeningHours && openingHours.length ? (
+    <section className={styles.hoursCard}>
     <div>
       <strong>Horarios de atención</strong>
       {openingHoursNote ? <p>{openingHoursNote}</p> : null}

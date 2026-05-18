@@ -155,6 +155,7 @@ const [orderingSuccess, setOrderingSuccess] = useState<string | null>(null);
 
 
 const [hoursDraft, setHoursDraft] = useState({
+  showOpeningHours: restaurant.showOpeningHours ?? true,
   openingHours: restaurant.openingHours?.length
     ? restaurant.openingHours
     : defaultOpeningHours,
@@ -909,6 +910,7 @@ const [hoursSuccess, setHoursSuccess] = useState<string | null>(null);
         restaurant?: {
           openingHours: OpeningHour[];
           openingHoursNote: string;
+          showOpeningHours: boolean;
         };
       } = {};
   
@@ -927,6 +929,8 @@ const [hoursSuccess, setHoursSuccess] = useState<string | null>(null);
         openingHours: data.restaurant?.openingHours ?? current.openingHours,
         openingHoursNote:
           data.restaurant?.openingHoursNote ?? current.openingHoursNote,
+        showOpeningHours:
+          data.restaurant?.showOpeningHours ?? current.showOpeningHours,
       }));
   
       setHoursSuccess("Horarios guardados correctamente.");
@@ -1955,6 +1959,24 @@ const [hoursSuccess, setHoursSuccess] = useState<string | null>(null);
   {hoursSuccess ? (
     <div className={styles.successBox}>{hoursSuccess}</div>
   ) : null}
+
+<div className={styles.formGrid}>
+  <label className={styles.full}>
+    <span>Mostrar horarios en el menú público</span>
+    <select
+      value={hoursDraft.showOpeningHours ? "show" : "hide"}
+      onChange={(event) =>
+        setHoursDraft((current) => ({
+          ...current,
+          showOpeningHours: event.target.value === "show",
+        }))
+      }
+    >
+      <option value="show">Sí, mostrar horarios</option>
+      <option value="hide">No, ocultar horarios</option>
+    </select>
+  </label>
+</div>
 
   <div className={styles.stack}>
     {hoursDraft.openingHours.map((hour) => (

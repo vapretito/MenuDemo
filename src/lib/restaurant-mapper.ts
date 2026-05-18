@@ -131,6 +131,8 @@ openingHours: Array.isArray(restaurant.openingHours)
   : [],
 openingHoursNote: restaurant.openingHoursNote,
 
+showOpeningHours: restaurant.showOpeningHours,
+
 
     dnsStatus: normalizeDnsStatus(restaurant.dnsStatus),
     connectedToDemo: restaurant.connectedToDemo,

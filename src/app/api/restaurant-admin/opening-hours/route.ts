@@ -33,10 +33,17 @@ export async function PATCH(request: Request) {
       closeTime: String(hour.closeTime ?? "").trim(),
     }));
 
+    
+
     const openingHoursNote =
       String(body.openingHoursNote ?? "").trim() ||
       "Horarios sujetos a disponibilidad del restaurante.";
 
+      const showOpeningHours =
+      typeof body.showOpeningHours === "boolean"
+        ? body.showOpeningHours
+        : true;
+    
     const restaurant = await prisma.restaurant.update({
       where: {
         id: session.restaurantId,
@@ -44,10 +51,12 @@ export async function PATCH(request: Request) {
       data: {
         openingHours: cleanOpeningHours as unknown as Prisma.InputJsonValue,
         openingHoursNote,
+        showOpeningHours,
       },
       select: {
         openingHours: true,
         openingHoursNote: true,
+        showOpeningHours: true,
       },
     });
 
