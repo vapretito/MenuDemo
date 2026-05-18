@@ -334,13 +334,40 @@ export default function Home() {
         <footer className={styles.footer} id="footer">
         <div className={styles.footerBrand}>
   <span className={styles.footerLogoRotator} aria-hidden="true">
-    <img src="/logos/menui-logo-navy.png" alt="" className={styles.footerLogoVariant} />
-    <img src="/logos/menui-logo-green.png" alt="" className={styles.footerLogoVariant} />
-    <img src="/logos/menui-logo-purple.png" alt="" className={styles.footerLogoVariant} />
-    <img src="/logos/menui-logo-teal.png" alt="" className={styles.footerLogoVariant} />
-    <img src="/logos/menui-logo-black-gold.png" alt="" className={styles.footerLogoVariant} />
-    <img src="/logos/menui-logo-burgundy.png" alt="" className={styles.footerLogoVariant} />
-    <img src="/logos/menui-logo-rojiblanco.png" alt="" className={styles.footerLogoVariant} />
+    {[
+      ["#08213d", "#ff7a00"],
+      ["#079768", "#9be000"],
+      ["#5b22d6", "#ff1f7a"],
+      ["#00565b", "#ff6b57"],
+      ["#171717", "#d6a528"],
+      ["#8b0026", "#ff735c"],
+      ["#f01824", "#ffffff"],
+    ].map(([main, dot], index) => (
+      <svg
+        key={index}
+        className={styles.footerLogoVariantSvg}
+        style={
+          {
+            "--logo-main": main,
+            "--logo-dot": dot,
+            animationDelay: `${index * 2}s`,
+          } as CSSProperties
+        }
+        viewBox="0 0 120 120"
+        role="img"
+        aria-hidden="true"
+      >
+        <path
+          d="M28 92 V42 C28 32 38 27 46 35 L60 51 L74 35 C82 27 92 32 92 42 V92"
+          fill="none"
+          stroke="var(--logo-main)"
+          strokeWidth="22"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+        />
+        <circle cx="92" cy="22" r="10" fill="var(--logo-dot)" />
+      </svg>
+    ))}
   </span>
 
   <div>

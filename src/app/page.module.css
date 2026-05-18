@@ -1696,14 +1696,68 @@
 
 .footerLogoRotator {
   position: relative;
-  width: 54px;
-  height: 54px;
+  width: 52px;
+  height: 52px;
   display: inline-flex;
   align-items: center;
   justify-content: center;
   flex-shrink: 0;
-  overflow: visible;
+  background: rgba(255, 255, 255, 0.92);
+  border-radius: 16px;
+  overflow: hidden;
+}
+
+.footerLogoVariantSvg {
+  position: absolute;
+  inset: 0;
+  width: 52px;
+  height: 52px;
+  padding: 7px;
+  opacity: 0;
+  transform: scale(0.92);
+  animation: menuiFooterLogoCycle 14s infinite;
   background: transparent;
+}
+
+@keyframes menuiFooterLogoCycle {
+  0% {
+    opacity: 0;
+    transform: scale(0.92);
+  }
+
+  5% {
+    opacity: 1;
+    transform: scale(1);
+  }
+
+  12% {
+    opacity: 1;
+    transform: scale(1);
+  }
+
+  17% {
+    opacity: 0;
+    transform: scale(1.04);
+  }
+
+  100% {
+    opacity: 0;
+    transform: scale(0.92);
+  }
+}
+
+@media (max-width: 720px) {
+  .footerLogoRotator {
+    width: 46px;
+    height: 46px;
+    border-radius: 14px;
+  }
+
+  .footerLogoVariantSvg {
+    width: 46px;
+    height: 46px;
+    padding: 7px;
+  }
 }
 
 .footerLogoVariant {
