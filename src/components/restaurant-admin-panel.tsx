@@ -946,6 +946,18 @@ const [hoursSuccess, setHoursSuccess] = useState<string | null>(null);
   };
 
 
+  const logoutRestaurantAdmin = async () => {
+    try {
+      await fetch("/api/restaurant-auth/logout", {
+        method: "POST",
+      });
+    } catch (error) {
+      console.error("[Restaurant Logout Error]", error);
+    } finally {
+      window.location.href = "/login";
+    }
+  };
+
   return (
     <div className={styles.shell} data-theme={themeMode}>
      <button
@@ -1007,9 +1019,17 @@ const [hoursSuccess, setHoursSuccess] = useState<string | null>(null);
         </nav>
 
         <div className={styles.sidebarFoot}>
-          <span>Menu publico</span>
-          <strong>{publicUrl}</strong>
-        </div>
+  <span>Menu publico</span>
+  <strong>{publicUrl}</strong>
+
+  <button
+    className={styles.logoutButton}
+    onClick={logoutRestaurantAdmin}
+    type="button"
+  >
+    Cerrar sesión
+  </button>
+</div>
       </aside>
 
       <section className={styles.workspace}>

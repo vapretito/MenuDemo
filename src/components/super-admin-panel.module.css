@@ -557,3 +557,25 @@
   color: #b42318;
   font-weight: 700;
 }
+
+
+.logoutButton {
+  width: 100%;
+  min-height: 2.7rem;
+  margin-top: 0.85rem;
+  border: 1px solid var(--border-strong);
+  background: transparent;
+  color: var(--text);
+  font-weight: 800;
+  cursor: pointer;
+}
+
+.logoutButton:hover {
+  background: var(--surface-alt);
+}
+
+@media (max-width: 760px) {
+  .logoutButton {
+    min-height: 3rem;
+  }
+}
