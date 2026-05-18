@@ -1613,9 +1613,46 @@
   align-items: center;
   justify-content: center;
   flex-shrink: 0;
-  overflow: visible;
   background: transparent;
-  border-radius: 0;
+  overflow: visible;
+}
+
+.logoVariantSvg {
+  position: absolute;
+  inset: 0;
+  width: 42px;
+  height: 42px;
+  opacity: 0;
+  transform: scale(0.92);
+  animation: menuiLogoCycle 14s infinite;
+  background: transparent;
+}
+
+@keyframes menuiLogoCycle {
+  0% {
+    opacity: 0;
+    transform: scale(0.92);
+  }
+
+  5% {
+    opacity: 1;
+    transform: scale(1);
+  }
+
+  12% {
+    opacity: 1;
+    transform: scale(1);
+  }
+
+  17% {
+    opacity: 0;
+    transform: scale(1.04);
+  }
+
+  100% {
+    opacity: 0;
+    transform: scale(0.92);
+  }
 }
 
 .logoVariant {
@@ -1656,32 +1693,7 @@
   animation-delay: 10s;
 }
 
-@keyframes menuiLogoCycle {
-  0% {
-    opacity: 0;
-    transform: scale(0.92);
-  }
 
-  5% {
-    opacity: 1;
-    transform: scale(1);
-  }
-
-  15% {
-    opacity: 1;
-    transform: scale(1);
-  }
-
-  20% {
-    opacity: 0;
-    transform: scale(1.04);
-  }
-
-  100% {
-    opacity: 0;
-    transform: scale(0.92);
-  }
-}
 .footerLogoRotator {
   position: relative;
   width: 54px;
