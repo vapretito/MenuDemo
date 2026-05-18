@@ -1184,3 +1184,21 @@
     transition: none;
   }
 }
+
+.restaurantLogoFixed {
+  position: absolute;
+  top: clamp(5.5rem, 12vh, 8rem);
+  left: 1rem;
+  z-index: 3;
+  width: 5.4rem;
+  height: 5.4rem;
+  object-fit: cover;
+  border: 1px solid rgba(255, 255, 255, 0.55);
+  background: rgba(255, 255, 255, 0.16);
+}
+
+.heroContent {
+  position: relative;
+  z-index: 2;
+  padding-top: 12rem;
+}

@@ -198,37 +198,19 @@ const closeProductModal = () => {
 
   <div className={styles.heroOverlay} />
 
+  {restaurantLogo ? (
+    <img
+      className={styles.restaurantLogoFixed}
+      src={restaurantLogo}
+      alt={`Logo de ${restaurant.name}`}
+    />
+  ) : null}
+
   <div className={styles.heroContent}>
-    {restaurantLogo ? (
-      <img
-        className={styles.restaurantLogo}
-        src={restaurantLogo}
-        alt={`Logo de ${restaurant.name}`}
-      />
-    ) : null}
-
-    {/* <div className={styles.heroTop}>
-      <span className={styles.badge}>Menu delivery</span>
-      <span className={styles.badgeMuted}>{restaurant.subdomain}</span>
-    </div> */}
-
     <h1>{restaurant.name}</h1>
-          <p>{restaurant.description}</p>
-          {/* <div className={styles.heroActions}>
-            <button className={styles.ctaPrimary} onClick={() => setShowAllCategories(true)} type="button">
-              Ver menu
-            </button>
-            <a
-              className={styles.ctaGhost}
-              href={`https://wa.me/${restaurant.customerWhatsapp}`}
-              rel="noreferrer"
-              target="_blank"
-            >
-              WhatsApp
-            </a>
-          </div> */}
-        </div>
-      </header>
+    <p>{restaurant.description}</p>
+  </div>
+</header>
 
       <nav className={styles.categoryRail}>
         {groupedCategories.map((category) => (
