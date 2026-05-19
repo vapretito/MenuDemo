@@ -16,6 +16,11 @@ export const metadata: Metadata = {
   title: "Menui | Menu mobile para restaurantes",
   description:
     "Plataforma SaaS para restaurantes con menu mobile-first, carrito por WhatsApp, panel admin y superadmin con suscripciones en Mercado Pago.",
+  icons: {
+    icon: "/menui-logo.svg",
+    shortcut: "/menui-logo.svg",
+    apple: "/menui-logo.svg",
+  },
 };
 
 export default function RootLayout({
@@ -25,7 +30,9 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="es">
-      <body className={`${bodyFont.variable} ${displayFont.variable}`}>{children}</body>
+      <body className={`${bodyFont.variable} ${displayFont.variable}`}>
+        {children}
+      </body>
     </html>
   );
 }
