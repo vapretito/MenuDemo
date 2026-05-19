@@ -70,6 +70,33 @@ export function SuperAdminPanel() {
 
   const [trialDays, setTrialDays] = useState(7);
 
+
+  const [cartSummary, setCartSummary] = useState({
+    totalEvents: 0,
+    totalEstimatedArs: 0,
+    totalItems: 0,
+    averageTicketArs: 0,
+    byRestaurant: [] as Array<{
+      restaurantId: string;
+      restaurantName: string;
+      restaurantSlug: string;
+      subdomain: string;
+      totalEvents: number;
+      totalEstimatedArs: number;
+      totalItems: number;
+    }>,
+    lastEvents: [] as Array<{
+      id: string;
+      restaurantName: string;
+      restaurantSlug: string;
+      totalArs: number;
+      itemCount: number;
+      paymentMethod: string;
+      createdAt: string;
+    }>,
+  });
+
+
   const selectedRestaurant = useMemo(() => {
     return (
       restaurants.find((restaurant) => restaurant.slug === selectedSlug) ??
@@ -90,17 +117,14 @@ export function SuperAdminPanel() {
       0
     );
 
-    const totalOrders = restaurants.reduce(
-      (sum, restaurant) => sum + restaurant.metrics.monthlyOrders,
-      0
-    );
+    const totalOrders = cartSummary.totalEvents;
 
     const configuredCount = restaurants.filter(
       (restaurant) => restaurant.dnsStatus === "configured"
     ).length;
 
     return { activeCount, monthlyRecurring, totalOrders, configuredCount };
-  }, [restaurants]);
+  }, [restaurants, cartSummary]);
 
   const loadRestaurants = async () => {
     setIsLoadingRestaurants(true);
@@ -145,8 +169,38 @@ export function SuperAdminPanel() {
     }
   };
 
+
+  const loadBackofficeCartSummary = async () => {
+    try {
+      const response = await fetch("/api/backoffice/cart-events/summary", {
+        cache: "no-store",
+      });
+  
+      const rawResponse = await response.text();
+  
+      let data: {
+        ok?: boolean;
+        summary?: typeof cartSummary;
+      } = {};
+  
+      try {
+        data = rawResponse ? JSON.parse(rawResponse) : {};
+      } catch {
+        return;
+      }
+  
+      if (response.ok && data.ok && data.summary) {
+        setCartSummary(data.summary);
+      }
+    } catch (error) {
+      console.error("[Load Backoffice Cart Summary Error]", error);
+    }
+  };
+
+
   useEffect(() => {
-    loadRestaurants();
+    void loadRestaurants();
+    void loadBackofficeCartSummary();
   }, []);
 
   const createRestaurant = async () => {
@@ -624,26 +678,90 @@ export function SuperAdminPanel() {
             </section>
   
             <section className={styles.kpiGrid}>
-              <article className={styles.kpiCard}>
-                <span>Pedidos de referencia</span>
-                <strong>{stats.totalOrders}</strong>
-              </article>
-  
-              <article className={styles.kpiCard}>
-                <span>MRR estimado</span>
-                <strong>{money.format(stats.monthlyRecurring)}</strong>
-              </article>
-  
-              <article className={styles.kpiCard}>
-                <span>Demo pública</span>
-                <strong>demo.menui.online</strong>
-              </article>
-  
-              <article className={styles.kpiCard}>
-                <span>Backoffice</span>
-                <strong>menui.online/backoffice</strong>
-              </article>
+            <article className={styles.kpiCard}>
+  <span>Pedidos enviados por WhatsApp</span>
+  <strong>{cartSummary.totalEvents}</strong>
+</article>
+
+<article className={styles.kpiCard}>
+  <span>Total estimado generado</span>
+  <strong>{money.format(cartSummary.totalEstimatedArs)}</strong>
+</article>
+
+<article className={styles.kpiCard}>
+  <span>Ticket promedio estimado</span>
+  <strong>{money.format(cartSummary.averageTicketArs)}</strong>
+</article>
             </section>
+
+            <section className={styles.panelSection}>
+  <div className={styles.panelHeader}>
+    <div>
+      <span className={styles.eyebrow}>Rendimiento</span>
+      <h3>Restaurantes con más pedidos estimados</h3>
+    </div>
+  </div>
+
+  <div className={styles.infoGrid}>
+    {cartSummary.byRestaurant.length ? (
+      cartSummary.byRestaurant.slice(0, 6).map((restaurant) => (
+        <article key={restaurant.restaurantId}>
+          <span>{restaurant.restaurantSlug}</span>
+          <strong>{restaurant.restaurantName}</strong>
+          <p>
+            {restaurant.totalEvents} pedidos ·{" "}
+            {money.format(restaurant.totalEstimatedArs)} estimados ·{" "}
+            {restaurant.totalItems} productos enviados
+          </p>
+        </article>
+      ))
+    ) : (
+      <article>
+        <span>Sin datos todavía</span>
+        <strong>No hay pedidos registrados</strong>
+        <p>
+          Cuando los clientes envíen pedidos por WhatsApp, vas a ver el ranking
+          acá.
+        </p>
+      </article>
+    )}
+  </div>
+</section>
+
+<section className={styles.panelSection}>
+  <div className={styles.panelHeader}>
+    <div>
+      <span className={styles.eyebrow}>Actividad reciente</span>
+      <h3>Últimos pedidos enviados por WhatsApp</h3>
+    </div>
+  </div>
+
+  <div className={styles.infoGrid}>
+    {cartSummary.lastEvents.length ? (
+      cartSummary.lastEvents.map((event) => (
+        <article key={event.id}>
+          <span>
+            {new Date(event.createdAt).toLocaleString("es-AR")}
+          </span>
+          <strong>{event.restaurantName}</strong>
+          <p>
+            {money.format(event.totalArs)} · {event.itemCount} productos · Pago:{" "}
+            {event.paymentMethod}
+          </p>
+        </article>
+      ))
+    ) : (
+      <article>
+        <span>Sin actividad</span>
+        <strong>Todavía no hay pedidos enviados</strong>
+        <p>
+          Estos datos se generan cuando un cliente toca “Enviar pedido por
+          WhatsApp”.
+        </p>
+      </article>
+    )}
+  </div>
+</section>
   
             <section className={styles.panelSection}>
               <div className={styles.panelHeader}>
