@@ -1797,8 +1797,12 @@ const [passwordSuccess, setPasswordSuccess] = useState<string | null>(null);
     <section className={styles.panel}>
       <div className={styles.panelHeader}>
         <div>
-          <span className={styles.eyebrow}>Plantillas</span>
-          <h3>Elegí un estilo base</h3>
+        <span className={styles.eyebrow}>Experiencia visual</span>
+<h3>Elegí cómo se siente tu menú</h3>
+<p>
+  Cada plantilla cambia colores, forma de botones, tamaño de imágenes,
+  estilo de cards y personalidad general del menú público.
+</p>
         </div>
       </div>
 
@@ -1830,10 +1834,24 @@ const [passwordSuccess, setPasswordSuccess] = useState<string | null>(null);
               <strong style={{ color: "#ffffff" }}>{template.name}</strong>
             </div>
 
-            <div>
-              <strong>{template.name}</strong>
-              <p>{template.description}</p>
-            </div>
+            <div className={styles.templateInfo}>
+  <div className={styles.templateTitleRow}>
+    <strong>{template.name}</strong>
+    <span>{template.badge}</span>
+  </div>
+
+  <p>{template.description}</p>
+
+  <div className={styles.templateDetails}>
+    <small>Recomendado para</small>
+    <p>{template.bestFor}</p>
+  </div>
+
+  <div className={styles.templateDetails}>
+    <small>Estilo visual</small>
+    <p>{template.visualStyle}</p>
+  </div>
+</div>
           </button>
         ))}
       </div>

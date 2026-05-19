@@ -3,7 +3,10 @@ import type { MenuTemplateId } from "@/types/platform";
 export type MenuTemplatePreset = {
   id: MenuTemplateId;
   name: string;
+  badge: string;
   description: string;
+  bestFor: string;
+  visualStyle: string;
   accent: string;
   accentSoft: string;
   surface: string;
@@ -18,7 +21,10 @@ export const menuTemplates: MenuTemplatePreset[] = [
   {
     id: "classic-delivery",
     name: "Classic Delivery",
+    badge: "Rápido",
     description: "Rápido, claro y vendedor. Ideal para comidas populares.",
+    bestFor: "Ideal para rotiserías, pizzas, empanadas y delivery tradicional.",
+    visualStyle: "Botones rectos, cards claras y navegación simple.",
     accent: "#f0c400",
     accentSoft: "#fff1ac",
     surface: "#fffdf7",
@@ -40,6 +46,9 @@ export const menuTemplates: MenuTemplatePreset[] = [
     text: "#f8fafc",
     muted: "#a0aec0",
     heroGradient: "linear-gradient(180deg, #111827 0%, #020617 100%)",
+    badge: "Premium",
+    bestFor: "Ideal para sushi, bar, cocina de autor o restaurantes elegantes.",
+    visualStyle: "Cards grandes, bordes suaves, imagen protagonista y look nocturno.",
   },
   {
     id: "fresh-green",
@@ -53,6 +62,9 @@ export const menuTemplates: MenuTemplatePreset[] = [
     text: "#052e16",
     muted: "#4b7060",
     heroGradient: "linear-gradient(180deg, #16a34a 0%, #14532d 100%)",
+    badge: "Fresh",
+bestFor: "Ideal para comida saludable, bowls, jugos, ensaladas y brunch.",
+visualStyle: "Botones ovalados, productos compactos y sensación liviana.",
   },
   {
     id: "coffee-cream",
@@ -66,6 +78,9 @@ export const menuTemplates: MenuTemplatePreset[] = [
     text: "#2b1b10",
     muted: "#7a5b45",
     heroGradient: "linear-gradient(180deg, #7c3f1d 0%, #2b1b10 100%)",
+    badge: "Artesanal",
+bestFor: "Ideal para cafeterías, pastelerías, panaderías y marcas boutique.",
+visualStyle: "Estilo cálido, editorial, suave y más cercano.",
   },
   {
     id: "burger-pop",
@@ -79,5 +94,8 @@ export const menuTemplates: MenuTemplatePreset[] = [
     text: "#111827",
     muted: "#6b3f2e",
     heroGradient: "linear-gradient(180deg, #ff6b00 0%, #c1121f 100%)",
+    badge: "Urbano",
+bestFor: "Ideal para hamburgueserías, fast food, pizzas y promos fuertes.",
+visualStyle: "Botones llamativos, cards compactas y estilo más energético.",
   },
 ];
