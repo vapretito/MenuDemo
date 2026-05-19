@@ -1,20 +1,37 @@
-import Link from "next/link";
 import { notFound } from "next/navigation";
 import { prisma } from "@/lib/prisma";
+import styles from "./page.module.css";
 
-type ActivatePageProps = {
+type ActivationPageProps = {
   params: Promise<{
     slug: string;
   }>;
 };
 
-const money = new Intl.NumberFormat("es-AR", {
-  style: "currency",
-  currency: "ARS",
-  maximumFractionDigits: 0,
-});
+function getStatusLabel(status: string) {
+  const labels: Record<string, string> = {
+    TRIAL: "Prueba gratuita",
+    ACTIVE: "Activo",
+    PAST_DUE: "Pago pendiente",
+    SUSPENDED: "Suspendido",
+    CANCELLED: "Cancelado",
+    MANUAL: "Activación manual",
+  };
 
-export default async function ActivatePage({ params }: ActivatePageProps) {
+  return labels[status] ?? status;
+}
+
+function formatDate(date?: Date | null) {
+  if (!date) return null;
+
+  return new Intl.DateTimeFormat("es-AR", {
+    day: "2-digit",
+    month: "2-digit",
+    year: "numeric",
+  }).format(date);
+}
+
+export default async function ActivationPage({ params }: ActivationPageProps) {
   const { slug } = await params;
 
   const restaurant = await prisma.restaurant.findUnique({
@@ -30,143 +47,107 @@ export default async function ActivatePage({ params }: ActivatePageProps) {
     notFound();
   }
 
-  const subscription = restaurant.subscription;
-  const checkoutUrl = subscription?.mercadopagoInitPoint ?? null;
-  const isActive = restaurant.status === "ACTIVE";
+  const trialEndsAt = formatDate(restaurant.trialEndsAt);
+  const graceUntil = formatDate(restaurant.graceUntil);
+
+  const publicUrl = `https://${restaurant.subdomain}`;
+  const supportWhatsapp = process.env.MENUI_SUPPORT_WHATSAPP ?? "";
+  const supportUrl = supportWhatsapp
+    ? `https://wa.me/${supportWhatsapp}?text=${encodeURIComponent(
+        `Hola, necesito ayuda para activar el restaurante ${restaurant.name} en Menui.`
+      )}`
+    : null;
 
   return (
-    <main
-      style={{
-        minHeight: "100vh",
-        display: "grid",
-        placeItems: "center",
-        padding: "1rem",
-        background: "#f4f6f8",
-        color: "#111827",
-      }}
-    >
-      <section
-        style={{
-          width: "100%",
-          maxWidth: "560px",
-          display: "grid",
-          gap: "1rem",
-          padding: "1.25rem",
-          border: "1px solid #d7dce5",
-          background: "#ffffff",
-        }}
-      >
-        <div>
-          <span
-            style={{
-              textTransform: "uppercase",
-              letterSpacing: "0.08em",
-              color: "#667085",
-              fontSize: "0.72rem",
-              fontWeight: 800,
-            }}
-          >
-            Menui membresía
-          </span>
+    <main className={styles.shell}>
+      <section className={styles.card}>
+        <div className={styles.logoMark}>M</div>
 
-          <h1
-            style={{
-              margin: "0.4rem 0 0",
-              fontSize: "2rem",
-              lineHeight: 1,
-            }}
-          >
-            Activar {restaurant.name}
-          </h1>
+        <span className={styles.eyebrow}>Activación Menui</span>
 
-          <p style={{ color: "#667085", lineHeight: 1.6 }}>
-            Completá el pago mensual para activar el menú, el subdominio y el
-            panel admin del restaurante.
-          </p>
+        <h1>Tu menú ya está creado.</h1>
+
+        <p>
+          El restaurante <strong>{restaurant.name}</strong> ya tiene su espacio
+          en Menui. Para usar el panel completo y mantener el menú operativo,
+          completá la activación.
+        </p>
+
+        <div className={styles.statusGrid}>
+          <article>
+            <span>Estado actual</span>
+            <strong>{getStatusLabel(restaurant.status)}</strong>
+          </article>
+
+          <article>
+            <span>Subdominio</span>
+            <strong>{restaurant.subdomain}</strong>
+          </article>
+
+          <article>
+            <span>Plan</span>
+            <strong>{restaurant.subscription?.planId ?? "basic"}</strong>
+          </article>
+
+          <article>
+            <span>Monto mensual</span>
+            <strong>
+              {new Intl.NumberFormat("es-AR", {
+                style: "currency",
+                currency: "ARS",
+                maximumFractionDigits: 0,
+              }).format(restaurant.subscription?.amountArs ?? 0)}
+            </strong>
+          </article>
         </div>
 
-        <div
-          style={{
-            display: "grid",
-            gap: "0.5rem",
-            padding: "1rem",
-            border: "1px solid #d7dce5",
-            background: "#f8fafc",
-          }}
-        >
-          <span style={{ color: "#667085" }}>Plan</span>
-          <strong>{subscription?.planName ?? "Menui"}</strong>
+        {restaurant.status === "TRIAL" ? (
+          <div className={styles.notice}>
+            <strong>Prueba gratuita</strong>
+            <p>
+              {trialEndsAt
+                ? `Tu prueba gratuita vence el ${trialEndsAt}.`
+                : "Este restaurante está en prueba gratuita, pero todavía no tiene fecha de vencimiento configurada."}
+            </p>
+          </div>
+        ) : null}
 
-          <span style={{ color: "#667085" }}>Monto mensual</span>
-          <strong>{money.format(subscription?.amountArs ?? 0)}</strong>
+        {restaurant.status === "PAST_DUE" ? (
+          <div className={styles.noticeDanger}>
+            <strong>Pago pendiente</strong>
+            <p>
+              {graceUntil
+                ? `Tenés margen hasta el ${graceUntil} para regularizar el pago.`
+                : "Regularizá el pago para recuperar el acceso completo."}
+            </p>
+          </div>
+        ) : null}
 
-          <span style={{ color: "#667085" }}>Subdominio</span>
-          <strong>{restaurant.subdomain}</strong>
+        {restaurant.status === "SUSPENDED" || restaurant.status === "CANCELLED" ? (
+          <div className={styles.noticeDanger}>
+            <strong>Acceso pausado</strong>
+            <p>
+              El acceso a este restaurante está pausado. Contactá soporte para
+              revisar la activación.
+            </p>
+          </div>
+        ) : null}
 
-          <span style={{ color: "#667085" }}>Estado</span>
-          <strong>{restaurant.status}</strong>
-        </div>
-
-        {isActive ? (
-          <Link
-            href={`https://${restaurant.subdomain}/admin`}
-            style={{
-              display: "inline-flex",
-              minHeight: "3rem",
-              alignItems: "center",
-              justifyContent: "center",
-              border: "1px solid #047857",
-              background: "#ecfdf3",
-              color: "#047857",
-              fontWeight: 800,
-              textDecoration: "none",
-            }}
-          >
-            Ir al admin
-          </Link>
-        ) : checkoutUrl ? (
-          <a
-            href={checkoutUrl}
-            style={{
-              display: "inline-flex",
-              minHeight: "3rem",
-              alignItems: "center",
-              justifyContent: "center",
-              border: "1px solid #1d4ed8",
-              background: "#1d4ed8",
-              color: "#ffffff",
-              fontWeight: 800,
-              textDecoration: "none",
-            }}
-          >
-            Pagar con Mercado Pago
+        <div className={styles.actions}>
+          <a className={styles.primaryButton} href={`/contratar?slug=${restaurant.slug}`}>
+            Activar con Mercado Pago
           </a>
-        ) : (
-          <p
-            style={{
-              margin: 0,
-              padding: "0.85rem",
-              border: "1px solid #fecdca",
-              background: "#fff1f0",
-              color: "#b42318",
-              fontWeight: 700,
-            }}
-          >
-            Todavía no hay un link de Mercado Pago generado para este
-            restaurante.
-          </p>
-        )}
 
-        <Link
-          href="/"
-          style={{
-            color: "#344054",
-            fontWeight: 800,
-            textDecoration: "none",
-          }}
-        >
-          ← Volver a Menui
-        </Link>
+          <a className={styles.secondaryButton} href={publicUrl} target="_blank">
+            Ver menú público
+          </a>
+
+          {supportUrl ? (
+            <a className={styles.secondaryButton} href={supportUrl} target="_blank">
+              Hablar con soporte
+            </a>
+          ) : null}
+        </div>
       </section>
     </main>
   );
