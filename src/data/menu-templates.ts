@@ -82,6 +82,7 @@ visualStyle: "Botones ovalados, productos compactos y sensación liviana.",
 bestFor: "Ideal para cafeterías, pastelerías, panaderías y marcas boutique.",
 visualStyle: "Estilo cálido, editorial, suave y más cercano.",
   },
+  
   {
     id: "burger-pop",
     name: "Burger Pop",
