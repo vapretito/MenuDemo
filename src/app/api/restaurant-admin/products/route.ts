@@ -75,17 +75,28 @@ export async function POST(request: Request) {
       },
     });
 
+    const name = String(body.name ?? "Nuevo producto").trim();
+    const description = String(
+      body.description ?? "Descripción breve del producto para el menú."
+    ).trim();
+    
+    const image = String(body.image ?? "").trim();
+    const prepTime = String(body.prepTime ?? "15 min").trim();
+    const priceArs = Number(body.price ?? 0);
+    
     const product = await prisma.product.create({
       data: {
         restaurantId: session.restaurantId,
         categoryId,
-        name: "Nuevo producto",
-        description: "Descripción breve del producto para el menú.",
-        priceArs: 0,
-        image: null,
-        prepTime: "15 min",
-        featured: false,
-        available: true,
+        name: name || "Nuevo producto",
+        description:
+          description || "Descripción breve del producto para el menú.",
+        priceArs: Number.isFinite(priceArs) ? priceArs : 0,
+        image: image || null,
+        prepTime: prepTime || "15 min",
+        featured: Boolean(body.featured),
+        available:
+          typeof body.available === "boolean" ? body.available : true,
         sortOrder: (lastProduct?.sortOrder ?? 0) + 1,
       },
     });

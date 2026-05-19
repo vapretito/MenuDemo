@@ -931,3 +931,21 @@
     grid-template-columns: 1fr;
   }
 }
+
+.createProductPanel {
+  display: grid;
+  gap: 1rem;
+  padding: 1rem;
+  border: 1px solid var(--border);
+  background: var(--surface-alt);
+}
+
+.createProductPanel textarea {
+  min-height: 8rem;
+}
+
+@media (max-width: 760px) {
+  .createProductPanel {
+    padding: 0.85rem;
+  }
+}

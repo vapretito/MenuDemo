@@ -124,6 +124,19 @@ export function RestaurantAdminPanel({
   const [productError, setProductError] = useState<string | null>(null);
   const [productSuccess, setProductSuccess] = useState<string | null>(null);
 
+  const [isProductCreateOpen, setIsProductCreateOpen] = useState(false);
+
+const [productDraft, setProductDraft] = useState({
+  categoryId: restaurant.categories[0]?.id ?? "",
+  name: "",
+  description: "",
+  price: 0,
+  image: "",
+  prepTime: "15 min",
+  featured: false,
+  available: true,
+});
+
 
   const [categorySavingId, setCategorySavingId] = useState<string | null>(null);
 const [categoryError, setCategoryError] = useState<string | null>(null);
@@ -392,6 +405,47 @@ const [passwordSuccess, setPasswordSuccess] = useState<string | null>(null);
     };
     reader.readAsDataURL(file);
   };
+
+
+  const handleProductDraftImageUpload = (
+    event: ChangeEvent<HTMLInputElement>
+  ) => {
+    const file = event.target.files?.[0];
+  
+    if (!file) return;
+  
+    if (!file.type.startsWith("image/")) {
+      setProductError("El archivo debe ser una imagen.");
+      return;
+    }
+  
+    const maxSizeBytes = 4 * 1024 * 1024;
+  
+    if (file.size > maxSizeBytes) {
+      setProductError("La imagen del producto no debería pesar más de 4MB.");
+      return;
+    }
+  
+    const reader = new FileReader();
+  
+    reader.onload = () => {
+      const result = reader.result;
+  
+      if (typeof result === "string") {
+        setProductDraft((current) => ({
+          ...current,
+          image: result,
+        }));
+  
+        setProductError(null);
+        setProductSuccess(null);
+      }
+    };
+  
+    reader.readAsDataURL(file);
+  };
+
+
   const handleAppearanceImageUpload = (
     field: "logoUrl" | "coverImageUrl",
     event: ChangeEvent<HTMLInputElement>
@@ -538,53 +592,76 @@ const [passwordSuccess, setPasswordSuccess] = useState<string | null>(null);
   };
 
 
-  const createProduct = async (categoryId: string) => {
-    setProductError(null);
-    setProductSuccess(null);
-    setProductSavingId("new");
-  
+  const createProduct = async (categoryId?: string) => {
+  const finalCategoryId = categoryId ?? productDraft.categoryId;
+
+  if (!finalCategoryId) {
+    setProductError("Primero creá o seleccioná una categoría.");
+    return;
+  }
+
+  setProductError(null);
+  setProductSuccess(null);
+  setProductSavingId("new");
+
+  try {
+    const response = await fetch("/api/restaurant-admin/products", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        ...productDraft,
+        categoryId: finalCategoryId,
+      }),
+    });
+
+    const rawResponse = await response.text();
+
+    let data: {
+      product?: RestaurantRecord["items"][number];
+      error?: string;
+    } = {};
+
     try {
-      const response = await fetch("/api/restaurant-admin/products", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          categoryId,
-        }),
-      });
-  
-      const rawResponse = await response.text();
-  
-      let data: {
-        product?: RestaurantRecord["items"][number];
-        error?: string;
-      } = {};
-  
-      try {
-        data = rawResponse ? JSON.parse(rawResponse) : {};
-      } catch {
-        throw new Error(`La API no devolvió JSON. Status: ${response.status}.`);
-      }
-  
-      if (!response.ok || !data.product) {
-        throw new Error(data.error ?? "No se pudo crear el producto.");
-      }
-  
-      setRestaurant((current) => ({
-        ...current,
-        items: [...current.items, data.product as RestaurantRecord["items"][number]],
-      }));
-  
-      setProductSuccess("Producto creado. Ahora podés editarlo y guardar cambios.");
-    } catch (error) {
-      setProductError(
-        error instanceof Error ? error.message : "No se pudo crear el producto."
-      );
-    } finally {
-      setProductSavingId(null);
+      data = rawResponse ? JSON.parse(rawResponse) : {};
+    } catch {
+      throw new Error(`La API no devolvió JSON. Status: ${response.status}.`);
     }
-  };
+
+    if (!response.ok || !data.product) {
+      throw new Error(data.error ?? "No se pudo crear el producto.");
+    }
+
+    setRestaurant((current) => ({
+      ...current,
+      items: [
+        ...current.items,
+        data.product as RestaurantRecord["items"][number],
+      ],
+    }));
+
+    setProductDraft({
+      categoryId: finalCategoryId,
+      name: "",
+      description: "",
+      price: 0,
+      image: "",
+      prepTime: "15 min",
+      featured: false,
+      available: true,
+    });
+
+    setIsProductCreateOpen(false);
+    setProductSuccess("Producto creado correctamente.");
+  } catch (error) {
+    setProductError(
+      error instanceof Error ? error.message : "No se pudo crear el producto."
+    );
+  } finally {
+    setProductSavingId(null);
+  }
+};
   
   const saveProduct = async (productId: string) => {
     const product = restaurant.items.find((item) => item.id === productId);
@@ -1387,17 +1464,17 @@ const [passwordSuccess, setPasswordSuccess] = useState<string | null>(null);
               </div>
               <button
   className={styles.primaryButton}
-  disabled={productSavingId === "new" || restaurant.categories.length === 0}
+  disabled={restaurant.categories.length === 0}
   onClick={() => {
-    const firstCategory = restaurant.categories[0];
-
-    if (firstCategory) {
-      createProduct(firstCategory.id);
-    }
+    setProductDraft((current) => ({
+      ...current,
+      categoryId: restaurant.categories[0]?.id ?? "",
+    }));
+    setIsProductCreateOpen(true);
   }}
   type="button"
 >
-  {productSavingId === "new" ? "Creando..." : "Agregar producto"}
+  Agregar producto
 </button>
 
             </div>
@@ -1413,7 +1490,13 @@ const [passwordSuccess, setPasswordSuccess] = useState<string | null>(null);
                     <button
   className={styles.secondaryButton}
   disabled={productSavingId === "new"}
-  onClick={() => createProduct(category.id)}
+  onClick={() => {
+    setProductDraft((current) => ({
+      ...current,
+      categoryId: category.id,
+    }));
+    setIsProductCreateOpen(true);
+  }}
   type="button"
 >
   Agregar en categoría
@@ -1454,6 +1537,174 @@ const [passwordSuccess, setPasswordSuccess] = useState<string | null>(null);
 
 {productSuccess ? (
   <div className={styles.successBox}>{productSuccess}</div>
+) : null}
+
+
+{isProductCreateOpen ? (
+  <section className={styles.createProductPanel}>
+    <div className={styles.panelHeader}>
+      <div>
+        <span className={styles.eyebrow}>Nuevo producto</span>
+        <h3>Cargar producto al menú</h3>
+        <p>
+          Completá los datos principales. Después podés editarlo nuevamente
+          desde la lista.
+        </p>
+      </div>
+
+      <button
+        className={styles.secondaryButton}
+        onClick={() => setIsProductCreateOpen(false)}
+        type="button"
+      >
+        Cerrar
+      </button>
+    </div>
+
+    <div className={styles.formGrid}>
+      <label>
+        <span>Nombre del producto</span>
+        <input
+          placeholder="Ej: Burger clásica"
+          value={productDraft.name}
+          onChange={(event) =>
+            setProductDraft((current) => ({
+              ...current,
+              name: event.target.value,
+            }))
+          }
+        />
+      </label>
+
+      <label>
+        <span>Categoría</span>
+        <select
+          value={productDraft.categoryId}
+          onChange={(event) =>
+            setProductDraft((current) => ({
+              ...current,
+              categoryId: event.target.value,
+            }))
+          }
+        >
+          {restaurant.categories.map((category) => (
+            <option key={category.id} value={category.id}>
+              {category.name}
+            </option>
+          ))}
+        </select>
+      </label>
+
+      <label>
+        <span>Precio</span>
+        <input
+          type="number"
+          value={productDraft.price}
+          onChange={(event) =>
+            setProductDraft((current) => ({
+              ...current,
+              price: Number(event.target.value),
+            }))
+          }
+        />
+      </label>
+
+      <label>
+        <span>Tiempo estimado</span>
+        <input
+          placeholder="15 min"
+          value={productDraft.prepTime}
+          onChange={(event) =>
+            setProductDraft((current) => ({
+              ...current,
+              prepTime: event.target.value,
+            }))
+          }
+        />
+      </label>
+
+      <label className={styles.full}>
+        <span>Descripción</span>
+        <textarea
+          placeholder="Descripción breve del producto..."
+          value={productDraft.description}
+          onChange={(event) =>
+            setProductDraft((current) => ({
+              ...current,
+              description: event.target.value,
+            }))
+          }
+        />
+      </label>
+
+      <label className={styles.full}>
+        <span>Imagen del producto</span>
+        <input
+          accept="image/*"
+          type="file"
+          onChange={handleProductDraftImageUpload}
+        />
+
+        {productDraft.image ? (
+          <div
+            className={styles.imagePreview}
+            style={{
+              backgroundImage: `url(${productDraft.image})`,
+            }}
+          />
+        ) : null}
+      </label>
+    </div>
+
+    <div className={styles.toggleRow}>
+      <label className={styles.toggle}>
+        <input
+          checked={productDraft.available}
+          type="checkbox"
+          onChange={(event) =>
+            setProductDraft((current) => ({
+              ...current,
+              available: event.target.checked,
+            }))
+          }
+        />
+        <span>{productDraft.available ? "Disponible" : "No disponible"}</span>
+      </label>
+
+      <label className={styles.toggle}>
+        <input
+          checked={productDraft.featured}
+          type="checkbox"
+          onChange={(event) =>
+            setProductDraft((current) => ({
+              ...current,
+              featured: event.target.checked,
+            }))
+          }
+        />
+        <span>{productDraft.featured ? "Destacado" : "Normal"}</span>
+      </label>
+    </div>
+
+    <div className={styles.productActions}>
+      <button
+        className={styles.primaryButton}
+        disabled={productSavingId === "new"}
+        onClick={() => createProduct()}
+        type="button"
+      >
+        {productSavingId === "new" ? "Creando..." : "Crear producto"}
+      </button>
+
+      <button
+        className={styles.secondaryButton}
+        onClick={() => setIsProductCreateOpen(false)}
+        type="button"
+      >
+        Cancelar
+      </button>
+    </div>
+  </section>
 ) : null}
 
                         <div className={styles.formGrid}>
