@@ -200,6 +200,8 @@ const [passwordError, setPasswordError] = useState<string | null>(null);
 const [passwordSuccess, setPasswordSuccess] = useState<string | null>(null);
 
 
+const [imageUploadingKey, setImageUploadingKey] = useState<string | null>(null);
+
 
   const updateRestaurant = <K extends keyof RestaurantRecord>(
     field: K,
@@ -392,61 +394,70 @@ const [passwordSuccess, setPasswordSuccess] = useState<string | null>(null);
     }));
   };
 
-  const handleImageUpload = (itemId: string, event: ChangeEvent<HTMLInputElement>) => {
-    const file = event.target.files?.[0];
-    if (!file) return;
-
-    const reader = new FileReader();
-    reader.onload = () => {
-      const result = reader.result;
-      if (typeof result === "string") {
-        updateItem(itemId, "image", result);
-      }
-    };
-    reader.readAsDataURL(file);
-  };
-
-
-  const handleProductDraftImageUpload = (
+  const handleImageUpload = async (
+    itemId: string,
     event: ChangeEvent<HTMLInputElement>
   ) => {
     const file = event.target.files?.[0];
   
     if (!file) return;
   
-    if (!file.type.startsWith("image/")) {
-      setProductError("El archivo debe ser una imagen.");
-      return;
+    setProductError(null);
+    setProductSuccess(null);
+  
+    try {
+      const imageUrl = await uploadRestaurantImage(
+        file,
+        "product",
+        `product-${itemId}`
+      );
+  
+      updateItem(itemId, "image", imageUrl);
+      setProductSuccess("Imagen subida. Tocá “Guardar producto” para guardar el cambio.");
+    } catch (error) {
+      setProductError(
+        error instanceof Error ? error.message : "No se pudo subir la imagen."
+      );
+    } finally {
+      event.target.value = "";
     }
-  
-    const maxSizeBytes = 4 * 1024 * 1024;
-  
-    if (file.size > maxSizeBytes) {
-      setProductError("La imagen del producto no debería pesar más de 4MB.");
-      return;
-    }
-  
-    const reader = new FileReader();
-  
-    reader.onload = () => {
-      const result = reader.result;
-  
-      if (typeof result === "string") {
-        setProductDraft((current) => ({
-          ...current,
-          image: result,
-        }));
-  
-        setProductError(null);
-        setProductSuccess(null);
-      }
-    };
-  
-    reader.readAsDataURL(file);
   };
 
 
-  const handleAppearanceImageUpload = (
+  const handleProductDraftImageUpload = async (
+    event: ChangeEvent<HTMLInputElement>
+  ) => {
+    const file = event.target.files?.[0];
+  
+    if (!file) return;
+  
+    setProductError(null);
+    setProductSuccess(null);
+  
+    try {
+      const imageUrl = await uploadRestaurantImage(
+        file,
+        "product",
+        "product-draft"
+      );
+  
+      setProductDraft((current) => ({
+        ...current,
+        image: imageUrl,
+      }));
+  
+      setProductSuccess("Imagen subida correctamente.");
+    } catch (error) {
+      setProductError(
+        error instanceof Error ? error.message : "No se pudo subir la imagen."
+      );
+    } finally {
+      event.target.value = "";
+    }
+  };
+
+
+  const handleAppearanceImageUpload = async (
     field: "logoUrl" | "coverImageUrl",
     event: ChangeEvent<HTMLInputElement>
   ) => {
@@ -454,36 +465,29 @@ const [passwordSuccess, setPasswordSuccess] = useState<string | null>(null);
   
     if (!file) return;
   
-    if (!file.type.startsWith("image/")) {
-      setAppearanceError("El archivo debe ser una imagen.");
-      return;
-    }
+    setAppearanceError(null);
+    setAppearanceSuccess(null);
   
-    const maxSizeMb = field === "logoUrl" ? 2 : 4;
-    const maxSizeBytes = maxSizeMb * 1024 * 1024;
-  
-    if (file.size > maxSizeBytes) {
-      setAppearanceError(
-        field === "logoUrl"
-          ? "El logo no debería pesar más de 2MB."
-          : "La imagen de portada no debería pesar más de 4MB."
+    try {
+      const imageUrl = await uploadRestaurantImage(
+        file,
+        field === "logoUrl" ? "logo" : "cover",
+        field
       );
-      return;
+  
+      updateAppearanceDraft(field, imageUrl);
+      setAppearanceSuccess(
+        field === "logoUrl"
+          ? "Logo subido. Tocá “Guardar estética” para guardar el cambio."
+          : "Portada subida. Tocá “Guardar estética” para guardar el cambio."
+      );
+    } catch (error) {
+      setAppearanceError(
+        error instanceof Error ? error.message : "No se pudo subir la imagen."
+      );
+    } finally {
+      event.target.value = "";
     }
-  
-    const reader = new FileReader();
-  
-    reader.onload = () => {
-      const result = reader.result;
-  
-      if (typeof result === "string") {
-        updateAppearanceDraft(field, result);
-        setAppearanceError(null);
-        setAppearanceSuccess(null);
-      }
-    };
-  
-    reader.readAsDataURL(file);
   };
 
   const handleCategoryKeyDown = (event: KeyboardEvent<HTMLInputElement>) => {
@@ -1104,6 +1108,64 @@ const [passwordSuccess, setPasswordSuccess] = useState<string | null>(null);
   };
 
 
+
+
+  const uploadRestaurantImage = async (
+    file: File,
+    kind: "logo" | "cover" | "product",
+    uploadKey: string
+  ) => {
+    if (!file.type.startsWith("image/")) {
+      throw new Error("El archivo debe ser una imagen.");
+    }
+  
+    const maxSizeBytes = kind === "logo" ? 2 * 1024 * 1024 : 4 * 1024 * 1024;
+  
+    if (file.size > maxSizeBytes) {
+      throw new Error(
+        kind === "logo"
+          ? "El logo no debería pesar más de 2MB."
+          : "La imagen no debería pesar más de 4MB."
+      );
+    }
+  
+    setImageUploadingKey(uploadKey);
+  
+    try {
+      const formData = new FormData();
+  
+      formData.append("file", file);
+      formData.append("kind", kind);
+  
+      const response = await fetch("/api/restaurant-admin/upload-image", {
+        method: "POST",
+        body: formData,
+      });
+  
+      const rawResponse = await response.text();
+  
+      let data: {
+        ok?: boolean;
+        url?: string;
+        error?: string;
+      } = {};
+  
+      try {
+        data = rawResponse ? JSON.parse(rawResponse) : {};
+      } catch {
+        throw new Error(`La API no devolvió JSON. Status: ${response.status}.`);
+      }
+  
+      if (!response.ok || !data.ok || !data.url) {
+        throw new Error(data.error ?? "No se pudo subir la imagen.");
+      }
+  
+      return data.url;
+    } finally {
+      setImageUploadingKey(null);
+    }
+  };
+
   return (
     <div className={styles.shell} data-theme={themeMode}>
      <button
@@ -1638,22 +1700,26 @@ const [passwordSuccess, setPasswordSuccess] = useState<string | null>(null);
       </label>
 
       <label className={styles.full}>
-        <span>Imagen del producto</span>
-        <input
-          accept="image/*"
-          type="file"
-          onChange={handleProductDraftImageUpload}
-        />
+  <span>Imagen del producto</span>
+  <input
+    accept="image/*"
+    type="file"
+    onChange={handleProductDraftImageUpload}
+  />
 
-        {productDraft.image ? (
-          <div
-            className={styles.imagePreview}
-            style={{
-              backgroundImage: `url(${productDraft.image})`,
-            }}
-          />
-        ) : null}
-      </label>
+  {imageUploadingKey === "product-draft" ? (
+    <small className={styles.uploadStatus}>Subiendo imagen...</small>
+  ) : null}
+
+  {productDraft.image ? (
+    <div
+      className={styles.imagePreview}
+      style={{
+        backgroundImage: `url(${productDraft.image})`,
+      }}
+    />
+  ) : null}
+</label>
     </div>
 
     <div className={styles.toggleRow}>
@@ -1735,12 +1801,24 @@ const [passwordSuccess, setPasswordSuccess] = useState<string | null>(null);
                             <textarea value={item.description} onChange={(event) => updateItem(item.id, "description", event.target.value)} />
                           </label>
                           <label className={styles.full}>
-                            <span>Foto del producto</span>
-                            <input accept="image/*" type="file" onChange={(event) => handleImageUpload(item.id, event)} />
-                            {item.image ? (
-                              <div className={styles.imagePreview} style={{ backgroundImage: `url(${item.image})` }} />
-                            ) : null}
-                          </label>
+  <span>Foto del producto</span>
+  <input
+    accept="image/*"
+    type="file"
+    onChange={(event) => handleImageUpload(item.id, event)}
+  />
+
+  {imageUploadingKey === `product-${item.id}` ? (
+    <small className={styles.uploadStatus}>Subiendo imagen...</small>
+  ) : null}
+
+  {item.image ? (
+    <div
+      className={styles.imagePreview}
+      style={{ backgroundImage: `url(${item.image})` }}
+    />
+  ) : null}
+</label>
                         </div>
 
                         <div className={styles.toggleRow}>
@@ -1881,6 +1959,10 @@ const [passwordSuccess, setPasswordSuccess] = useState<string | null>(null);
         }
       />
 
+{imageUploadingKey === "logoUrl" ? (
+  <small className={styles.uploadStatus}>Subiendo logo...</small>
+) : null}
+
       {appearanceDraft.logoUrl ? (
         <img
           className={styles.logoUploadPreview}
@@ -1914,6 +1996,10 @@ const [passwordSuccess, setPasswordSuccess] = useState<string | null>(null);
           handleAppearanceImageUpload("coverImageUrl", event)
         }
       />
+
+{imageUploadingKey === "coverImageUrl" ? (
+  <small className={styles.uploadStatus}>Subiendo portada...</small>
+) : null}
 
       {appearanceDraft.coverImageUrl ? (
         <img

@@ -1244,3 +1244,15 @@
     min-height: 4.35rem;
   }
 }
+
+.uploadStatus {
+  display: inline-flex;
+  align-items: center;
+  width: fit-content;
+  padding: 0.35rem 0.55rem;
+  border: 1px solid var(--border);
+  background: var(--surface-alt);
+  color: var(--muted);
+  font-size: 0.78rem;
+  font-weight: 800;
+}
