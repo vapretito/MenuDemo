@@ -67,6 +67,9 @@ export function SuperAdminPanel() {
   const [isLoadingRestaurants, setIsLoadingRestaurants] = useState(true);
   const [backofficeError, setBackofficeError] = useState<string | null>(null);
 
+
+  const [trialDays, setTrialDays] = useState(7);
+
   const selectedRestaurant = useMemo(() => {
     return (
       restaurants.find((restaurant) => restaurant.slug === selectedSlug) ??
@@ -74,6 +77,8 @@ export function SuperAdminPanel() {
       null
     );
   }, [restaurants, selectedSlug]);
+
+  
 
   const stats = useMemo(() => {
     const activeCount = restaurants.filter(
@@ -301,14 +306,19 @@ export function SuperAdminPanel() {
 
   const setRestaurantStatus = async (
     slug: string,
-    status: RestaurantRecord["status"]
+    status: RestaurantRecord["status"],
+    options?: {
+      trialDays?: number;
+    }
   ) => {
     const target = restaurants.find((restaurant) => restaurant.slug === slug);
-
+  
     if (!target) return;
-
+  
     setBackofficeError(null);
-
+  
+    const nextTrialDays = options?.trialDays ?? trialDays;
+  
     try {
       const response = await fetch(`/api/backoffice/restaurants/${target.id}`, {
         method: "PATCH",
@@ -317,31 +327,36 @@ export function SuperAdminPanel() {
         },
         body: JSON.stringify({
           status,
+          ...(status === "trial"
+            ? {
+                trialDays: nextTrialDays,
+              }
+            : {}),
         }),
       });
-
+  
       const rawResponse = await response.text();
-
+  
       let data: {
         restaurant?: RestaurantRecord;
         error?: string;
       } = {};
-
+  
       try {
         data = rawResponse ? JSON.parse(rawResponse) : {};
       } catch {
-        throw new Error(
-          `La API no devolvió JSON. Status: ${response.status}.`
-        );
+        throw new Error(`La API no devolvió JSON. Status: ${response.status}.`);
       }
-
+  
       if (!response.ok || !data.restaurant) {
         throw new Error(data.error ?? "No se pudo actualizar estado.");
       }
-
+  
       setRestaurants((current) =>
         current.map((restaurant) =>
-          restaurant.id === target.id ? data.restaurant as RestaurantRecord : restaurant
+          restaurant.id === target.id
+            ? (data.restaurant as RestaurantRecord)
+            : restaurant
         )
       );
     } catch (error) {
@@ -481,6 +496,16 @@ export function SuperAdminPanel() {
       </div>
     );
   }
+
+  const trialEndsLabel = selectedRestaurant?.trialEndsAt
+  ? new Date(selectedRestaurant.trialEndsAt).toLocaleDateString("es-AR", {
+      day: "2-digit",
+      month: "2-digit",
+      year: "numeric",
+    })
+  : "Sin fecha de prueba";
+
+
   
   return (
     <div className={styles.shell}>
@@ -931,6 +956,11 @@ export function SuperAdminPanel() {
                     <span>Estado</span>
                     <strong>{selectedRestaurant.status}</strong>
                   </div>
+
+                  <div className={styles.detailCard}>
+  <span>Trial hasta</span>
+  <strong>{trialEndsLabel}</strong>
+</div>
   
                   <div className={styles.detailCard}>
                     <span>Renovación</span>
@@ -963,36 +993,65 @@ export function SuperAdminPanel() {
                 </div>
   
                 <div className={styles.detailActions}>
-                  {selectedRestaurant.dnsStatus === "pending" ? (
-                    <button
-                      className={styles.actionButton}
-                      onClick={() =>
-                        markDnsConfigured(selectedRestaurant.slug)
-                      }
-                      type="button"
-                    >
-                      Marcar DNS configurado
-                    </button>
-                  ) : null}
-  
-                  <select
-                    className={styles.statusSelect}
-                    value={selectedRestaurant.status}
-                    onChange={(event) =>
-                      setRestaurantStatus(
-                        selectedRestaurant.slug,
-                        event.target.value as RestaurantRecord["status"]
-                      )
-                    }
-                  >
-                    <option value="trial">trial</option>
-                    <option value="active">active</option>
-                    <option value="past_due">past_due</option>
-                    <option value="suspended">suspended</option>
-                    <option value="cancelled">cancelled</option>
-                    <option value="manual">manual</option>
-                  </select>
-                </div>
+  {selectedRestaurant.dnsStatus === "pending" ? (
+    <button
+      className={styles.actionButton}
+      onClick={() => markDnsConfigured(selectedRestaurant.slug)}
+      type="button"
+    >
+      Marcar DNS configurado
+    </button>
+  ) : null}
+
+  <div className={styles.trialControl}>
+    <span>Prueba gratis</span>
+
+    <select
+      className={styles.statusSelect}
+      value={trialDays}
+      onChange={(event) => setTrialDays(Number(event.target.value))}
+    >
+      <option value={3}>3 días</option>
+      <option value={7}>7 días</option>
+      <option value={14}>14 días</option>
+      <option value={30}>30 días</option>
+    </select>
+
+    <button
+      className={styles.secondaryAction}
+      onClick={() =>
+        setRestaurantStatus(selectedRestaurant.slug, "trial", {
+          trialDays,
+        })
+      }
+      type="button"
+    >
+      Dar {trialDays} días gratis
+    </button>
+  </div>
+
+  <div className={styles.statusControl}>
+    <span>Cambiar estado</span>
+
+    <select
+      className={styles.statusSelect}
+      value={selectedRestaurant.status}
+      onChange={(event) =>
+        setRestaurantStatus(
+          selectedRestaurant.slug,
+          event.target.value as RestaurantRecord["status"]
+        )
+      }
+    >
+      <option value="trial">trial</option>
+      <option value="active">active</option>
+      <option value="past_due">past_due</option>
+      <option value="suspended">suspended</option>
+      <option value="cancelled">cancelled</option>
+      <option value="manual">manual</option>
+    </select>
+  </div>
+</div>
               </section>
             </section>
           </div>

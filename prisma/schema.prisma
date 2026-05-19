@@ -104,6 +104,7 @@ model Restaurant {
   customerWhatsapp String
   onboardingNote   String?
   graceUntil       DateTime?
+  trialEndsAt DateTime?
 
   menuTemplate  String  @default("classic-delivery")
   logoUrl       String?
@@ -139,6 +140,8 @@ model Restaurant {
   openingHours     Json?
   openingHoursNote String @default("Horarios sujetos a disponibilidad del restaurante.")
   showOpeningHours Boolean @default(true)
+
+  
 
   @@index([status])
   @@index([dnsStatus])

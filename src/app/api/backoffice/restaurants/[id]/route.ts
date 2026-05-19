@@ -33,6 +33,7 @@ export async function PATCH(request: Request, { params }: RouteProps) {
     status?: RestaurantStatus;
     dnsStatus?: DnsStatus;
     graceUntil?: Date | null;
+    trialEndsAt?: Date | null;
   } = {};
 
   if (body.status) {
@@ -46,10 +47,33 @@ export async function PATCH(request: Request, { params }: RouteProps) {
     }
 
     data.status = nextStatus;
-    data.graceUntil =
-      nextStatus === RestaurantStatus.PAST_DUE
-        ? new Date(Date.now() + 7 * 24 * 60 * 60 * 1000)
-        : null;
+
+if (nextStatus === RestaurantStatus.PAST_DUE) {
+  data.graceUntil = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000);
+} else {
+  data.graceUntil = null;
+}
+
+if (nextStatus === RestaurantStatus.TRIAL) {
+  const trialDays = Number(body.trialDays ?? 7);
+
+  const safeTrialDays = Number.isFinite(trialDays)
+    ? Math.max(1, Math.min(trialDays, 30))
+    : 7;
+
+  data.trialEndsAt = new Date(
+    Date.now() + safeTrialDays * 24 * 60 * 60 * 1000
+  );
+}
+
+if (
+  nextStatus === RestaurantStatus.ACTIVE ||
+  nextStatus === RestaurantStatus.MANUAL ||
+  nextStatus === RestaurantStatus.SUSPENDED ||
+  nextStatus === RestaurantStatus.CANCELLED
+) {
+  data.trialEndsAt = null;
+}
   }
 
   if (body.dnsStatus === "configured") {

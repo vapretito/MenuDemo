@@ -579,3 +579,37 @@
     min-height: 3rem;
   }
 }
+
+
+
+.trialControl,
+.statusControl {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.65rem;
+  align-items: center;
+}
+
+.trialControl span,
+.statusControl span {
+  color: var(--muted);
+  font-size: 0.78rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+
+@media (max-width: 760px) {
+  .trialControl,
+  .statusControl {
+    align-items: stretch;
+    flex-direction: column;
+    width: 100%;
+  }
+
+  .trialControl button,
+  .trialControl select,
+  .statusControl select {
+    width: 100%;
+  }
+}

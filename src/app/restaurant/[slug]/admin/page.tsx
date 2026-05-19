@@ -3,6 +3,7 @@ import { RestaurantAdminPanel } from "@/components/restaurant-admin-panel";
 import { getRestaurantSession } from "@/lib/restaurant-session";
 import { prisma } from "@/lib/prisma";
 import { mapRestaurantToRecord } from "@/lib/restaurant-mapper";
+import { canRestaurantAccessPanel } from "@/lib/restaurant-access";
 
 type RestaurantAdminPageProps = {
   params: Promise<{
@@ -38,7 +39,7 @@ export default async function RestaurantAdminPage({
     notFound();
   }
 
-  if (restaurant.status !== "ACTIVE" && restaurant.slug !== "demo") {
+  if (!canRestaurantAccessPanel(restaurant)) {
     redirect(`/activar/${restaurant.slug}`);
   }
 
