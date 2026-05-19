@@ -4,22 +4,13 @@
   viewBox="0 0 120 120"
   xmlns="http://www.w3.org/2000/svg"
 >
-  <defs>
-    <linearGradient id="menuiFoodGradient" x1="24" y1="26" x2="98" y2="98" gradientUnits="userSpaceOnUse">
-      <stop offset="0%" stop-color="#111111" />
-      <stop offset="45%" stop-color="#25d366" />
-      <stop offset="100%" stop-color="#9be000" />
-    </linearGradient>
-  </defs>
-
   <path
     d="M28 92 V42 C28 32 38 27 46 35 L60 51 L74 35 C82 27 92 32 92 42 V92"
     fill="none"
-    stroke="url(#menuiFoodGradient)"
+    stroke="#5b22d6"
     stroke-width="22"
     stroke-linecap="round"
     stroke-linejoin="round"
   />
-
-  <circle cx="92" cy="22" r="10" fill="#ff7a00" />
+  <circle cx="92" cy="22" r="10" fill="#ff1f7a" />
 </svg>
