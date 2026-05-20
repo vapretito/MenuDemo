@@ -1300,6 +1300,160 @@ const [cashSuccess, setCashSuccess] = useState<string | null>(null);
   };
 
 
+
+  function moveArrayItem<T>(items: T[], fromIndex: number, toIndex: number) {
+    const nextItems = [...items];
+    const [removedItem] = nextItems.splice(fromIndex, 1);
+    nextItems.splice(toIndex, 0, removedItem);
+    return nextItems;
+  }
+
+  const moveCategory = async (categoryId: string, direction: "up" | "down") => {
+    const currentIndex = restaurant.categories.findIndex(
+      (category) => category.id === categoryId
+    );
+  
+    if (currentIndex === -1) return;
+  
+    const nextIndex = direction === "up" ? currentIndex - 1 : currentIndex + 1;
+  
+    if (nextIndex < 0 || nextIndex >= restaurant.categories.length) return;
+  
+    const nextCategories = moveArrayItem(
+      restaurant.categories,
+      currentIndex,
+      nextIndex
+    );
+  
+    setCategoryError(null);
+    setCategorySuccess(null);
+    setCategorySavingId(categoryId);
+  
+    try {
+      const response = await fetch("/api/restaurant-admin/categories/reorder", {
+        method: "PATCH",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          categoryIds: nextCategories.map((category) => category.id),
+        }),
+      });
+  
+      const rawResponse = await response.text();
+  
+      let data: {
+        ok?: boolean;
+        error?: string;
+      } = {};
+  
+      try {
+        data = rawResponse ? JSON.parse(rawResponse) : {};
+      } catch {
+        throw new Error(`La API no devolvió JSON. Status: ${response.status}.`);
+      }
+  
+      if (!response.ok || !data.ok) {
+        throw new Error(data.error ?? "No se pudo ordenar la categoría.");
+      }
+  
+      setRestaurant((current) => ({
+        ...current,
+        categories: nextCategories,
+      }));
+  
+      setCategorySuccess("Orden de categorías actualizado.");
+    } catch (error) {
+      setCategoryError(
+        error instanceof Error
+          ? error.message
+          : "No se pudo ordenar la categoría."
+      );
+    } finally {
+      setCategorySavingId(null);
+    }
+  };
+
+
+  const moveProduct = async (
+    productId: string,
+    categoryId: string,
+    direction: "up" | "down"
+  ) => {
+    const categoryItems = restaurant.items.filter(
+      (item) => item.categoryId === categoryId
+    );
+  
+    const currentIndex = categoryItems.findIndex((item) => item.id === productId);
+  
+    if (currentIndex === -1) return;
+  
+    const nextIndex = direction === "up" ? currentIndex - 1 : currentIndex + 1;
+  
+    if (nextIndex < 0 || nextIndex >= categoryItems.length) return;
+  
+    const nextCategoryItems = moveArrayItem(
+      categoryItems,
+      currentIndex,
+      nextIndex
+    );
+  
+    setProductError(null);
+    setProductSuccess(null);
+    setProductSavingId(productId);
+  
+    try {
+      const response = await fetch("/api/restaurant-admin/products/reorder", {
+        method: "PATCH",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          categoryId,
+          productIds: nextCategoryItems.map((item) => item.id),
+        }),
+      });
+  
+      const rawResponse = await response.text();
+  
+      let data: {
+        ok?: boolean;
+        error?: string;
+      } = {};
+  
+      try {
+        data = rawResponse ? JSON.parse(rawResponse) : {};
+      } catch {
+        throw new Error(`La API no devolvió JSON. Status: ${response.status}.`);
+      }
+  
+      if (!response.ok || !data.ok) {
+        throw new Error(data.error ?? "No se pudo ordenar el producto.");
+      }
+  
+      setRestaurant((current) => {
+        const itemsFromOtherCategories = current.items.filter(
+          (item) => item.categoryId !== categoryId
+        );
+  
+        return {
+          ...current,
+          items: [...itemsFromOtherCategories, ...nextCategoryItems],
+        };
+      });
+  
+      setProductSuccess("Orden de productos actualizado.");
+    } catch (error) {
+      setProductError(
+        error instanceof Error
+          ? error.message
+          : "No se pudo ordenar el producto."
+      );
+    } finally {
+      setProductSavingId(null);
+    }
+  };
+
   return (
     <div className={styles.shell} data-theme={themeMode}>
      <button
@@ -1783,7 +1937,7 @@ const [cashSuccess, setCashSuccess] = useState<string | null>(null);
 ) : null}
 
             <div className={styles.stack}>
-              {restaurant.categories.map((category) => (
+            {restaurant.categories.map((category, categoryIndex) => (
                 <article className={styles.categoryCard} key={category.id}>
                   <div className={styles.formGrid}>
                     <label>
@@ -1799,6 +1953,27 @@ const [cashSuccess, setCashSuccess] = useState<string | null>(null);
   <span>
     {restaurant.items.filter((item) => item.categoryId === category.id).length} productos asignados
   </span>
+
+  <button
+  className={styles.secondaryButton}
+  disabled={categoryIndex === 0 || categorySavingId === category.id}
+  onClick={() => void moveCategory(category.id, "up")}
+  type="button"
+>
+  Subir
+</button>
+
+<button
+  className={styles.secondaryButton}
+  disabled={
+    categoryIndex === restaurant.categories.length - 1 ||
+    categorySavingId === category.id
+  }
+  onClick={() => void moveCategory(category.id, "down")}
+  type="button"
+>
+  Bajar
+</button>
 
   <button
     className={styles.primaryButton}
@@ -1873,7 +2048,7 @@ const [cashSuccess, setCashSuccess] = useState<string | null>(null);
                   </div>
 
                   <div className={styles.stack}>
-                    {category.items.map((item) => (
+                  {category.items.map((item, itemIndex) => (
                       <article className={styles.productCard} key={item.id}>
                         <div className={styles.productCardHead}>
                           <div>
@@ -1881,6 +2056,27 @@ const [cashSuccess, setCashSuccess] = useState<string | null>(null);
                             <span>{money.format(item.price)}</span>
                           </div>
                           <div className={styles.productActions}>
+                          <button
+  className={styles.secondaryButton}
+  disabled={itemIndex === 0 || productSavingId === item.id}
+  onClick={() => void moveProduct(item.id, category.id, "up")}
+  type="button"
+>
+  Subir
+</button>
+
+<button
+  className={styles.secondaryButton}
+  disabled={
+    itemIndex === category.items.length - 1 ||
+    productSavingId === item.id
+  }
+  onClick={() => void moveProduct(item.id, category.id, "down")}
+  type="button"
+>
+  Bajar
+</button>
+
   <button
     className={styles.primaryButton}
     disabled={productSavingId === item.id}
