@@ -1521,3 +1521,15 @@
     grid-template-columns: 1fr;
   }
 }
+
+.liveStatus {
+  display: inline-flex;
+  width: fit-content;
+  margin-top: 0.5rem;
+  padding: 0.35rem 0.55rem;
+  border: 1px solid var(--border);
+  background: var(--accent-soft);
+  color: var(--text);
+  font-size: 0.78rem;
+  font-weight: 900;
+}

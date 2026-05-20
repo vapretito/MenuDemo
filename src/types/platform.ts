@@ -120,7 +120,7 @@ googleMapsUrl?: string | null;
 instagramUrl?: string | null;
 deliveryZones?: string | null;
 deliveryTimeEstimate?: string | null;
-
+timeZone?: string | null;
 };
 
 

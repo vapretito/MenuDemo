@@ -43,22 +43,26 @@ export async function PATCH(request: Request) {
       typeof body.showOpeningHours === "boolean"
         ? body.showOpeningHours
         : true;
+        const timeZone =
+  String(body.timeZone ?? "").trim() || "America/Argentina/Cordoba";
     
-    const restaurant = await prisma.restaurant.update({
-      where: {
-        id: session.restaurantId,
-      },
-      data: {
-        openingHours: cleanOpeningHours as unknown as Prisma.InputJsonValue,
-        openingHoursNote,
-        showOpeningHours,
-      },
-      select: {
-        openingHours: true,
-        openingHoursNote: true,
-        showOpeningHours: true,
-      },
-    });
+const restaurant = await prisma.restaurant.update({
+  where: {
+    id: session.restaurantId,
+  },
+  data: {
+    openingHours: cleanOpeningHours as unknown as Prisma.InputJsonValue,
+    openingHoursNote,
+    showOpeningHours,
+    timeZone,
+  },
+  select: {
+    openingHours: true,
+    openingHoursNote: true,
+    showOpeningHours: true,
+    timeZone: true,
+  },
+});
 
     return NextResponse.json({
       ok: true,

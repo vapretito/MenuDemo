@@ -176,6 +176,7 @@ const [orderingSuccess, setOrderingSuccess] = useState<string | null>(null);
 
 const [hoursDraft, setHoursDraft] = useState({
   showOpeningHours: restaurant.showOpeningHours ?? true,
+  timeZone: restaurant.timeZone ?? "America/Argentina/Cordoba",
   openingHours: restaurant.openingHours?.length
     ? restaurant.openingHours
     : defaultOpeningHours,
@@ -1025,6 +1026,7 @@ const [imageUploadingKey, setImageUploadingKey] = useState<string | null>(null);
           openingHours: OpeningHour[];
           openingHoursNote: string;
           showOpeningHours: boolean;
+          timeZone: string;
         };
       } = {};
   
@@ -1045,6 +1047,7 @@ const [imageUploadingKey, setImageUploadingKey] = useState<string | null>(null);
           data.restaurant?.openingHoursNote ?? current.openingHoursNote,
         showOpeningHours:
           data.restaurant?.showOpeningHours ?? current.showOpeningHours,
+        timeZone: data.restaurant?.timeZone ?? current.timeZone,
       }));
   
       setHoursSuccess("Horarios guardados correctamente.");
@@ -2473,12 +2476,12 @@ const [imageUploadingKey, setImageUploadingKey] = useState<string | null>(null);
 <section className={styles.panel}>
   <div className={styles.panelHeader}>
     <div>
-      <span className={styles.eyebrow}>Estado del menú</span>
-      <h3>Pedidos abiertos o pausados</h3>
-      <p>
-        Cuando el menú está cerrado, los clientes pueden verlo, pero no pueden
-        enviar pedidos por WhatsApp desde el carrito.
-      </p>
+    <span className={styles.eyebrow}>Pausa manual</span>
+<h3>Pausar pedidos temporalmente</h3>
+<p>
+  Los horarios se calculan automáticamente. Usá esta opción solo si necesitás
+  pausar pedidos por alta demanda, falta de stock o cierre excepcional.
+</p>
     </div>
 
     <button
@@ -2504,17 +2507,17 @@ const [imageUploadingKey, setImageUploadingKey] = useState<string | null>(null);
       <span>Estado de pedidos</span>
 
       <select
-        value={orderingDraft.isAcceptingOrders ? "open" : "closed"}
-        onChange={(event) =>
-          setOrderingDraft((current) => ({
-            ...current,
-            isAcceptingOrders: event.target.value === "open",
-          }))
-        }
-      >
-        <option value="open">Abierto - recibir pedidos</option>
-        <option value="closed">Cerrado - pausar pedidos</option>
-      </select>
+  value={orderingDraft.isAcceptingOrders ? "automatic" : "paused"}
+  onChange={(event) =>
+    setOrderingDraft((current) => ({
+      ...current,
+      isAcceptingOrders: event.target.value === "automatic",
+    }))
+  }
+>
+  <option value="automatic">Automático según horarios</option>
+  <option value="paused">Pausado manualmente</option>
+</select>
     </label>
 
     <label className={styles.full}>
@@ -2590,6 +2593,26 @@ const [imageUploadingKey, setImageUploadingKey] = useState<string | null>(null);
       <option value="hide">No, ocultar horarios</option>
     </select>
   </label>
+  <label className={styles.full}>
+  <span>Zona horaria del restaurante</span>
+  <select
+    value={hoursDraft.timeZone}
+    onChange={(event) =>
+      setHoursDraft((current) => ({
+        ...current,
+        timeZone: event.target.value,
+      }))
+    }
+  >
+    <option value="America/Argentina/Cordoba">Argentina - Córdoba</option>
+    <option value="America/Argentina/Buenos_Aires">Argentina - Buenos Aires</option>
+    <option value="America/Caracas">Venezuela</option>
+    <option value="America/Bogota">Colombia / Perú</option>
+    <option value="America/Santiago">Chile</option>
+    <option value="America/Mexico_City">México</option>
+    <option value="Europe/Madrid">España</option>
+  </select>
+</label>
 </div>
 
   <div className={styles.stack}>

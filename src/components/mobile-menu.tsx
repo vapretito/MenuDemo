@@ -3,7 +3,7 @@
 import { CSSProperties, useMemo, useState } from "react";
 import styles from "./mobile-menu.module.css";
 import { CartLine, RestaurantRecord } from "@/types/platform";
-
+import { getRestaurantOpeningStatus } from "@/lib/opening-hours";
 const money = new Intl.NumberFormat("es-AR", {
   style: "currency",
   currency: "ARS",
@@ -89,7 +89,14 @@ export function MobileMenu({ restaurant }: MobileMenuProps) {
 
 
 
-const isAcceptingOrders = restaurant.isAcceptingOrders ?? true;
+const manualOrdersEnabled = restaurant.isAcceptingOrders ?? true;
+
+const openingStatus = getRestaurantOpeningStatus({
+  openingHours: restaurant.openingHours,
+  timeZone: restaurant.timeZone,
+});
+
+const canSendOrders = manualOrdersEnabled && openingStatus.isOpen;
 
 const closedMessage =
   restaurant.closedMessage ??
@@ -308,10 +315,17 @@ const closeProductModal = () => {
         ))}
       </nav>
 
-      {!isAcceptingOrders ? (
+      {!manualOrdersEnabled ? (
   <section className={styles.closedNotice}>
-    <strong>Menú cerrado por ahora</strong>
+    <strong>Pedidos pausados temporalmente</strong>
     <p>{closedMessage}</p>
+  </section>
+) : null}
+
+{manualOrdersEnabled && !openingStatus.isOpen ? (
+  <section className={styles.closedNotice}>
+    <strong>Cerrado por horario</strong>
+    <p>{openingStatus.detail}</p>
   </section>
 ) : null}
 
@@ -319,7 +333,10 @@ const closeProductModal = () => {
 {showOpeningHours && openingHours.length ? (
     <section className={styles.hoursCard}>
     <div>
-      <strong>Horarios de atención</strong>
+    <strong>Horarios de atención</strong>
+<span className={styles.liveStatus}>
+  {openingStatus.label}
+</span>
       {openingHoursNote ? <p>{openingHoursNote}</p> : null}
     </div>
 
@@ -717,13 +734,13 @@ const closeProductModal = () => {
               <strong>{money.format(total)}</strong>
             </div>
             <a
-  aria-disabled={!cartItems.length || !isAcceptingOrders}
-  className={!cartItems.length || !isAcceptingOrders ? styles.ctaDisabled : styles.cta}
-  href={cartItems.length && isAcceptingOrders ? whatsappUrl : "#"}
+  aria-disabled={!cartItems.length || !canSendOrders}
+  className={!cartItems.length || !canSendOrders ? styles.ctaDisabled : styles.cta}
+  href={cartItems.length && canSendOrders ? whatsappUrl : "#"}
   rel="noreferrer"
   target="_blank"
   onClick={(event) => {
-    if (!cartItems.length || !isAcceptingOrders) {
+    if (!cartItems.length || !canSendOrders) {
       event.preventDefault();
       return;
     }
