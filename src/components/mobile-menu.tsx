@@ -112,7 +112,9 @@ const showOpeningHours = restaurant.showOpeningHours ?? true;
   const templateId = restaurant.menuTemplate ?? "classic-delivery";
 
 
+  const [isRestaurantInfoOpen, setIsRestaurantInfoOpen] = useState(false);
 
+  
   const groupedCategories = useMemo(
     () =>
       restaurant.categories.map((category) => {
@@ -335,53 +337,92 @@ const closeProductModal = () => {
 ) : null}
 
 {hasRestaurantInfo ? (
-  <section className={styles.restaurantInfoCard}>
-    <div>
-      <strong>Información del local</strong>
-      <p>Datos útiles para pedir, retirar o contactar al restaurante.</p>
-    </div>
+  <>
+    <button
+      className={styles.restaurantInfoFab}
+      onClick={() => setIsRestaurantInfoOpen(true)}
+      type="button"
+      aria-label="Ver información del local"
+    >
+      i
+    </button>
 
-    <div className={styles.restaurantInfoList}>
-      {restaurant.address ? (
-        <article>
-          <span>Dirección</span>
-          <strong>{restaurant.address}</strong>
-        </article>
-      ) : null}
+    {isRestaurantInfoOpen ? (
+      <div
+        className={styles.restaurantInfoLayer}
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="restaurant-info-title"
+      >
+        <button
+          className={styles.restaurantInfoBackdrop}
+          onClick={() => setIsRestaurantInfoOpen(false)}
+          type="button"
+          aria-label="Cerrar información del local"
+        />
 
-      {restaurant.deliveryZones ? (
-        <article>
-          <span>Zonas de delivery</span>
-          <strong>{restaurant.deliveryZones}</strong>
-        </article>
-      ) : null}
+        <section className={styles.restaurantInfoModal}>
+          <div className={styles.restaurantInfoModalHeader}>
+            <div>
+              <span>Ayuda e información</span>
+              <h2 id="restaurant-info-title">Información del local</h2>
+              <p>Datos útiles para pedir, retirar o contactar al restaurante.</p>
+            </div>
 
-      {restaurant.deliveryTimeEstimate ? (
-        <article>
-          <span>Tiempo estimado</span>
-          <strong>{restaurant.deliveryTimeEstimate}</strong>
-        </article>
-      ) : null}
+            <button
+              className={styles.restaurantInfoClose}
+              onClick={() => setIsRestaurantInfoOpen(false)}
+              type="button"
+              aria-label="Cerrar"
+            >
+              ×
+            </button>
+          </div>
 
-      <div className={styles.restaurantInfoActions}>
-        {restaurant.googleMapsUrl ? (
-          <a
-            href={restaurant.googleMapsUrl}
-            rel="noreferrer"
-            target="_blank"
-          >
-            Ver ubicación
-          </a>
-        ) : null}
+          <div className={styles.restaurantInfoList}>
+            {restaurant.address ? (
+              <article>
+                <span>Dirección</span>
+                <strong>{restaurant.address}</strong>
+              </article>
+            ) : null}
 
-        {instagramUrl ? (
-          <a href={instagramUrl} rel="noreferrer" target="_blank">
-            Instagram
-          </a>
-        ) : null}
+            {restaurant.deliveryZones ? (
+              <article>
+                <span>Zonas de delivery</span>
+                <strong>{restaurant.deliveryZones}</strong>
+              </article>
+            ) : null}
+
+            {restaurant.deliveryTimeEstimate ? (
+              <article>
+                <span>Tiempo estimado</span>
+                <strong>{restaurant.deliveryTimeEstimate}</strong>
+              </article>
+            ) : null}
+
+            <div className={styles.restaurantInfoActions}>
+              {restaurant.googleMapsUrl ? (
+                <a
+                  href={restaurant.googleMapsUrl}
+                  rel="noreferrer"
+                  target="_blank"
+                >
+                  Ver ubicación
+                </a>
+              ) : null}
+
+              {instagramUrl ? (
+                <a href={instagramUrl} rel="noreferrer" target="_blank">
+                  Instagram
+                </a>
+              ) : null}
+            </div>
+          </div>
+        </section>
       </div>
-    </div>
-  </section>
+    ) : null}
+  </>
 ) : null}
 
       <section className={styles.toolbar}>
