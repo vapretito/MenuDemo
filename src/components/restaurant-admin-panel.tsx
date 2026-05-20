@@ -12,6 +12,9 @@ const money = new Intl.NumberFormat("es-AR", {
   maximumFractionDigits: 0,
 });
 
+
+
+
 type AdminSection =
   | "overview"
   | "identity"
@@ -20,6 +23,28 @@ type AdminSection =
   | "publishing"
   | "appearance"
   | "security";
+
+
+  type PaymentBreakdownItem = {
+    label: string;
+    totalEvents: number;
+    totalItems: number;
+    totalArs: number;
+  };
+  
+  type CashClosureRecord = {
+    id: string;
+    businessDate: string;
+    totalEvents: number;
+    totalEstimatedArs: number;
+    totalItems: number;
+    averageTicketArs: number;
+    paymentBreakdown: Record<string, PaymentBreakdownItem>;
+    notes: string | null;
+    createdAt: string;
+  };
+
+
 const sections: Array<{ id: AdminSection; label: string; hint: string }> = [
   { id: "overview", label: "Dashboard", hint: "Resumen operativo" },
   { id: "identity", label: "Mi restaurante", hint: "Marca y datos" },
@@ -203,7 +228,21 @@ const [passwordSuccess, setPasswordSuccess] = useState<string | null>(null);
 
 const [imageUploadingKey, setImageUploadingKey] = useState<string | null>(null);
 
+const [cashSummary, setCashSummary] = useState({
+  businessDate: "",
+  totalEvents: 0,
+  totalEstimatedArs: 0,
+  totalItems: 0,
+  averageTicketArs: 0,
+  paymentBreakdown: {} as Record<string, PaymentBreakdownItem>,
+  existingClosure: null as CashClosureRecord | null,
+  lastClosures: [] as CashClosureRecord[],
+});
 
+const [cashNotes, setCashNotes] = useState("");
+const [cashSaving, setCashSaving] = useState(false);
+const [cashError, setCashError] = useState<string | null>(null);
+const [cashSuccess, setCashSuccess] = useState<string | null>(null);
   const updateRestaurant = <K extends keyof RestaurantRecord>(
     field: K,
     value: RestaurantRecord[K]
@@ -932,8 +971,8 @@ const [imageUploadingKey, setImageUploadingKey] = useState<string | null>(null);
   
   useEffect(() => {
     void loadCartSummary();
+    void loadCashSummary();
   }, []);
-
 
   const saveOrderingStatus = async () => {
     setOrderingSaving(true);
@@ -1185,6 +1224,82 @@ const [imageUploadingKey, setImageUploadingKey] = useState<string | null>(null);
     }
   };
 
+
+
+  const loadCashSummary = async () => {
+    try {
+      const response = await fetch("/api/restaurant-admin/cash/summary", {
+        cache: "no-store",
+      });
+  
+      const rawResponse = await response.text();
+  
+      let data: {
+        ok?: boolean;
+        summary?: typeof cashSummary;
+      } = {};
+  
+      try {
+        data = rawResponse ? JSON.parse(rawResponse) : {};
+      } catch {
+        return;
+      }
+  
+      if (response.ok && data.ok && data.summary) {
+        setCashSummary(data.summary);
+        setCashNotes(data.summary.existingClosure?.notes ?? "");
+      }
+    } catch (error) {
+      console.error("[Load Cash Summary Error]", error);
+    }
+  };
+  
+  const closeCashDay = async () => {
+    setCashSaving(true);
+    setCashError(null);
+    setCashSuccess(null);
+  
+    try {
+      const response = await fetch("/api/restaurant-admin/cash/closures", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          notes: cashNotes,
+        }),
+      });
+  
+      const rawResponse = await response.text();
+  
+      let data: {
+        ok?: boolean;
+        error?: string;
+        closure?: CashClosureRecord;
+      } = {};
+  
+      try {
+        data = rawResponse ? JSON.parse(rawResponse) : {};
+      } catch {
+        throw new Error(`La API no devolvió JSON. Status: ${response.status}.`);
+      }
+  
+      if (!response.ok || !data.ok || !data.closure) {
+        throw new Error(data.error ?? "No se pudo cerrar la caja.");
+      }
+  
+      setCashSuccess("Cierre de caja guardado correctamente.");
+      await loadCashSummary();
+    } catch (error) {
+      setCashError(
+        error instanceof Error ? error.message : "No se pudo cerrar la caja."
+      );
+    } finally {
+      setCashSaving(false);
+    }
+  };
+
+
   return (
     <div className={styles.shell} data-theme={themeMode}>
      <button
@@ -1296,6 +1411,125 @@ const [imageUploadingKey, setImageUploadingKey] = useState<string | null>(null);
                 </div>
               </div>
             </section>
+            <section className={styles.panel}>
+  <div className={styles.panelHeader}>
+    <div>
+      <span className={styles.eyebrow}>Caja diaria</span>
+      <h3>Cierre estimado del día</h3>
+      <p>
+        Estos datos se basan en pedidos enviados por WhatsApp. La venta final se
+        confirma manualmente en el restaurante.
+      </p>
+    </div>
+
+    <button
+      className={styles.primaryButton}
+      disabled={cashSaving}
+      onClick={closeCashDay}
+      type="button"
+    >
+      {cashSaving
+        ? "Cerrando..."
+        : cashSummary.existingClosure
+          ? "Actualizar cierre"
+          : "Cerrar caja"}
+    </button>
+  </div>
+
+  {cashError ? (
+    <div className={styles.errorBox}>{cashError}</div>
+  ) : null}
+
+  {cashSuccess ? (
+    <div className={styles.successBox}>{cashSuccess}</div>
+  ) : null}
+
+  <section className={styles.metricGrid}>
+    <article className={styles.metricCard}>
+      <strong>{cashSummary.totalEvents}</strong>
+      <span>pedidos enviados hoy</span>
+    </article>
+
+    <article className={styles.metricCard}>
+      <strong>{money.format(cashSummary.totalEstimatedArs)}</strong>
+      <span>total estimado hoy</span>
+    </article>
+
+    <article className={styles.metricCard}>
+      <strong>{money.format(cashSummary.averageTicketArs)}</strong>
+      <span>ticket promedio hoy</span>
+    </article>
+
+    <article className={styles.metricCard}>
+      <strong>{cashSummary.totalItems}</strong>
+      <span>productos enviados hoy</span>
+    </article>
+  </section>
+
+  <div className={styles.stack}>
+    <div className={styles.publishCard}>
+      <span>Fecha de caja</span>
+      <strong>{cashSummary.businessDate || "Hoy"}</strong>
+      <p>
+        {cashSummary.existingClosure
+          ? "Este día ya tiene un cierre guardado. Podés actualizarlo si hubo nuevos pedidos."
+          : "Todavía no se guardó el cierre de caja de hoy."}
+      </p>
+    </div>
+
+    <div className={styles.publishCard}>
+      <span>Métodos de pago estimados</span>
+
+      {Object.values(cashSummary.paymentBreakdown).length ? (
+        Object.values(cashSummary.paymentBreakdown).map((payment) => (
+          <p key={payment.label}>
+            <strong>{payment.label}:</strong>{" "}
+            {money.format(payment.totalArs)} · {payment.totalEvents} pedidos ·{" "}
+            {payment.totalItems} productos
+          </p>
+        ))
+      ) : (
+        <p>No hay métodos de pago registrados hoy.</p>
+      )}
+    </div>
+
+    <label className={styles.full}>
+      <span>Notas del cierre</span>
+      <textarea
+        placeholder="Ej: Día con mucha demanda, faltaron productos, varios pedidos fueron por transferencia..."
+        value={cashNotes}
+        onChange={(event) => setCashNotes(event.target.value)}
+      />
+    </label>
+  </div>
+</section>
+
+<section className={styles.panel}>
+  <div className={styles.panelHeader}>
+    <div>
+      <span className={styles.eyebrow}>Historial</span>
+      <h3>Últimos cierres de caja</h3>
+    </div>
+  </div>
+
+  <div className={styles.stack}>
+    {cashSummary.lastClosures.length ? (
+      cashSummary.lastClosures.map((closure) => (
+        <article className={styles.publishCard} key={closure.id}>
+          <span>{closure.businessDate}</span>
+          <strong>{money.format(closure.totalEstimatedArs)}</strong>
+          <p>
+            {closure.totalEvents} pedidos · {closure.totalItems} productos ·
+            ticket promedio {money.format(closure.averageTicketArs)}
+          </p>
+          {closure.notes ? <p>{closure.notes}</p> : null}
+        </article>
+      ))
+    ) : (
+      <p>Todavía no hay cierres de caja guardados.</p>
+    )}
+  </div>
+</section>
 
             <section className={styles.metricGrid}>
               <article className={styles.metricCard}>

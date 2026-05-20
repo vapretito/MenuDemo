@@ -148,7 +148,7 @@ model Restaurant {
   showOpeningHours Boolean @default(true)
   timeZone String @default("America/Argentina/Cordoba")
 
-  
+  cashClosures CashClosure[]
 
   @@index([status])
   @@index([dnsStatus])
@@ -171,6 +171,27 @@ model CartEvent {
 
   @@index([restaurantId])
   @@index([restaurantSlug])
+  @@index([createdAt])
+}
+
+model CashClosure {
+  id                String   @id @default(cuid())
+  restaurantId      String
+  businessDate      String
+  timeZone          String
+  totalEvents       Int      @default(0)
+  totalEstimatedArs Int      @default(0)
+  totalItems        Int      @default(0)
+  averageTicketArs  Int      @default(0)
+  paymentBreakdown  Json
+  notes             String?
+  createdAt         DateTime @default(now())
+
+  restaurant Restaurant @relation(fields: [restaurantId], references: [id], onDelete: Cascade)
+
+  @@unique([restaurantId, businessDate])
+  @@index([restaurantId])
+  @@index([businessDate])
   @@index([createdAt])
 }
 
