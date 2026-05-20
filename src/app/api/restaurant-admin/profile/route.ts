@@ -17,6 +17,11 @@ export async function PATCH(request: Request) {
     const cuisine = String(body.cuisine ?? "").trim();
     const customerWhatsapp = String(body.customerWhatsapp ?? "").trim();
     const description = String(body.description ?? "").trim();
+    const address = String(body.address ?? "").trim();
+    const googleMapsUrl = String(body.googleMapsUrl ?? "").trim();
+    const instagramUrl = String(body.instagramUrl ?? "").trim();
+    const deliveryZones = String(body.deliveryZones ?? "").trim();
+    const deliveryTimeEstimate = String(body.deliveryTimeEstimate ?? "").trim();
 
     if (!name || !city || !cuisine || !customerWhatsapp || !description) {
       return NextResponse.json(
@@ -39,6 +44,11 @@ export async function PATCH(request: Request) {
         customerWhatsapp,
         adminWhatsapp: customerWhatsapp,
         description,
+        address: address || null,
+        googleMapsUrl: googleMapsUrl || null,
+        instagramUrl: instagramUrl || null,
+        deliveryZones: deliveryZones || null,
+        deliveryTimeEstimate: deliveryTimeEstimate || null,
       },
       select: {
         id: true,
@@ -48,6 +58,11 @@ export async function PATCH(request: Request) {
         customerWhatsapp: true,
         adminWhatsapp: true,
         description: true,
+        address: true,
+        googleMapsUrl: true,
+        instagramUrl: true,
+        deliveryZones: true,
+        deliveryTimeEstimate: true,
       },
     });
 

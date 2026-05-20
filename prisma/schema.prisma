@@ -93,6 +93,12 @@ model Restaurant {
   cuisine     String
   description String
 
+  address              String?
+  googleMapsUrl        String?
+  instagramUrl         String?
+  deliveryZones        String?
+  deliveryTimeEstimate String?
+
   status      RestaurantStatus @default(TRIAL)
   dnsStatus   DnsStatus        @default(PENDING)
   billingMode BillingMode      @default(MERCADO_PAGO_SUBSCRIPTION)

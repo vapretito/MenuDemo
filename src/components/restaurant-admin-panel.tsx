@@ -780,6 +780,11 @@ const [imageUploadingKey, setImageUploadingKey] = useState<string | null>(null);
           cuisine: restaurant.cuisine,
           customerWhatsapp: restaurant.customerWhatsapp,
           description: restaurant.description,
+          address: restaurant.address,
+          googleMapsUrl: restaurant.googleMapsUrl,
+          instagramUrl: restaurant.instagramUrl,
+          deliveryZones: restaurant.deliveryZones,
+          deliveryTimeEstimate: restaurant.deliveryTimeEstimate,
         }),
       });
   
@@ -794,6 +799,11 @@ const [imageUploadingKey, setImageUploadingKey] = useState<string | null>(null);
           cuisine: string;
           customerWhatsapp: string;
           description: string;
+          address?: string | null;
+          googleMapsUrl?: string | null;
+          instagramUrl?: string | null;
+          deliveryZones?: string | null;
+          deliveryTimeEstimate?: string | null;
         };
       } = {};
   
@@ -815,6 +825,12 @@ const [imageUploadingKey, setImageUploadingKey] = useState<string | null>(null);
         customerWhatsapp:
           data.restaurant?.customerWhatsapp ?? current.customerWhatsapp,
         description: data.restaurant?.description ?? current.description,
+        address: data.restaurant?.address ?? current.address,
+        googleMapsUrl: data.restaurant?.googleMapsUrl ?? current.googleMapsUrl,
+        instagramUrl: data.restaurant?.instagramUrl ?? current.instagramUrl,
+        deliveryZones: data.restaurant?.deliveryZones ?? current.deliveryZones,
+        deliveryTimeEstimate:
+          data.restaurant?.deliveryTimeEstimate ?? current.deliveryTimeEstimate,
       }));
   
       setProfileSuccess("Datos del restaurante guardados correctamente.");
@@ -1436,6 +1452,60 @@ const [imageUploadingKey, setImageUploadingKey] = useState<string | null>(null);
           }
         />
       </label>
+      <label className={styles.full}>
+  <span>Dirección del local</span>
+  <input
+    placeholder="Ej: Av. Siempre Viva 123, Córdoba"
+    value={restaurant.address ?? ""}
+    onChange={(event) =>
+      updateRestaurant("address", event.target.value)
+    }
+  />
+</label>
+
+<label>
+  <span>Instagram</span>
+  <input
+    placeholder="https://instagram.com/tu_local o @tu_local"
+    value={restaurant.instagramUrl ?? ""}
+    onChange={(event) =>
+      updateRestaurant("instagramUrl", event.target.value)
+    }
+  />
+</label>
+
+<label>
+  <span>Google Maps</span>
+  <input
+    placeholder="Link de Google Maps"
+    value={restaurant.googleMapsUrl ?? ""}
+    onChange={(event) =>
+      updateRestaurant("googleMapsUrl", event.target.value)
+    }
+  />
+</label>
+
+<label className={styles.full}>
+  <span>Zonas de delivery</span>
+  <textarea
+    placeholder="Ej: Nueva Córdoba, Centro, General Paz, Güemes"
+    value={restaurant.deliveryZones ?? ""}
+    onChange={(event) =>
+      updateRestaurant("deliveryZones", event.target.value)
+    }
+  />
+</label>
+
+<label>
+  <span>Tiempo estimado de entrega</span>
+  <input
+    placeholder="Ej: 35 a 50 min"
+    value={restaurant.deliveryTimeEstimate ?? ""}
+    onChange={(event) =>
+      updateRestaurant("deliveryTimeEstimate", event.target.value)
+    }
+  />
+</label>
     </div>
   </section>
 ) : null}

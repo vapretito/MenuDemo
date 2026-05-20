@@ -219,6 +219,30 @@ const closeProductModal = () => {
     });
   };
 
+
+  const normalizeInstagramUrl = (value?: string | null) => {
+    const cleanValue = value?.trim();
+  
+    if (!cleanValue) return null;
+  
+    if (cleanValue.startsWith("http://") || cleanValue.startsWith("https://")) {
+      return cleanValue;
+    }
+  
+    const username = cleanValue.replace("@", "");
+  
+    return `https://instagram.com/${username}`;
+  };
+  
+  const instagramUrl = normalizeInstagramUrl(restaurant.instagramUrl);
+  
+  const hasRestaurantInfo =
+    restaurant.address ||
+    restaurant.googleMapsUrl ||
+    instagramUrl ||
+    restaurant.deliveryZones ||
+    restaurant.deliveryTimeEstimate;
+
   return (
     <div
   className={styles.shell}
@@ -306,6 +330,56 @@ const closeProductModal = () => {
           </strong>
         </div>
       ))}
+    </div>
+  </section>
+) : null}
+
+{hasRestaurantInfo ? (
+  <section className={styles.restaurantInfoCard}>
+    <div>
+      <strong>Información del local</strong>
+      <p>Datos útiles para pedir, retirar o contactar al restaurante.</p>
+    </div>
+
+    <div className={styles.restaurantInfoList}>
+      {restaurant.address ? (
+        <article>
+          <span>Dirección</span>
+          <strong>{restaurant.address}</strong>
+        </article>
+      ) : null}
+
+      {restaurant.deliveryZones ? (
+        <article>
+          <span>Zonas de delivery</span>
+          <strong>{restaurant.deliveryZones}</strong>
+        </article>
+      ) : null}
+
+      {restaurant.deliveryTimeEstimate ? (
+        <article>
+          <span>Tiempo estimado</span>
+          <strong>{restaurant.deliveryTimeEstimate}</strong>
+        </article>
+      ) : null}
+
+      <div className={styles.restaurantInfoActions}>
+        {restaurant.googleMapsUrl ? (
+          <a
+            href={restaurant.googleMapsUrl}
+            rel="noreferrer"
+            target="_blank"
+          >
+            Ver ubicación
+          </a>
+        ) : null}
+
+        {instagramUrl ? (
+          <a href={instagramUrl} rel="noreferrer" target="_blank">
+            Instagram
+          </a>
+        ) : null}
+      </div>
     </div>
   </section>
 ) : null}

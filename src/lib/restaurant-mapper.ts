@@ -145,10 +145,16 @@ showOpeningHours: restaurant.showOpeningHours,
     adminName: restaurant.adminName ?? "",
     adminWhatsapp: restaurant.adminWhatsapp ?? restaurant.customerWhatsapp,
     customerWhatsapp: restaurant.customerWhatsapp,
+    address: restaurant.address,
+    googleMapsUrl: restaurant.googleMapsUrl,
+    instagramUrl: restaurant.instagramUrl,
+    deliveryZones: restaurant.deliveryZones,
+    deliveryTimeEstimate: restaurant.deliveryTimeEstimate,
     onboardingNote: restaurant.onboardingNote ?? "",
     graceUntil: restaurant.graceUntil
       ? restaurant.graceUntil.toISOString().slice(0, 10)
       : null,
+      
 
     subscription: {
       planId: normalizePlanId(subscription?.planId),

@@ -115,6 +115,12 @@ openingHours?: OpeningHour[] | null;
 openingHoursNote?: string;
 showOpeningHours?: boolean;
 trialEndsAt?: string | Date | null;
+address?: string | null;
+googleMapsUrl?: string | null;
+instagramUrl?: string | null;
+deliveryZones?: string | null;
+deliveryTimeEstimate?: string | null;
+
 };
 
 
