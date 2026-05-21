@@ -42,7 +42,7 @@ export default async function ActivationPage({ params }: ActivationPageProps) {
       subscription: true,
     },
   });
-
+  
   if (!restaurant) {
     notFound();
   }
@@ -57,6 +57,8 @@ export default async function ActivationPage({ params }: ActivationPageProps) {
         `Hola, necesito ayuda para activar el restaurante ${restaurant.name} en Menui.`
       )}`
     : null;
+
+    const mercadoPagoUrl = restaurant.subscription?.mercadopagoInitPoint ?? null;
 
   return (
     <main className={styles.shell}>
@@ -134,9 +136,15 @@ export default async function ActivationPage({ params }: ActivationPageProps) {
         ) : null}
 
         <div className={styles.actions}>
-          <a className={styles.primaryButton} href={`/contratar?slug=${restaurant.slug}`}>
-            Activar con Mercado Pago
-          </a>
+        {mercadoPagoUrl ? (
+  <a className={styles.primaryButton} href={mercadoPagoUrl}>
+    Activar con Mercado Pago
+  </a>
+) : (
+  <a className={styles.primaryButton} href={`/contratar?slug=${restaurant.slug}`}>
+    Generar link de pago
+  </a>
+)}
 
           <a className={styles.secondaryButton} href={publicUrl} target="_blank">
             Ver menú público

@@ -149,9 +149,12 @@ export function OnboardingForm() {
             <strong>Contraseña: {result.credentials.temporaryPassword}</strong>
           </div>
 
-          <a className={styles.primaryButton} href={result.paymentUrl}>
-            Continuar al pago
-          </a>
+          <a
+  className={styles.primaryButton}
+  href={result.checkoutUrl || result.paymentUrl}
+>
+  Continuar a Mercado Pago
+</a>
 
           <a className={styles.secondaryLink} href="/">
             Volver a Menui
