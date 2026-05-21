@@ -552,10 +552,12 @@ export function SuperAdminPanel() {
   }
 
   const trialEndsLabel = selectedRestaurant?.trialEndsAt
-  ? new Date(selectedRestaurant.trialEndsAt).toLocaleDateString("es-AR", {
+  ? new Date(selectedRestaurant.trialEndsAt).toLocaleString("es-AR", {
       day: "2-digit",
       month: "2-digit",
       year: "numeric",
+      hour: "2-digit",
+      minute: "2-digit",
     })
   : "Sin fecha de prueba";
 
@@ -1082,7 +1084,15 @@ export function SuperAdminPanel() {
   
                   <div className={styles.detailCard}>
                     <span>Renovación</span>
-                    <strong>{selectedRestaurant.subscription.renewsOn}</strong>
+                    <strong>{selectedRestaurant.subscription?.renewsOn
+  ? new Date(selectedRestaurant.subscription.renewsOn).toLocaleString("es-AR", {
+      day: "2-digit",
+      month: "2-digit",
+      year: "numeric",
+      hour: "2-digit",
+      minute: "2-digit",
+    })
+  : "sin fecha"}</strong>
                   </div>
   
                   <div className={styles.detailCard}>
