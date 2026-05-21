@@ -1,156 +1,235 @@
 .shell {
-    min-height: 100vh;
-    display: grid;
-    place-items: center;
-    padding: 2rem;
-    background:
-      radial-gradient(circle at top left, rgba(37, 211, 102, 0.16), transparent 34rem),
-      linear-gradient(135deg, #f7f4ec 0%, #ffffff 52%, #edf7ef 100%);
-    color: #101828;
+  min-height: 100vh;
+  display: grid;
+  place-items: center;
+  padding: 2rem;
+  background:
+    radial-gradient(circle at top left, rgba(37, 211, 102, 0.18), transparent 32rem),
+    radial-gradient(circle at bottom right, rgba(255, 122, 0, 0.12), transparent 28rem),
+    linear-gradient(135deg, #f7f3ea 0%, #ffffff 54%, #edf8ef 100%);
+  color: #101828;
+}
+
+.card {
+  width: min(100%, 1040px);
+  display: grid;
+  gap: 1.1rem;
+  padding: clamp(1.2rem, 4vw, 2.4rem);
+  border: 1px solid #d0d5dd;
+  background: rgba(255, 255, 255, 0.94);
+  box-shadow: 0 26px 80px rgba(16, 24, 40, 0.12);
+}
+
+.brandRow {
+  display: flex;
+  align-items: center;
+  gap: 0.85rem;
+}
+
+.logoMark {
+  width: 3.25rem;
+  height: 3.25rem;
+  display: grid;
+  place-items: center;
+  border: 1px solid #111827;
+  background: #111827;
+  color: #ffffff;
+  font-size: 1.25rem;
+  font-weight: 950;
+}
+
+.eyebrow {
+  color: #047857;
+  font-size: 0.76rem;
+  font-weight: 950;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+}
+
+.brandRow p,
+.restaurantBlock p,
+.statusHero p,
+.noteBox p,
+.footerNote {
+  margin: 0;
+  color: #667085;
+  line-height: 1.6;
+}
+
+.statusHero {
+  display: grid;
+  gap: 0.65rem;
+  padding: clamp(1rem, 4vw, 1.5rem);
+  border: 1px solid #d0d5dd;
+  background: #ffffff;
+}
+
+.statusHero span {
+  width: fit-content;
+  padding: 0.35rem 0.6rem;
+  border: 1px solid currentColor;
+  font-size: 0.74rem;
+  font-weight: 950;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+
+.statusHero h1 {
+  margin: 0;
+  max-width: 780px;
+  color: #020617;
+  font-size: clamp(2.2rem, 7vw, 4.8rem);
+  line-height: 0.92;
+  letter-spacing: -0.07em;
+}
+
+.success {
+  border-color: #86efac;
+  background: #ecfdf3;
+}
+
+.success span {
+  color: #047857;
+}
+
+.info {
+  border-color: #bfdbfe;
+  background: #eff6ff;
+}
+
+.info span {
+  color: #1d4ed8;
+}
+
+.warning {
+  border-color: #fde68a;
+  background: #fffbeb;
+}
+
+.warning span {
+  color: #b45309;
+}
+
+.danger {
+  border-color: #fecaca;
+  background: #fff1f2;
+}
+
+.danger span {
+  color: #be123c;
+}
+
+.restaurantBlock {
+  display: grid;
+  gap: 0.35rem;
+  padding: 1rem;
+  border: 1px solid #d0d5dd;
+  background: #ffffff;
+}
+
+.restaurantBlock h2 {
+  margin: 0;
+  color: #020617;
+  font-size: clamp(1.6rem, 4vw, 2.6rem);
+  line-height: 1;
+  letter-spacing: -0.05em;
+}
+
+.infoGrid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0.85rem;
+}
+
+.infoGrid article {
+  display: grid;
+  gap: 0.35rem;
+  min-height: 5.4rem;
+  padding: 1rem;
+  border: 1px solid #d0d5dd;
+  background: #ffffff;
+}
+
+.infoGrid span {
+  color: #667085;
+  font-size: 0.76rem;
+  font-weight: 850;
+}
+
+.infoGrid strong {
+  color: #020617;
+  word-break: break-word;
+}
+
+.noteBox {
+  display: grid;
+  gap: 0.35rem;
+  padding: 1rem;
+  border: 1px solid #fed7aa;
+  background: #fff7ed;
+}
+
+.noteBox strong {
+  color: #9a3412;
+}
+
+.actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+}
+
+.primaryButton,
+.secondaryButton {
+  min-height: 3.05rem;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.85rem 1.1rem;
+  border: 1px solid #111827;
+  text-decoration: none;
+  font-weight: 950;
+}
+
+.primaryButton {
+  background: #25d366;
+  color: #031407;
+}
+
+.secondaryButton {
+  background: #ffffff;
+  color: #111827;
+}
+
+.footerNote {
+  font-size: 0.86rem;
+}
+
+@media (max-width: 760px) {
+  .shell {
+    padding: 1rem;
+    place-items: stretch;
   }
-  
+
   .card {
-    width: min(100%, 920px);
-    display: grid;
-    gap: 1.25rem;
-    padding: clamp(1.25rem, 4vw, 2.4rem);
-    border: 1px solid #d0d5dd;
-    background: rgba(255, 255, 255, 0.92);
-    box-shadow: 0 24px 70px rgba(16, 24, 40, 0.12);
+    align-content: start;
+    min-height: calc(100vh - 2rem);
   }
-  
-  .logoMark {
-    width: 3.4rem;
-    height: 3.4rem;
-    display: grid;
-    place-items: center;
-    border: 1px solid #111827;
-    background: #111827;
-    color: #ffffff;
-    font-size: 1.25rem;
-    font-weight: 950;
+
+  .brandRow {
+    align-items: flex-start;
   }
-  
-  .eyebrow {
-    color: #047857;
-    font-size: 0.78rem;
-    font-weight: 900;
-    text-transform: uppercase;
-    letter-spacing: 0.1em;
+
+  .infoGrid {
+    grid-template-columns: 1fr;
   }
-  
-  .card h1 {
-    margin: 0;
-    max-width: 760px;
-    color: #020617;
-    font-size: clamp(2.2rem, 7vw, 5rem);
-    line-height: 0.92;
-    letter-spacing: -0.07em;
-  }
-  
-  .card p {
-    margin: 0;
-    max-width: 720px;
-    color: #475467;
-    font-size: 1rem;
-    line-height: 1.65;
-  }
-  
-  .statusGrid {
-    display: grid;
-    grid-template-columns: repeat(4, minmax(0, 1fr));
-    gap: 0.85rem;
-  }
-  
-  .statusGrid article {
-    display: grid;
-    gap: 0.35rem;
-    padding: 1rem;
-    border: 1px solid #d0d5dd;
-    background: #ffffff;
-  }
-  
-  .statusGrid span {
-    color: #667085;
-    font-size: 0.78rem;
-    font-weight: 800;
-  }
-  
-  .statusGrid strong {
-    color: #020617;
-    word-break: break-word;
-  }
-  
-  .notice,
-  .noticeDanger {
-    display: grid;
-    gap: 0.35rem;
-    padding: 1rem;
-    border: 1px solid #abefc6;
-    background: #ecfdf3;
-    color: #047857;
-  }
-  
-  .noticeDanger {
-    border-color: #fecdca;
-    background: #fff1f0;
-    color: #b42318;
-  }
-  
-  .notice p,
-  .noticeDanger p {
-    color: inherit;
-  }
-  
+
   .actions {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 0.75rem;
+    display: grid;
   }
-  
+
   .primaryButton,
   .secondaryButton {
-    min-height: 3.1rem;
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    padding: 0.85rem 1.1rem;
-    border: 1px solid #111827;
-    text-decoration: none;
-    font-weight: 900;
+    width: 100%;
   }
-  
-  .primaryButton {
-    background: #25d366;
-    color: #031407;
-  }
-  
-  .secondaryButton {
-    background: #ffffff;
-    color: #111827;
-  }
-  
-  @media (max-width: 760px) {
-    .shell {
-      padding: 1rem;
-      place-items: stretch;
-    }
-  
-    .card {
-      align-content: start;
-      min-height: calc(100vh - 2rem);
-    }
-  
-    .statusGrid {
-      grid-template-columns: 1fr;
-    }
-  
-    .actions {
-      display: grid;
-    }
-  
-    .primaryButton,
-    .secondaryButton {
-      width: 100%;
-    }
-  }
+}
