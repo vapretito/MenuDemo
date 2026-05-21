@@ -63,11 +63,17 @@ const getBaseUrl = () => {
 const getRootDomain = () => process.env.MENUI_ROOT_DOMAIN ?? "menui.online";
 
 
-const getTrialEndsAt = () => {
+const getTrialEndsAt = (planId: string) => {
   const trialEndsAt = new Date();
 
-  trialEndsAt.setDate(trialEndsAt.getDate() + 7);
+  if (planId === "test_real") {
+    // Para pruebas: el trial termina en 10 minutos.
+    trialEndsAt.setMinutes(trialEndsAt.getMinutes() + 10);
+    return trialEndsAt;
+  }
 
+  // Plan real: 7 días de prueba.
+  trialEndsAt.setDate(trialEndsAt.getDate() + 7);
   return trialEndsAt;
 };
 
@@ -180,8 +186,7 @@ export async function POST(request: Request) {
     const temporaryPassword = generateTemporaryPassword();
     const passwordHash = hashPassword(temporaryPassword);
 
-    const trialEndsAt = getTrialEndsAt();
-
+    const trialEndsAt = getTrialEndsAt(planId);
     const restaurant = await prisma.restaurant.create({
       data: {
         name: restaurantName,
