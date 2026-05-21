@@ -2,7 +2,8 @@ import { NextRequest, NextResponse } from "next/server";
 import {
   RestaurantStatus,
   SubscriptionStatus,
-} from "@/generated/prisma/client";import { prisma } from "@/lib/prisma";
+} from "@/generated/prisma/client";
+import { prisma } from "@/lib/prisma";
 import {
   extractRestaurantReference,
   getMercadoPagoAuthorizedPayment,
@@ -18,6 +19,8 @@ export const runtime = "nodejs";
 type MercadoPagoWebhookBody = {
   action?: string;
   type?: string;
+  topic?: string;
+  live_mode?: boolean;
   data?: {
     id?: string | number;
   };
@@ -55,6 +58,33 @@ function mapMercadoPagoStatusToSubscriptionStatus(
   }
 
   return SubscriptionStatus.PAUSED;
+}
+
+function normalizeNotificationType(input: {
+  type?: string;
+  topic?: string;
+  action?: string;
+}) {
+  const directType = input.type?.trim();
+  const directTopic = input.topic?.trim();
+  const action = input.action?.trim();
+
+  if (directType) return directType;
+  if (directTopic) return directTopic;
+
+  if (action?.startsWith("payment.")) {
+    return "payment";
+  }
+
+  if (action?.startsWith("subscription_preapproval.")) {
+    return "subscription_preapproval";
+  }
+
+  if (action?.startsWith("subscription_authorized_payment.")) {
+    return "subscription_authorized_payment";
+  }
+
+  return "";
 }
 
 async function activateRestaurantByReference(input: {
@@ -107,26 +137,23 @@ async function activateRestaurantByReference(input: {
         input.nextStatus === RestaurantStatus.MANUAL
           ? null
           : restaurant.trialEndsAt,
-          subscription: {
-            update: {
-              status: mapMercadoPagoStatusToSubscriptionStatus(
-                input.mercadopagoStatus
-              ),
-              ...(input.preapprovalId
-                ? {
-                    mercadopagoPreapprovalId: input.preapprovalId,
-                  }
-                : {}),
-              ...(input.payerEmail
-                ? {
-                    payerEmail: input.payerEmail,
-                  }
-                : {}),
-            },
-          },
-    },
-    include: {
-      subscription: true,
+      subscription: {
+        update: {
+          status: mapMercadoPagoStatusToSubscriptionStatus(
+            input.mercadopagoStatus
+          ),
+          ...(input.preapprovalId
+            ? {
+                mercadopagoPreapprovalId: input.preapprovalId,
+              }
+            : {}),
+          ...(input.payerEmail
+            ? {
+                payerEmail: input.payerEmail,
+              }
+            : {}),
+        },
+      },
     },
   });
 
@@ -218,8 +245,7 @@ async function handleAuthorizedPaymentNotification(resourceId: string) {
   }
 
   const reference =
-    authorizedPayment.external_reference ||
-    authorizedPayment.preapproval_id;
+    authorizedPayment.external_reference || authorizedPayment.preapproval_id;
 
   if (!reference) {
     console.warn("[MP Webhook] Authorized payment sin referencia", {
@@ -234,6 +260,13 @@ async function handleAuthorizedPaymentNotification(resourceId: string) {
     nextStatus,
     mercadopagoStatus: paymentStatus,
     preapprovalId: authorizedPayment.preapproval_id ?? null,
+  });
+}
+
+export async function GET() {
+  return NextResponse.json({
+    ok: true,
+    service: "mercadopago-webhook",
   });
 }
 
@@ -255,11 +288,19 @@ export async function POST(request: NextRequest) {
       ""
   ).trim();
 
-  const notificationType = String(
-    searchParams.get("type") ??
-      body.type ??
-      ""
-  ).trim();
+  const notificationType = normalizeNotificationType({
+    type: searchParams.get("type") ?? body.type,
+    topic: searchParams.get("topic") ?? body.topic,
+    action: body.action,
+  });
+
+  console.log("[MP Webhook] Notificación recibida", {
+    resourceId,
+    notificationType,
+    action: body.action,
+    url: request.url,
+    body,
+  });
 
   const isValidSignature = verifyMercadoPagoSignature({
     dataId: resourceId,
@@ -297,6 +338,8 @@ export async function POST(request: NextRequest) {
         notificationType,
         resourceId,
         action: body.action,
+        url: request.url,
+        body,
       });
     }
 
