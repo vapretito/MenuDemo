@@ -23,18 +23,15 @@ type OnboardingResult = {
 const plans = [
   {
     id: "basic",
-    name: "Basic",
-    price: "$19.900 ARS / mes",
+    name: "Menui Basic",
+    price: "$20.000 ARS / mes",
+    description: "Plan comercial base para restaurantes.",
   },
   {
-    id: "pro",
-    name: "Growth",
-    price: "$39.900 ARS / mes",
-  },
-  {
-    id: "premium",
-    name: "Premium",
-    price: "$69.900 ARS / mes",
+    id: "test_real",
+    name: "Menui Test Real",
+    price: "$500 ARS / mes",
+    description: "Plan interno para probar Mercado Pago con dinero real.",
   },
 ];
 
@@ -263,22 +260,29 @@ export function OnboardingForm() {
         </div>
 
         <div className={styles.planGrid}>
-          {plans.map((plan) => (
-            <button
-              key={plan.id}
-              className={
-                form.planId === plan.id
-                  ? styles.planCardActive
-                  : styles.planCard
-              }
-              onClick={() => updateField("planId", plan.id)}
-              type="button"
-            >
-              <strong>{plan.name}</strong>
-              <span>{plan.price}</span>
-            </button>
-          ))}
-        </div>
+  {plans.map((plan) => (
+    <button
+      key={plan.id}
+      className={
+        form.planId === plan.id
+          ? styles.planCardActive
+          : styles.planCard
+      }
+      onClick={() => updateField("planId", plan.id)}
+      type="button"
+    >
+      {plan.id === "test_real" ? (
+        <small>Prueba real</small>
+      ) : (
+        <small>Plan comercial</small>
+      )}
+
+      <strong>{plan.name}</strong>
+      <span>{plan.price}</span>
+      <p>{plan.description}</p>
+    </button>
+  ))}
+</div>
 
         {error ? <p className={styles.errorBox}>{error}</p> : null}
 

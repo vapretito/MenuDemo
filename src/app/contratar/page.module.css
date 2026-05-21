@@ -248,3 +248,20 @@
       padding: 1rem;
     }
   }
+
+  .planCard small,
+.planCardActive small {
+  color: var(--muted, #667085);
+  font-size: 0.72rem;
+  font-weight: 900;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+
+.planCard p,
+.planCardActive p {
+  margin: 0.35rem 0 0;
+  color: var(--muted, #667085);
+  font-size: 0.88rem;
+  line-height: 1.45;
+}
