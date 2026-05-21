@@ -5,6 +5,7 @@ type CreatePreapprovalInput = {
   planName: string;
   payerEmail: string;
   amountArs: number;
+  trialEndsAt?: Date | string | null;
 };
 
 type MercadoPagoPreapprovalResponse = {
@@ -45,7 +46,15 @@ function getBaseUrl() {
 
   return `https://${rawUrl.replace(/\/$/, "")}`;
 }
+function normalizeDateToIso(value?: Date | string | null) {
+  if (!value) return null;
 
+  const date = value instanceof Date ? value : new Date(value);
+
+  if (Number.isNaN(date.getTime())) return null;
+
+  return date.toISOString();
+}
 export async function createMercadoPagoPreapproval(
   input: CreatePreapprovalInput
 ) {
@@ -54,6 +63,7 @@ export async function createMercadoPagoPreapproval(
 
   const notificationUrl = `${baseUrl}/api/mercadopago/webhook`;
   const backUrl = `${baseUrl}/activar/${input.restaurantSlug}`;
+  const startDate = normalizeDateToIso(input.trialEndsAt);
 
   const payload = {
     reason: `Menui - ${input.planName} - ${input.restaurantName}`,
@@ -64,6 +74,11 @@ export async function createMercadoPagoPreapproval(
     auto_recurring: {
       frequency: 1,
       frequency_type: "months",
+      ...(startDate
+        ? {
+            start_date: startDate,
+          }
+        : {}),
       transaction_amount: input.amountArs,
       currency_id: "ARS",
     },
@@ -77,6 +92,7 @@ export async function createMercadoPagoPreapproval(
     planName: input.planName,
     amountArs: input.amountArs,
     payerEmail: input.payerEmail,
+    startDate,
     notificationUrl,
     backUrl,
   });

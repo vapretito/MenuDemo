@@ -62,6 +62,16 @@ const getBaseUrl = () => {
 
 const getRootDomain = () => process.env.MENUI_ROOT_DOMAIN ?? "menui.online";
 
+
+const getTrialEndsAt = () => {
+  const trialEndsAt = new Date();
+
+  trialEndsAt.setDate(trialEndsAt.getDate() + 7);
+
+  return trialEndsAt;
+};
+
+
 export async function GET() {
   return NextResponse.json({
     ok: true,
@@ -170,6 +180,8 @@ export async function POST(request: Request) {
     const temporaryPassword = generateTemporaryPassword();
     const passwordHash = hashPassword(temporaryPassword);
 
+    const trialEndsAt = getTrialEndsAt();
+
     const restaurant = await prisma.restaurant.create({
       data: {
         name: restaurantName,
@@ -179,8 +191,9 @@ export async function POST(request: Request) {
         cuisine: cuisine || "Gastronomía",
         description:
           "Restaurante creado desde el alta automática de Menui. Pendiente de activación por pago.",
-        status: RestaurantStatus.TRIAL,
-        dnsStatus: DnsStatus.CONFIGURED,
+          status: RestaurantStatus.TRIAL,
+          trialEndsAt,
+          dnsStatus: DnsStatus.CONFIGURED,
         billingMode: BillingMode.MERCADO_PAGO_SUBSCRIPTION,
         connectedToDemo: false,
         adminName: ownerName,
@@ -204,6 +217,7 @@ export async function POST(request: Request) {
             cycle: "monthly",
             collectionMethod: CollectionMethod.AUTOMATIC,
             status: SubscriptionStatus.SCHEDULED,
+            renewsOn: trialEndsAt,
           },
         },
         categories: {
@@ -230,6 +244,7 @@ export async function POST(request: Request) {
       planName: selectedPlan.name,
       amountArs: selectedPlan.amountArs,
       payerEmail: ownerEmail,
+      trialEndsAt,
     });
 
     const checkoutUrl = mercadoPagoSubscription.initPoint;
@@ -247,6 +262,7 @@ export async function POST(request: Request) {
         mercadopagoInitPoint: checkoutUrl,
         mercadopagoPayerEmail: ownerEmail,
         status: SubscriptionStatus.SCHEDULED,
+        renewsOn: trialEndsAt,
       },
     });
 
@@ -257,6 +273,7 @@ export async function POST(request: Request) {
         slug: restaurant.slug,
         subdomain: restaurant.subdomain,
         status: restaurant.status,
+        trialEndsAt,
       },
       paymentUrl: `${getBaseUrl()}/activar/${restaurant.slug}`,
       checkoutUrl,
