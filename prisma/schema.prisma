@@ -264,6 +264,7 @@ model Subscription {
   updatedAt DateTime @updatedAt
 
   payments Payment[]
+  payerEmail 
 
   @@index([status])
   @@index([planId])

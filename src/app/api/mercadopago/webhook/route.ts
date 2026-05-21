@@ -1,298 +1,318 @@
-import { createHmac, timingSafeEqual } from "crypto";
-import { NextResponse } from "next/server";
-import { getMercadoPagoPreapproval } from "@/lib/mercadopago";
+import { NextRequest, NextResponse } from "next/server";
+import {
+  RestaurantStatus,
+  SubscriptionStatus,
+} from "@/generated/prisma/client";import { prisma } from "@/lib/prisma";
+import {
+  extractRestaurantReference,
+  getMercadoPagoAuthorizedPayment,
+  getMercadoPagoPayment,
+  getMercadoPagoPreapproval,
+  mapPaymentStatusToRestaurantStatus,
+  mapPreapprovalStatusToRestaurantStatus,
+  verifyMercadoPagoSignature,
+} from "@/lib/mercadopago-webhook";
 
-export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
 
 type MercadoPagoWebhookBody = {
   action?: string;
-  api_version?: string;
+  type?: string;
   data?: {
     id?: string | number;
   };
-  date_created?: string;
-  id?: string | number;
-  live_mode?: boolean;
-  type?: string;
-  user_id?: string | number;
 };
 
-type ParsedSignature = {
-  ts: string | null;
-  v1: string | null;
-};
+function mapMercadoPagoStatusToSubscriptionStatus(
+  status?: string | null
+): SubscriptionStatus {
+  const normalized = status?.toLowerCase();
 
-function parseMercadoPagoSignature(signatureHeader: string | null): ParsedSignature {
-  if (!signatureHeader) {
-    return {
-      ts: null,
-      v1: null,
-    };
+  if (
+    normalized === "authorized" ||
+    normalized === "active" ||
+    normalized === "approved" ||
+    normalized === "accredited"
+  ) {
+    return SubscriptionStatus.ACTIVE;
   }
 
-  return signatureHeader.split(",").reduce<ParsedSignature>(
-    (acc, part) => {
-      const [rawKey, ...rawValueParts] = part.split("=");
-      const key = rawKey?.trim();
-      const value = rawValueParts.join("=").trim();
+  if (normalized === "pending") {
+    return SubscriptionStatus.PENDING;
+  }
 
-      if (key === "ts") {
-        acc.ts = value;
-      }
+  if (normalized === "in_process") {
+    return SubscriptionStatus.SCHEDULED;
+  }
 
-      if (key === "v1") {
-        acc.v1 = value;
-      }
+  if (
+    normalized === "paused" ||
+    normalized === "rejected" ||
+    normalized === "cancelled" ||
+    normalized === "canceled"
+  ) {
+    return SubscriptionStatus.PAUSED;
+  }
 
-      return acc;
+  return SubscriptionStatus.PAUSED;
+}
+
+async function activateRestaurantByReference(input: {
+  reference: string;
+  nextStatus: RestaurantStatus;
+  mercadopagoStatus?: string | null;
+  payerEmail?: string | null;
+  preapprovalId?: string | null;
+}) {
+  const restaurant = await prisma.restaurant.findFirst({
+    where: {
+      OR: [
+        {
+          id: input.reference,
+        },
+        {
+          slug: input.reference,
+        },
+        {
+          subscription: {
+            mercadopagoPreapprovalId: input.reference,
+          },
+        },
+      ],
     },
-    {
-      ts: null,
-      v1: null,
-    }
-  );
-}
+    include: {
+      subscription: true,
+    },
+  });
 
-function safeCompareHex(a: string, b: string) {
-  const isHex = /^[a-f0-9]+$/i;
-
-  if (!isHex.test(a) || !isHex.test(b)) {
-    return false;
-  }
-
-  const aBuffer = Buffer.from(a, "hex");
-  const bBuffer = Buffer.from(b, "hex");
-
-  if (aBuffer.length !== bBuffer.length) {
-    return false;
-  }
-
-  return timingSafeEqual(aBuffer, bBuffer);
-}
-
-function getSignatureDataId(url: URL) {
-  const dataId = url.searchParams.get("data.id") ?? url.searchParams.get("id");
-
-  if (!dataId) {
+  if (!restaurant) {
+    console.warn("[MP Webhook] Restaurante no encontrado", input);
     return null;
   }
 
-  return dataId.toLowerCase();
-}
+  const graceUntil =
+    input.nextStatus === RestaurantStatus.PAST_DUE
+      ? new Date(Date.now() + 7 * 24 * 60 * 60 * 1000)
+      : null;
 
-function buildSignatureManifest(params: {
-  dataId: string | null;
-  requestId: string | null;
-  ts: string | null;
-}) {
-  let manifest = "";
-
-  if (params.dataId) {
-    manifest += `id:${params.dataId};`;
-  }
-
-  if (params.requestId) {
-    manifest += `request-id:${params.requestId};`;
-  }
-
-  if (params.ts) {
-    manifest += `ts:${params.ts};`;
-  }
-
-  return manifest;
-}
-
-function validateMercadoPagoSignature(request: Request, url: URL) {
-  const secret = process.env.MERCADOPAGO_WEBHOOK_SECRET?.trim();
-
-  if (!secret) {
-    return {
-      valid: true,
-      skipped: true,
-      reason: "MERCADOPAGO_WEBHOOK_SECRET no configurado. Validación omitida en desarrollo.",
-    };
-  }
-
-  const signatureHeader = request.headers.get("x-signature");
-  const requestId = request.headers.get("x-request-id");
-  const { ts, v1 } = parseMercadoPagoSignature(signatureHeader);
-
-  if (!signatureHeader || !ts || !v1) {
-    return {
-      valid: false,
-      skipped: false,
-      reason: "Faltan headers de firma: x-signature, ts o v1.",
-    };
-  }
-
-  const dataId = getSignatureDataId(url);
-
-  const manifest = buildSignatureManifest({
-    dataId,
-    requestId,
-    ts,
-  });
-
-  const expectedSignature = createHmac("sha256", secret)
-    .update(manifest)
-    .digest("hex");
-
-  const valid = safeCompareHex(expectedSignature, v1);
-
-  return {
-    valid,
-    skipped: false,
-    reason: valid ? "Firma válida." : "Firma inválida.",
-    meta: {
-      dataId,
-      requestId,
-      ts,
-      manifest,
+  const updatedRestaurant = await prisma.restaurant.update({
+    where: {
+      id: restaurant.id,
     },
-  };
+    data: {
+      status: input.nextStatus,
+      graceUntil,
+      trialEndsAt:
+        input.nextStatus === RestaurantStatus.ACTIVE ||
+        input.nextStatus === RestaurantStatus.MANUAL
+          ? null
+          : restaurant.trialEndsAt,
+          subscription: {
+            update: {
+              status: mapMercadoPagoStatusToSubscriptionStatus(
+                input.mercadopagoStatus
+              ),
+              ...(input.preapprovalId
+                ? {
+                    mercadopagoPreapprovalId: input.preapprovalId,
+                  }
+                : {}),
+              ...(input.payerEmail
+                ? {
+                    payerEmail: input.payerEmail,
+                  }
+                : {}),
+            },
+          },
+    },
+    include: {
+      subscription: true,
+    },
+  });
+
+  console.log("[MP Webhook] Restaurante actualizado", {
+    restaurantId: updatedRestaurant.id,
+    slug: updatedRestaurant.slug,
+    status: updatedRestaurant.status,
+  });
+
+  return updatedRestaurant;
 }
 
-function extractEventType(body: MercadoPagoWebhookBody, url: URL) {
-  return url.searchParams.get("type") ?? body.type ?? "unknown";
-}
+async function handlePaymentNotification(resourceId: string) {
+  const payment = await getMercadoPagoPayment(resourceId);
 
-function extractResourceId(body: MercadoPagoWebhookBody, url: URL) {
-  return (
-    url.searchParams.get("data.id") ??
-    url.searchParams.get("id") ??
-    body.data?.id ??
-    body.id ??
-    null
-  );
-}
+  const nextStatus = mapPaymentStatusToRestaurantStatus(payment.status);
 
-function isMercadoPagoSimulationId(resourceId: unknown) {
-  return String(resourceId) === "123456";
-}
+  if (!nextStatus) {
+    console.log("[MP Webhook] Payment status ignorado", {
+      id: payment.id,
+      status: payment.status,
+    });
 
-export async function GET() {
-  return NextResponse.json({
-    ok: true,
-    message: "Menui Mercado Pago webhook activo.",
+    return;
+  }
+
+  const reference = extractRestaurantReference({
+    externalReference: payment.external_reference,
+    metadata: payment.metadata,
+  });
+
+  if (!reference) {
+    console.warn("[MP Webhook] Payment sin external_reference", {
+      paymentId: payment.id,
+      status: payment.status,
+    });
+
+    return;
+  }
+
+  await activateRestaurantByReference({
+    reference,
+    nextStatus,
+    mercadopagoStatus: payment.status,
+    payerEmail: payment.payer?.email ?? null,
   });
 }
 
-export async function POST(request: Request) {
-  const url = new URL(request.url);
-  const body = (await request.json().catch(() => ({}))) as MercadoPagoWebhookBody;
+async function handlePreapprovalNotification(resourceId: string) {
+  const preapproval = await getMercadoPagoPreapproval(resourceId);
 
-  const signatureValidation = validateMercadoPagoSignature(request, url);
+  const nextStatus = mapPreapprovalStatusToRestaurantStatus(preapproval.status);
 
-  if (!signatureValidation.valid) {
-    console.warn("[Mercado Pago Webhook] firma rechazada", {
-      reason: signatureValidation.reason,
+  if (!nextStatus) {
+    console.log("[MP Webhook] Preapproval status ignorado", {
+      id: preapproval.id,
+      status: preapproval.status,
     });
+
+    return;
+  }
+
+  const reference = preapproval.external_reference || preapproval.id;
+
+  await activateRestaurantByReference({
+    reference,
+    nextStatus,
+    mercadopagoStatus: preapproval.status,
+    payerEmail: preapproval.payer_email ?? null,
+    preapprovalId: preapproval.id,
+  });
+}
+
+async function handleAuthorizedPaymentNotification(resourceId: string) {
+  const authorizedPayment = await getMercadoPagoAuthorizedPayment(resourceId);
+
+  const paymentStatus =
+    authorizedPayment.payment?.status ?? authorizedPayment.status;
+
+  const nextStatus = mapPaymentStatusToRestaurantStatus(paymentStatus);
+
+  if (!nextStatus) {
+    console.log("[MP Webhook] Authorized payment status ignorado", {
+      id: authorizedPayment.id,
+      status: paymentStatus,
+    });
+
+    return;
+  }
+
+  const reference =
+    authorizedPayment.external_reference ||
+    authorizedPayment.preapproval_id;
+
+  if (!reference) {
+    console.warn("[MP Webhook] Authorized payment sin referencia", {
+      id: authorizedPayment.id,
+    });
+
+    return;
+  }
+
+  await activateRestaurantByReference({
+    reference,
+    nextStatus,
+    mercadopagoStatus: paymentStatus,
+    preapprovalId: authorizedPayment.preapproval_id ?? null,
+  });
+}
+
+export async function POST(request: NextRequest) {
+  let body: MercadoPagoWebhookBody = {};
+
+  try {
+    body = (await request.json()) as MercadoPagoWebhookBody;
+  } catch {
+    body = {};
+  }
+
+  const searchParams = request.nextUrl.searchParams;
+
+  const resourceId = String(
+    searchParams.get("data.id") ??
+      searchParams.get("id") ??
+      body.data?.id ??
+      ""
+  ).trim();
+
+  const notificationType = String(
+    searchParams.get("type") ??
+      body.type ??
+      ""
+  ).trim();
+
+  const isValidSignature = verifyMercadoPagoSignature({
+    dataId: resourceId,
+    xSignature: request.headers.get("x-signature"),
+    xRequestId: request.headers.get("x-request-id"),
+  });
+
+  if (!isValidSignature) {
+    console.warn("[MP Webhook] Firma inválida", {
+      resourceId,
+      notificationType,
+    });
+
+    return NextResponse.json({ ok: false }, { status: 401 });
+  }
+
+  if (!resourceId) {
+    console.warn("[MP Webhook] Sin resourceId", {
+      body,
+      url: request.url,
+    });
+
+    return NextResponse.json({ ok: true, ignored: true });
+  }
+
+  try {
+    if (notificationType === "payment") {
+      await handlePaymentNotification(resourceId);
+    } else if (notificationType === "subscription_preapproval") {
+      await handlePreapprovalNotification(resourceId);
+    } else if (notificationType === "subscription_authorized_payment") {
+      await handleAuthorizedPaymentNotification(resourceId);
+    } else {
+      console.log("[MP Webhook] Tipo ignorado", {
+        notificationType,
+        resourceId,
+        action: body.action,
+      });
+    }
+
+    return NextResponse.json({ ok: true });
+  } catch (error) {
+    console.error("[MP Webhook Error]", error);
 
     return NextResponse.json(
       {
-        received: false,
-        error: "Firma inválida.",
+        ok: false,
+        error:
+          error instanceof Error
+            ? error.message
+            : "No se pudo procesar webhook.",
       },
-      { status: 401 }
+      { status: 500 }
     );
-  }
-
-  if (signatureValidation.skipped) {
-    console.warn("[Mercado Pago Webhook] validación omitida", {
-      reason: signatureValidation.reason,
-    });
-  } else {
-    console.log("[Mercado Pago Webhook] firma validada", signatureValidation.meta);
-  }
-
-  const eventType = extractEventType(body, url);
-  const resourceId = extractResourceId(body, url);
-
-  console.log("[Mercado Pago Webhook] recibido", {
-    type: eventType,
-    bodyType: body.type,
-    action: body.action,
-    resourceId,
-    liveMode: body.live_mode,
-    userId: body.user_id,
-  });
-
-  try {
-    if (isMercadoPagoSimulationId(resourceId)) {
-      console.log("[Mercado Pago Webhook] simulación detectada", {
-        resourceId,
-        note: "Mercado Pago envió un ID fake. No se consulta la API.",
-      });
-
-      return NextResponse.json({
-        received: true,
-        simulated: true,
-      });
-    }
-
-    if (eventType === "subscription_preapproval" && resourceId) {
-      const subscription = await getMercadoPagoPreapproval(String(resourceId));
-
-      console.log("[Mercado Pago Webhook] suscripción consultada", {
-        id: subscription.id,
-        status: subscription.status,
-        externalReference: subscription.external_reference,
-        payerEmail: subscription.payer_email,
-        nextPaymentDate: subscription.next_payment_date,
-        reason: subscription.reason,
-      });
-
-      return NextResponse.json({
-        received: true,
-        type: eventType,
-        subscriptionStatus: subscription.status,
-      });
-    }
-
-    if (eventType === "subscription_authorized_payment") {
-      console.log("[Mercado Pago Webhook] pago autorizado de suscripción", {
-        resourceId,
-        note: "Después lo vamos a persistir como Payment cuando conectemos base real.",
-      });
-
-      return NextResponse.json({
-        received: true,
-        type: eventType,
-      });
-    }
-
-    if (eventType === "payment") {
-      console.log("[Mercado Pago Webhook] pago recibido", {
-        paymentId: resourceId,
-        note: "Después consultamos el payment y lo asociamos al restaurante.",
-      });
-
-      return NextResponse.json({
-        received: true,
-        type: eventType,
-      });
-    }
-
-    console.log("[Mercado Pago Webhook] evento no manejado específicamente", {
-      eventType,
-      resourceId,
-    });
-
-    return NextResponse.json({
-      received: true,
-      type: eventType,
-    });
-  } catch (error) {
-    console.error("[Mercado Pago Webhook Error no bloqueante]", {
-      eventType,
-      resourceId,
-      error: error instanceof Error ? error.message : error,
-    });
-
-    return NextResponse.json({
-      received: true,
-      warning: "Webhook recibido, pero no se pudo procesar completamente.",
-    });
   }
 }

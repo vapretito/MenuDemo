@@ -20,15 +20,11 @@ const planCatalog: Record<
 > = {
   basic: {
     name: "Menui Basic",
-    amountArs: 19900,
+    amountArs: 20000,
   },
-  pro: {
-    name: "Menui Growth",
-    amountArs: 39900,
-  },
-  premium: {
-    name: "Menui Premium",
-    amountArs: 69900,
+  test_real: {
+    name: "Menui Test Real",
+    amountArs: 500,
   },
 };
 
@@ -89,8 +85,16 @@ export async function POST(request: Request) {
 
     const wantedSlug = String(body.slug ?? "").trim();
     const slug = slugify(wantedSlug || restaurantName);
-    const selectedPlan = planCatalog[planId] ?? planCatalog.basic;
-    const subdomain = `${slug}.${getRootDomain()}`.toLowerCase();
+    const selectedPlan = planCatalog[planId];
+
+    if (!selectedPlan) {
+      return NextResponse.json(
+        {
+          error: "Plan inválido. Elegí Menui Basic o Menui Test Real.",
+        },
+        { status: 400 }
+      );
+    }    const subdomain = `${slug}.${getRootDomain()}`.toLowerCase();
 
     if (!restaurantName || !ownerName || !ownerEmail || !whatsapp || !city || !slug) {
       return NextResponse.json(
