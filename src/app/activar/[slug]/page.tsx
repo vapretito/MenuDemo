@@ -6,6 +6,11 @@ type ActivationPageProps = {
   params: Promise<{
     slug: string;
   }>;
+  searchParams?: Promise<{
+    checked?: string;
+    sync_error?: string;
+    reactivate_error?: string;
+  }>;
 };
 
 function formatDateTime(date?: Date | string | null) {
@@ -49,8 +54,7 @@ function getStatusCopy(status: string, trialEndsAt?: Date | null) {
     return {
       badge: "Activación manual",
       title: "Tu restaurante fue activado manualmente.",
-      description:
-        "El acceso está habilitado por gestión interna de Menui.",
+      description: "El acceso está habilitado por gestión interna de Menui.",
       tone: "success",
     };
   }
@@ -90,7 +94,7 @@ function getStatusCopy(status: string, trialEndsAt?: Date | null) {
       badge: "Suspendido",
       title: "El acceso está pausado.",
       description:
-        "El restaurante está suspendido temporalmente. Contactá a soporte para revisar la situación.",
+        "El restaurante está suspendido temporalmente. Regularizá la membresía para volver a activar el panel y el menú.",
       tone: "danger",
     };
   }
@@ -114,8 +118,12 @@ function getStatusCopy(status: string, trialEndsAt?: Date | null) {
   };
 }
 
-export default async function ActivationPage({ params }: ActivationPageProps) {
+export default async function ActivationPage({
+  params,
+  searchParams,
+}: ActivationPageProps) {
   const { slug } = await params;
+  const query = searchParams ? await searchParams : {};
 
   const restaurant = await prisma.restaurant.findUnique({
     where: {
@@ -142,6 +150,16 @@ export default async function ActivationPage({ params }: ActivationPageProps) {
         `Hola, necesito ayuda para activar el restaurante ${restaurant.name} en Menui.`
       )}`
     : null;
+
+  const trialExpired = restaurant.trialEndsAt
+    ? restaurant.trialEndsAt.getTime() <= Date.now()
+    : false;
+
+  const shouldShowActivationActions =
+    restaurant.status === "SUSPENDED" ||
+    restaurant.status === "CANCELLED" ||
+    restaurant.status === "PAST_DUE" ||
+    (restaurant.status === "TRIAL" && trialExpired);
 
   return (
     <main className={styles.shell}>
@@ -199,6 +217,33 @@ export default async function ActivationPage({ params }: ActivationPageProps) {
           </article>
         </section>
 
+        {query.checked ? (
+          <section className={styles.noteBox}>
+            <strong>Verificación realizada</strong>
+            <p>
+              Revisamos el estado de la membresía en Mercado Pago. Si el pago o
+              la autorización ya se procesaron, el restaurante se activará.
+            </p>
+          </section>
+        ) : null}
+
+        {query.sync_error ? (
+          <section className={styles.noteBox}>
+            <strong>No pudimos verificar el pago</strong>
+            <p>
+              Intentá nuevamente en unos minutos o contactá soporte para revisar
+              la suscripción.
+            </p>
+          </section>
+        ) : null}
+
+        {query.reactivate_error ? (
+          <section className={styles.noteBox}>
+            <strong>No pudimos iniciar la activación</strong>
+            <p>{query.reactivate_error}</p>
+          </section>
+        ) : null}
+
         <section className={styles.noteBox}>
           <strong>Importante</strong>
           <p>
@@ -209,6 +254,24 @@ export default async function ActivationPage({ params }: ActivationPageProps) {
         </section>
 
         <div className={styles.actions}>
+          {shouldShowActivationActions ? (
+            <a
+              className={styles.primaryButton}
+              href={`/api/mercadopago/reactivate/${restaurant.slug}`}
+            >
+              Activar membresía
+            </a>
+          ) : null}
+
+          {shouldShowActivationActions ? (
+            <a
+              className={styles.secondaryButton}
+              href={`/api/mercadopago/sync-restaurant/${restaurant.slug}`}
+            >
+              Verificar pago
+            </a>
+          ) : null}
+
           <a className={styles.primaryButton} href={publicUrl} target="_blank">
             Ver menú público
           </a>
@@ -229,8 +292,8 @@ export default async function ActivationPage({ params }: ActivationPageProps) {
         </div>
 
         <p className={styles.footerNote}>
-          La integración de pago y sincronización automática con Mercado Pago se
-          terminará en una etapa posterior.
+          Si ya pagaste o autorizaste la suscripción, podés usar
+          &quot;Verificar pago&quot; para actualizar el estado del restaurante.
         </p>
       </section>
     </main>

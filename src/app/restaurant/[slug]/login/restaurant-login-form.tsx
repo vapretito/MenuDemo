@@ -81,7 +81,9 @@ export function RestaurantLoginForm({
           </p>
         </div>
 
-        {restaurantStatus !== "ACTIVE" && restaurantSlug !== "demo" ? (
+        {restaurantStatus !== "ACTIVE" &&
+        restaurantStatus !== "TRIAL" &&
+        restaurantSlug !== "demo" ? (
           <div className={styles.demoBox}>
             <span>Restaurante pendiente</span>
             <p>

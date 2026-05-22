@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { UserRole } from "@/generated/prisma/client";
 import { verifyPassword } from "@/lib/password";
 import { prisma } from "@/lib/prisma";
+import { canRestaurantAccessPanel } from "@/lib/restaurant-access";
 import {
   createRestaurantSessionToken,
   setRestaurantSessionCookie,
@@ -32,6 +33,8 @@ export async function POST(request: Request) {
         subdomain: true,
         status: true,
         name: true,
+        trialEndsAt: true,
+        graceUntil: true,
       },
     });
 
@@ -42,11 +45,12 @@ export async function POST(request: Request) {
       );
     }
 
-    if (restaurant.status !== "ACTIVE" && restaurant.slug !== "demo") {
+    if (!canRestaurantAccessPanel(restaurant)) {
       return NextResponse.json(
         {
           error:
-            "El restaurante todavía no está activo. Completá el pago para ingresar.",
+            "El restaurante no tiene acceso habilitado. Regularizá la membresía para ingresar.",
+          activationUrl: `https://${restaurant.subdomain}/activar/${restaurant.slug}`,
         },
         { status: 403 }
       );
@@ -68,13 +72,13 @@ export async function POST(request: Request) {
     });
 
     if (!user || !user.passwordHash) {
-        return NextResponse.json(
-          { error: "Email o contraseña incorrectos." },
-          { status: 401 }
-        );
-      }
-      
-      const validPassword = verifyPassword(password, user.passwordHash);
+      return NextResponse.json(
+        { error: "Email o contraseña incorrectos." },
+        { status: 401 }
+      );
+    }
+
+    const validPassword = verifyPassword(password, user.passwordHash);
 
     if (!validPassword) {
       return NextResponse.json(
