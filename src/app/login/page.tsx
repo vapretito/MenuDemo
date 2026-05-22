@@ -1,13 +1,12 @@
 import { redirect } from "next/navigation";
-import { RestaurantAdminPanel } from "@/components/restaurant-admin-panel";
 import { getRestaurantSlugFromRequestHeaders } from "@/lib/subdomain-routing";
 
-export default async function AdminPage() {
+export default async function LoginPage() {
   const restaurantSlug = await getRestaurantSlugFromRequestHeaders();
 
   if (restaurantSlug) {
-    redirect(`/restaurant/${restaurantSlug}/admin`);
+    redirect(`/restaurant/${restaurantSlug}/login`);
   }
 
-  return <RestaurantAdminPanel />;
+  redirect("/backoffice/login");
 }

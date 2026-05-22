@@ -1,7 +1,9 @@
 import Link from "next/link";
+import { redirect } from "next/navigation";
 import styles from "./page.module.css";
 import { platformSnapshot } from "@/data/platform";
 import type { CSSProperties } from "react";
+import { getRestaurantSlugFromRequestHeaders } from "@/lib/subdomain-routing";
 const money = new Intl.NumberFormat("es-AR", {
   style: "currency",
   currency: "ARS",
@@ -55,7 +57,13 @@ const steps = [
   },
 ];
 
-export default function Home() {
+export default async function Home() {
+  const restaurantSlug = await getRestaurantSlugFromRequestHeaders();
+
+  if (restaurantSlug) {
+    redirect(`/menu/${restaurantSlug}`);
+  }
+
   const featuredRestaurant = platformSnapshot.restaurants[0];
   const monthlyPrice = 20000;
   const yearlyEstimate = monthlyPrice * 12;

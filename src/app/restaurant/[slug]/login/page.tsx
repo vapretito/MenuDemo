@@ -1,5 +1,6 @@
-import { notFound } from "next/navigation";
+import { notFound, redirect } from "next/navigation";
 import { prisma } from "@/lib/prisma";
+import { canRestaurantAccessPanel } from "@/lib/restaurant-access";
 import { RestaurantLoginForm } from "./restaurant-login-form";
 import styles from "./page.module.css";
 
@@ -23,11 +24,17 @@ export default async function RestaurantLoginPage({
       slug: true,
       subdomain: true,
       status: true,
+      trialEndsAt: true,
+      graceUntil: true,
     },
   });
 
   if (!restaurant) {
     notFound();
+  }
+
+  if (!canRestaurantAccessPanel(restaurant)) {
+    redirect(`/activar/${restaurant.slug}`);
   }
 
   return (

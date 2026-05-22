@@ -1,7 +1,8 @@
-import { notFound } from "next/navigation";
+import { notFound, redirect } from "next/navigation";
 import { MobileMenu } from "@/components/mobile-menu";
 import { prisma } from "@/lib/prisma";
 import { mapRestaurantToRecord } from "@/lib/restaurant-mapper";
+import { canRestaurantAccessPanel } from "@/lib/restaurant-access";
 
 type MenuPageProps = {
   params: Promise<{ slug: string }>;
@@ -41,6 +42,10 @@ export default async function MenuPage({ params }: MenuPageProps) {
 
   if (!restaurant) {
     notFound();
+  }
+
+  if (!canRestaurantAccessPanel(restaurant)) {
+    redirect(`/activar/${restaurant.slug}`);
   }
 
   const record = mapRestaurantToRecord(restaurant);

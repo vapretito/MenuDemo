@@ -29,6 +29,7 @@ export async function POST(request: Request) {
       select: {
         id: true,
         slug: true,
+        subdomain: true,
         status: true,
         name: true,
       },
@@ -93,7 +94,7 @@ export async function POST(request: Request) {
 
     return NextResponse.json({
       ok: true,
-      redirectTo: "/admin",
+      redirectTo: `https://${restaurant.subdomain}/admin`,
     });
   } catch (error) {
     console.error("[Restaurant Login Error]", error);
