@@ -66,14 +66,6 @@ async function createReactivationCheckout(slug: string) {
     throw new Error("Este restaurante no tiene una suscripción configurada.");
   }
 
-  if (currentSubscription.mercadopagoInitPoint) {
-    return {
-      restaurant,
-      alreadyActive: false,
-      checkoutUrl: currentSubscription.mercadopagoInitPoint,
-    };
-  }
-
   const fallbackPlan =
     fallbackPlans[currentSubscription.planId] ?? fallbackPlans.basic;
 
@@ -97,6 +89,7 @@ async function createReactivationCheckout(slug: string) {
     planName,
     amountArs,
     payerEmail,
+    // Reactivación sin días gratis: el cobro debe iniciar de inmediato.
     trialEndsAt: null,
   });
 
