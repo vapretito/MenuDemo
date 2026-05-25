@@ -3,7 +3,6 @@ import { MobileMenu } from "@/components/mobile-menu";
 import { prisma } from "@/lib/prisma";
 import { mapRestaurantToRecord } from "@/lib/restaurant-mapper";
 import { canRestaurantAccessPanel } from "@/lib/restaurant-access";
-import { getRestaurantSlugFromRequestHeaders } from "@/lib/subdomain-routing";
 
 type MenuPageProps = {
   params: Promise<{ slug: string }>;
@@ -21,11 +20,6 @@ const getMarketingUrl = () => {
 
 export default async function MenuPage({ params }: MenuPageProps) {
   const { slug } = await params;
-  const requestRestaurantSlug = await getRestaurantSlugFromRequestHeaders();
-
-  if (requestRestaurantSlug === slug) {
-    redirect("/");
-  }
 
   const restaurant = await prisma.restaurant.findUnique({
     where: {
