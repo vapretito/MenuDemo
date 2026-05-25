@@ -150,6 +150,7 @@ export function RestaurantAdminPanel({
   const [productSuccess, setProductSuccess] = useState<string | null>(null);
 
   const [isProductCreateOpen, setIsProductCreateOpen] = useState(false);
+  const [activeProductId, setActiveProductId] = useState<string | null>(null);
 
 const [productDraft, setProductDraft] = useState({
   categoryId: restaurant.categories[0]?.id ?? "",
@@ -546,6 +547,21 @@ const [cashSuccess, setCashSuccess] = useState<string | null>(null);
     [restaurant.categories, restaurant.items]
   );
 
+  const activeProduct =
+    restaurant.items.find((item) => item.id === activeProductId) ?? null;
+
+  const activeProductCategory = activeProduct
+    ? restaurant.categories.find((category) => category.id === activeProduct.categoryId) ?? null
+    : null;
+
+  const activeProductCategoryItems = activeProductCategory
+    ? restaurant.items.filter((item) => item.categoryId === activeProductCategory.id)
+    : [];
+
+  const activeProductIndex = activeProduct
+    ? activeProductCategoryItems.findIndex((item) => item.id === activeProduct.id)
+    : -1;
+
   const publicUrl = `https://${restaurant.subdomain}`;
   const adminWhatsappUrl = `https://wa.me/${restaurant.customerWhatsapp}`;
   const activeMeta = sections.find((section) => section.id === activeSection) ?? sections[0];
@@ -677,17 +693,19 @@ const [cashSuccess, setCashSuccess] = useState<string | null>(null);
       throw new Error(data.error ?? "No se pudo crear el producto.");
     }
 
-    setRestaurant((current) => ({
-      ...current,
-      items: [
-        ...current.items,
-        data.product as RestaurantRecord["items"][number],
-      ],
-    }));
+     setRestaurant((current) => ({
+       ...current,
+       items: [
+         ...current.items,
+         data.product as RestaurantRecord["items"][number],
+       ],
+     }));
 
-    setProductDraft({
-      categoryId: finalCategoryId,
-      name: "",
+     setActiveProductId(data.product.id);
+
+     setProductDraft({
+       categoryId: finalCategoryId,
+       name: "",
       description: "",
       price: 0,
       image: "",
@@ -766,7 +784,7 @@ const [cashSuccess, setCashSuccess] = useState<string | null>(null);
     setProductSuccess(null);
     setProductSavingId(productId);
   
-    try {
+   try {
       const response = await fetch(`/api/restaurant-admin/products/${productId}`, {
         method: "DELETE",
       });
@@ -792,7 +810,9 @@ const [cashSuccess, setCashSuccess] = useState<string | null>(null);
         ...current,
         items: current.items.filter((item) => item.id !== productId),
       }));
-  
+
+      setActiveProductId((current) => (current === productId ? null : current));
+
       setProductSuccess("Producto eliminado correctamente.");
     } catch (error) {
       setProductError(
@@ -1547,9 +1567,9 @@ const [cashSuccess, setCashSuccess] = useState<string | null>(null);
         </header>
 
         {activeSection === "overview" ? (
-          <div className={styles.stack}>
+          <div className={`${styles.stack} ${styles.overviewStack}`}>
             <section className={styles.heroSummary}>
-              <div>
+              <div className={styles.heroSummaryPrimary}>
                 <span className={styles.eyebrow}>Resumen del local</span>
                 <h3>{restaurant.name}</h3>
                 <p>{restaurant.description}</p>
@@ -1565,7 +1585,7 @@ const [cashSuccess, setCashSuccess] = useState<string | null>(null);
                 </div>
               </div>
             </section>
-            <section className={styles.panel}>
+            <section className={`${styles.panel} ${styles.overviewPanelPrimary}`}>
   <div className={styles.panelHeader}>
     <div>
       <span className={styles.eyebrow}>Caja diaria</span>
@@ -1598,7 +1618,7 @@ const [cashSuccess, setCashSuccess] = useState<string | null>(null);
     <div className={styles.successBox}>{cashSuccess}</div>
   ) : null}
 
-  <section className={styles.metricGrid}>
+  <section className={`${styles.metricGrid} ${styles.metricGridHighlight}`}>
     <article className={styles.metricCard}>
       <strong>{cashSummary.totalEvents}</strong>
       <span>pedidos enviados hoy</span>
@@ -1620,8 +1640,8 @@ const [cashSuccess, setCashSuccess] = useState<string | null>(null);
     </article>
   </section>
 
-  <div className={styles.stack}>
-    <div className={styles.publishCard}>
+  <div className={styles.overviewInfoGrid}>
+    <div className={`${styles.publishCard} ${styles.overviewInfoCard}`}>
       <span>Fecha de caja</span>
       <strong>{cashSummary.businessDate || "Hoy"}</strong>
       <p>
@@ -1631,7 +1651,7 @@ const [cashSuccess, setCashSuccess] = useState<string | null>(null);
       </p>
     </div>
 
-    <div className={styles.publishCard}>
+    <div className={`${styles.publishCard} ${styles.overviewInfoCard}`}>
       <span>Métodos de pago estimados</span>
 
       {Object.values(cashSummary.paymentBreakdown).length ? (
@@ -1647,7 +1667,7 @@ const [cashSuccess, setCashSuccess] = useState<string | null>(null);
       )}
     </div>
 
-    <label className={styles.full}>
+    <label className={`${styles.full} ${styles.overviewNotesCard}`}>
       <span>Notas del cierre</span>
       <textarea
         placeholder="Ej: Día con mucha demanda, faltaron productos, varios pedidos fueron por transferencia..."
@@ -1658,7 +1678,7 @@ const [cashSuccess, setCashSuccess] = useState<string | null>(null);
   </div>
 </section>
 
-<section className={styles.panel}>
+<section className={`${styles.panel} ${styles.overviewPanelSecondary}`}>
   <div className={styles.panelHeader}>
     <div>
       <span className={styles.eyebrow}>Historial</span>
@@ -1666,10 +1686,10 @@ const [cashSuccess, setCashSuccess] = useState<string | null>(null);
     </div>
   </div>
 
-  <div className={styles.stack}>
+  <div className={styles.overviewFeed}>
     {cashSummary.lastClosures.length ? (
       cashSummary.lastClosures.map((closure) => (
-        <article className={styles.publishCard} key={closure.id}>
+        <article className={`${styles.publishCard} ${styles.overviewFeedCard}`} key={closure.id}>
           <span>{closure.businessDate}</span>
           <strong>{money.format(closure.totalEstimatedArs)}</strong>
           <p>
@@ -1685,7 +1705,7 @@ const [cashSuccess, setCashSuccess] = useState<string | null>(null);
   </div>
 </section>
 
-            <section className={styles.metricGrid}>
+            <section className={`${styles.metricGrid} ${styles.metricGridSummary}`}>
               <article className={styles.metricCard}>
                 <strong>{restaurant.items.length}</strong>
                 <span>productos cargados</span>
@@ -1718,7 +1738,7 @@ const [cashSuccess, setCashSuccess] = useState<string | null>(null);
 </article>
             </section>
 
-            <section className={styles.panel}>
+            <section className={`${styles.panel} ${styles.overviewPanelSecondary}`}>
   <div className={styles.panelHeader}>
     <div>
       <span className={styles.eyebrow}>Pedidos aproximados</span>
@@ -1730,10 +1750,10 @@ const [cashSuccess, setCashSuccess] = useState<string | null>(null);
     </div>
   </div>
 
-  <div className={styles.stack}>
+  <div className={styles.overviewFeed}>
     {cartSummary.lastEvents.length ? (
       cartSummary.lastEvents.map((event) => (
-        <article className={styles.publishCard} key={event.id}>
+        <article className={`${styles.publishCard} ${styles.overviewFeedCard}`} key={event.id}>
           <span>{new Date(event.createdAt).toLocaleString("es-AR")}</span>
           <strong>{money.format(event.totalArs)}</strong>
           <p>
@@ -1747,7 +1767,7 @@ const [cashSuccess, setCashSuccess] = useState<string | null>(null);
   </div>
 </section>
 
-            <section className={styles.panel}>
+            <section className={`${styles.panel} ${styles.overviewPanelMuted}`}>
               <div className={styles.panelHeader}>
                 <div>
                   <span className={styles.eyebrow}>Checklist de producto</span>
@@ -1999,7 +2019,7 @@ const [cashSuccess, setCashSuccess] = useState<string | null>(null);
           </section>
         ) : null}
 
-        {activeSection === "products" ? (
+        {false ? (
           <section className={styles.panel}>
             <div className={styles.panelHeader}>
               <div>
@@ -2343,6 +2363,472 @@ const [cashSuccess, setCashSuccess] = useState<string | null>(null);
           </section>
         ) : null}
 
+        {activeSection === "products" ? (
+          <section className={`${styles.panel} ${styles.productsPanel}`}>
+            <div className={styles.panelHeader}>
+              <div>
+                <span className={styles.eyebrow}>Productos</span>
+                <h3>Elegí un producto para editarlo</h3>
+                <p>
+                  La grilla muestra cada producto como una card compacta. Tocar uno para
+                  abrir su editor y evitar confusiones al subir fotos o guardar cambios.
+                </p>
+              </div>
+              <button
+                className={styles.primaryButton}
+                disabled={restaurant.categories.length === 0}
+                onClick={() => {
+                  setProductDraft((current) => ({
+                    ...current,
+                    categoryId: restaurant.categories[0]?.id ?? "",
+                  }));
+                  setActiveProductId(null);
+                  setIsProductCreateOpen(true);
+                }}
+                type="button"
+              >
+                Agregar producto
+              </button>
+            </div>
+
+            {productError ? <div className={styles.errorBox}>{productError}</div> : null}
+            {productSuccess ? (
+              <div className={styles.successBox}>{productSuccess}</div>
+            ) : null}
+
+            {isProductCreateOpen ? (
+              <section className={`${styles.createProductPanel} ${styles.productCreatePanel}`}>
+                <div className={styles.panelHeader}>
+                  <div>
+                    <span className={styles.eyebrow}>Nuevo producto</span>
+                    <h3>Cargar producto al menÃº</h3>
+                    <p>
+                      CompletÃ¡ los datos principales y despuÃ©s, si querÃ©s, lo seguÃ­s
+                      editando desde su card.
+                    </p>
+                  </div>
+
+                  <button
+                    className={styles.secondaryButton}
+                    onClick={() => setIsProductCreateOpen(false)}
+                    type="button"
+                  >
+                    Cerrar
+                  </button>
+                </div>
+
+                <div className={styles.formGrid}>
+                  <label>
+                    <span>Nombre del producto</span>
+                    <input
+                      placeholder="Ej: Burger clÃ¡sica"
+                      value={productDraft.name}
+                      onChange={(event) =>
+                        setProductDraft((current) => ({
+                          ...current,
+                          name: event.target.value,
+                        }))
+                      }
+                    />
+                  </label>
+
+                  <label>
+                    <span>CategorÃ­a</span>
+                    <select
+                      value={productDraft.categoryId}
+                      onChange={(event) =>
+                        setProductDraft((current) => ({
+                          ...current,
+                          categoryId: event.target.value,
+                        }))
+                      }
+                    >
+                      {restaurant.categories.map((category) => (
+                        <option key={category.id} value={category.id}>
+                          {category.name}
+                        </option>
+                      ))}
+                    </select>
+                  </label>
+
+                  <label>
+                    <span>Precio</span>
+                    <input
+                      type="number"
+                      value={productDraft.price}
+                      onChange={(event) =>
+                        setProductDraft((current) => ({
+                          ...current,
+                          price: Number(event.target.value),
+                        }))
+                      }
+                    />
+                  </label>
+
+                  <label>
+                    <span>Tiempo estimado</span>
+                    <input
+                      placeholder="15 min"
+                      value={productDraft.prepTime}
+                      onChange={(event) =>
+                        setProductDraft((current) => ({
+                          ...current,
+                          prepTime: event.target.value,
+                        }))
+                      }
+                    />
+                  </label>
+
+                  <label className={styles.full}>
+                    <span>DescripciÃ³n</span>
+                    <textarea
+                      placeholder="DescripciÃ³n breve del producto..."
+                      value={productDraft.description}
+                      onChange={(event) =>
+                        setProductDraft((current) => ({
+                          ...current,
+                          description: event.target.value,
+                        }))
+                      }
+                    />
+                  </label>
+
+                  <label className={styles.full}>
+                    <span>Imagen del producto</span>
+                    <input
+                      accept="image/*"
+                      type="file"
+                      onChange={handleProductDraftImageUpload}
+                    />
+
+                    {imageUploadingKey === "product-draft" ? (
+                      <small className={styles.uploadStatus}>Subiendo imagen...</small>
+                    ) : null}
+
+                    {productDraft.image ? (
+                      <div
+                        className={styles.imagePreview}
+                        style={{ backgroundImage: `url(${productDraft.image})` }}
+                      />
+                    ) : (
+                      <div className={styles.emptyUploadPreview}>TodavÃ­a sin imagen</div>
+                    )}
+                  </label>
+                </div>
+
+                <div className={styles.toggleRow}>
+                  <label className={styles.toggle}>
+                    <input
+                      checked={productDraft.available}
+                      type="checkbox"
+                      onChange={(event) =>
+                        setProductDraft((current) => ({
+                          ...current,
+                          available: event.target.checked,
+                        }))
+                      }
+                    />
+                    <span>{productDraft.available ? "Disponible" : "No disponible"}</span>
+                  </label>
+
+                  <label className={styles.toggle}>
+                    <input
+                      checked={productDraft.featured}
+                      type="checkbox"
+                      onChange={(event) =>
+                        setProductDraft((current) => ({
+                          ...current,
+                          featured: event.target.checked,
+                        }))
+                      }
+                    />
+                    <span>{productDraft.featured ? "Destacado" : "Normal"}</span>
+                  </label>
+                </div>
+
+                <div className={styles.productActions}>
+                  <button
+                    className={styles.primaryButton}
+                    disabled={productSavingId === "new"}
+                    onClick={() => createProduct()}
+                    type="button"
+                  >
+                    {productSavingId === "new" ? "Creando..." : "Crear producto"}
+                  </button>
+
+                  <button
+                    className={styles.secondaryButton}
+                    onClick={() => setIsProductCreateOpen(false)}
+                    type="button"
+                  >
+                    Cancelar
+                  </button>
+                </div>
+              </section>
+            ) : null}
+
+            <div className={styles.stack}>
+              {categoriesWithItems.map((category) => (
+                <section className={styles.productGroup} key={category.id}>
+                  <div className={styles.panelHeader}>
+                    <div>
+                      <span className={styles.eyebrow}>{category.name}</span>
+                      <h3>{category.description}</h3>
+                    </div>
+                    <button
+                      className={styles.secondaryButton}
+                      disabled={productSavingId === "new"}
+                      onClick={() => {
+                        setProductDraft((current) => ({
+                          ...current,
+                          categoryId: category.id,
+                        }));
+                        setActiveProductId(null);
+                        setIsProductCreateOpen(true);
+                      }}
+                      type="button"
+                    >
+                      Agregar en categoría
+                    </button>
+                  </div>
+
+                  {category.items.length ? (
+                    <div className={styles.productGallery}>
+                      {category.items.map((item) => (
+                        <button
+                          aria-label={`Editar ${item.name}`}
+                          className={
+                            activeProductId === item.id
+                              ? styles.productThumbCardActive
+                              : styles.productThumbCard
+                          }
+                          key={item.id}
+                          onClick={() => {
+                            setIsProductCreateOpen(false);
+                            setActiveProductId(item.id);
+                          }}
+                          type="button"
+                        >
+                          <div
+                            className={styles.productThumbImage}
+                            style={
+                              item.image
+                                ? { backgroundImage: `url(${item.image})` }
+                                : undefined
+                            }
+                          >
+                            {!item.image ? (
+                              <div className={styles.productThumbFallback}>
+                                {item.name.slice(0, 1)}
+                              </div>
+                            ) : null}
+                            {item.featured ? (
+                              <span className={styles.productThumbBadge}>Destacado</span>
+                            ) : null}
+                            {!item.available ? (
+                              <span className={styles.productThumbBadgeMuted}>Pausado</span>
+                            ) : null}
+                          </div>
+                        </button>
+                      ))}
+                    </div>
+                  ) : (
+                    <div className={styles.emptyProductState}>
+                      <strong>Sin productos en esta categorÃ­a</strong>
+                      <p>UsÃ¡ el botÃ³n de arriba para cargar el primero.</p>
+                    </div>
+                  )}
+
+                  {activeProduct && activeProduct.categoryId === category.id ? (
+                    <article className={`${styles.productCard} ${styles.productEditorCard}`}>
+                      <div className={styles.productCardHead}>
+                        <div>
+                          <span className={styles.eyebrow}>Producto en ediciÃ³n</span>
+                          <strong>{activeProduct.name}</strong>
+                          <span>
+                            {money.format(activeProduct.price)} Â· {activeProductCategory?.name}
+                          </span>
+                        </div>
+                        <div className={styles.productActions}>
+                          <button
+                            className={styles.secondaryButton}
+                            disabled={activeProductIndex <= 0 || productSavingId === activeProduct.id}
+                            onClick={() =>
+                              void moveProduct(activeProduct.id, category.id, "up")
+                            }
+                            type="button"
+                          >
+                            Subir
+                          </button>
+
+                          <button
+                            className={styles.secondaryButton}
+                            disabled={
+                              activeProductIndex === activeProductCategoryItems.length - 1 ||
+                              productSavingId === activeProduct.id
+                            }
+                            onClick={() =>
+                              void moveProduct(activeProduct.id, category.id, "down")
+                            }
+                            type="button"
+                          >
+                            Bajar
+                          </button>
+
+                          <button
+                            className={styles.primaryButton}
+                            disabled={productSavingId === activeProduct.id}
+                            onClick={() => saveProduct(activeProduct.id)}
+                            type="button"
+                          >
+                            {productSavingId === activeProduct.id
+                              ? "Guardando..."
+                              : "Guardar producto"}
+                          </button>
+
+                          <button
+                            className={styles.ghostDanger}
+                            disabled={productSavingId === activeProduct.id}
+                            onClick={() => deleteProduct(activeProduct.id)}
+                            type="button"
+                          >
+                            Eliminar producto
+                          </button>
+
+                          <button
+                            className={styles.secondaryButton}
+                            onClick={() => setActiveProductId(null)}
+                            type="button"
+                          >
+                            Cerrar editor
+                          </button>
+                        </div>
+                      </div>
+
+                      <div className={styles.formGrid}>
+                        <label>
+                          <span>Producto</span>
+                          <input
+                            value={activeProduct.name}
+                            onChange={(event) =>
+                              updateItem(activeProduct.id, "name", event.target.value)
+                            }
+                          />
+                        </label>
+                        <label>
+                          <span>Precio</span>
+                          <input
+                            type="number"
+                            value={activeProduct.price}
+                            onChange={(event) =>
+                              updateItem(
+                                activeProduct.id,
+                                "price",
+                                Number(event.target.value)
+                              )
+                            }
+                          />
+                        </label>
+                        <label>
+                          <span>Categoria</span>
+                          <select
+                            value={activeProduct.categoryId}
+                            onChange={(event) =>
+                              updateItem(activeProduct.id, "categoryId", event.target.value)
+                            }
+                          >
+                            {restaurant.categories.map((option) => (
+                              <option key={option.id} value={option.id}>
+                                {option.name}
+                              </option>
+                            ))}
+                          </select>
+                        </label>
+                        <label>
+                          <span>Tiempo estimado</span>
+                          <input
+                            value={activeProduct.prepTime}
+                            onChange={(event) =>
+                              updateItem(activeProduct.id, "prepTime", event.target.value)
+                            }
+                          />
+                        </label>
+                        <label className={styles.full}>
+                          <span>Descripcion</span>
+                          <textarea
+                            value={activeProduct.description}
+                            onChange={(event) =>
+                              updateItem(
+                                activeProduct.id,
+                                "description",
+                                event.target.value
+                              )
+                            }
+                          />
+                        </label>
+                        <label className={styles.full}>
+                          <span>Foto del producto</span>
+                          <input
+                            accept="image/*"
+                            type="file"
+                            onChange={(event) => handleImageUpload(activeProduct.id, event)}
+                          />
+
+                          {imageUploadingKey === `product-${activeProduct.id}` ? (
+                            <small className={styles.uploadStatus}>Subiendo imagen...</small>
+                          ) : null}
+
+                          {activeProduct.image ? (
+                            <div
+                              className={styles.imagePreview}
+                              style={{ backgroundImage: `url(${activeProduct.image})` }}
+                            />
+                          ) : (
+                            <div className={styles.emptyUploadPreview}>TodavÃ­a sin imagen</div>
+                          )}
+                        </label>
+                      </div>
+
+                      <div className={styles.toggleRow}>
+                        <label className={styles.toggle}>
+                          <input
+                            checked={activeProduct.available}
+                            type="checkbox"
+                            onChange={(event) =>
+                              updateItem(
+                                activeProduct.id,
+                                "available",
+                                event.target.checked
+                              )
+                            }
+                          />
+                          <span>
+                            {activeProduct.available ? "Disponible" : "No disponible"}
+                          </span>
+                        </label>
+                        <label className={styles.toggle}>
+                          <input
+                            checked={activeProduct.featured}
+                            type="checkbox"
+                            onChange={(event) =>
+                              updateItem(
+                                activeProduct.id,
+                                "featured",
+                                event.target.checked
+                              )
+                            }
+                          />
+                          <span>{activeProduct.featured ? "Destacado" : "Normal"}</span>
+                        </label>
+                      </div>
+                    </article>
+                  ) : null}
+                </section>
+              ))}
+            </div>
+          </section>
+        ) : null}
+
 {activeSection === "appearance" ? (
   <div className={styles.stack}>
     <section className={styles.panel}>
@@ -2529,7 +3015,7 @@ const [cashSuccess, setCashSuccess] = useState<string | null>(null);
   </div>
 </section>
 
-    <section className={styles.panel}>
+    <section className={`${styles.panel} ${styles.appearancePanel}`}>
       <div className={styles.panelHeader}>
         <div>
           <span className={styles.eyebrow}>Colores</span>
@@ -2642,7 +3128,7 @@ const [cashSuccess, setCashSuccess] = useState<string | null>(null);
       </div>
     </section>
 
-    <section className={styles.panel}>
+    <section className={`${styles.panel} ${styles.previewPanel}`}>
       <div className={styles.panelHeader}>
         <div>
           <span className={styles.eyebrow}>Vista previa</span>
@@ -2691,12 +3177,12 @@ const [cashSuccess, setCashSuccess] = useState<string | null>(null);
         </div>
 
         <div className={styles.previewProducts}>
-          <article style={{ background: appearanceDraft.surfaceAlt }}>
+          <article className={styles.previewProductCard} style={{ background: appearanceDraft.surfaceAlt }}>
             <strong>Producto destacado</strong>
             <span>$ 9.900</span>
           </article>
 
-          <article style={{ background: appearanceDraft.surfaceAlt }}>
+          <article className={styles.previewProductCard} style={{ background: appearanceDraft.surfaceAlt }}>
             <strong>Combo especial</strong>
             <span>$ 12.500</span>
           </article>
@@ -2808,31 +3294,31 @@ const [cashSuccess, setCashSuccess] = useState<string | null>(null);
 
         {activeSection === "publishing" ? (
           
-          <div className={styles.stack}>
-            <section className={styles.panel}>
+          <div className={`${styles.stack} ${styles.publishingStack}`}>
+            <section className={`${styles.panel} ${styles.publishingHeroPanel}`}>
               <div className={styles.panelHeader}>
                 <div>
                   <span className={styles.eyebrow}>Publicacion</span>
                   <h3>Destino real del producto</h3>
                 </div>
               </div>
-              <div className={styles.publishGrid}>
-                <div className={styles.publishCard}>
+              <div className={`${styles.publishGrid} ${styles.publishingGrid}`}>
+                <div className={`${styles.publishCard} ${styles.publishingCard}`}>
                   <span>Subdominio activo</span>
                   <strong>{publicUrl}</strong>
                 </div>
-                <div className={styles.publishCard}>
+                <div className={`${styles.publishCard} ${styles.publishingCard}`}>
                   <span>WhatsApp receptor</span>
                   <strong>{adminWhatsappUrl}</strong>
                 </div>
-                <div className={styles.publishCard}>
+                <div className={`${styles.publishCard} ${styles.publishingCard}`}>
                   <span>Uso principal</span>
                   <strong>Delivery y take away desde menu web</strong>
                 </div>
               </div>
             </section>
             
-            <section className={styles.panel}>
+            <section className={`${styles.panel} ${styles.publishingEditorPanel}`}>
   <div className={styles.panelHeader}>
     <div>
       <span className={styles.eyebrow}>WhatsApp</span>
@@ -2888,7 +3374,7 @@ const [cashSuccess, setCashSuccess] = useState<string | null>(null);
     </label>
   </div>
 
-  <div className={styles.publishCard}>
+  <div className={`${styles.publishCard} ${styles.previewMessageCard}`}>
     <span>Vista previa</span>
     <strong>
       {whatsappDraft.whatsappIntroMessage || "Mensaje inicial"}
@@ -2903,7 +3389,7 @@ const [cashSuccess, setCashSuccess] = useState<string | null>(null);
   </div>
 </section>
 
-<section className={styles.panel}>
+<section className={`${styles.panel} ${styles.publishingEditorPanel}`}>
   <div className={styles.panelHeader}>
     <div>
     <span className={styles.eyebrow}>Pausa manual</span>
@@ -2964,7 +3450,7 @@ const [cashSuccess, setCashSuccess] = useState<string | null>(null);
     </label>
   </div>
 
-  <div className={styles.publishCard}>
+  <div className={`${styles.publishCard} ${styles.previewMessageCard}`}>
     <span>Vista previa</span>
     <strong>
       {orderingDraft.isAcceptingOrders
@@ -2979,7 +3465,7 @@ const [cashSuccess, setCashSuccess] = useState<string | null>(null);
   </div>
 </section>
 
-<section className={styles.panel}>
+<section className={`${styles.panel} ${styles.publishingEditorPanel}`}>
   <div className={styles.panelHeader}>
     <div>
       <span className={styles.eyebrow}>Horarios</span>
@@ -3047,7 +3533,7 @@ const [cashSuccess, setCashSuccess] = useState<string | null>(null);
 
   <div className={styles.stack}>
     {hoursDraft.openingHours.map((hour) => (
-      <article className={styles.categoryCard} key={hour.day}>
+      <article className={`${styles.categoryCard} ${styles.scheduleCard}`} key={hour.day}>
         <div className={styles.formGrid}>
           <label>
             <span>Día</span>
@@ -3113,7 +3599,7 @@ const [cashSuccess, setCashSuccess] = useState<string | null>(null);
   </div>
 </section>
 
-            <section className={styles.panel}>
+            <section className={`${styles.panel} ${styles.helperPanel}`}>
               <div className={styles.panelHeader}>
                 <div>
                   <span className={styles.eyebrow}>Persistencia futura</span>
