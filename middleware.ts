@@ -60,27 +60,26 @@ export function middleware(request: NextRequest) {
 
   const url = request.nextUrl.clone();
 
-  /**
-   * Si por alguna razón el navegador terminó mostrando
-   * /menu/[slug] en un subdominio, lo limpiamos y volvemos a "/".
-   * La URL pública correcta debe ser:
-   * https://nicolasito.menui.online/
-   */
-  if (pathname.startsWith("/menu/")) {
-    url.pathname = "/";
-    return NextResponse.redirect(url);
-  }
-
+  // Menú público del subdominio.
+  // nicolasito.menui.online/ -> /menu/nicolasito internamente
   if (pathname === "/") {
     url.pathname = `/menu/${restaurantSlug}`;
     return NextResponse.rewrite(url);
   }
 
+  // Si alguien entra directo a /menu/nicolasito, no redirigimos.
+  // Lo dejamos pasar para evitar loops.
+  if (pathname.startsWith("/menu/")) {
+    return NextResponse.next();
+  }
+
+  // Login del restaurante.
   if (pathname === "/login") {
     url.pathname = `/restaurant/${restaurantSlug}/login`;
     return NextResponse.rewrite(url);
   }
 
+  // Admin del restaurante.
   if (pathname === "/admin" || pathname.startsWith("/admin/")) {
     url.pathname = `/restaurant/${restaurantSlug}${pathname}`;
     return NextResponse.rewrite(url);
