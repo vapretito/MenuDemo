@@ -1,8 +1,10 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getRootDomain, normalizeHostname } from "@/lib/domain";
-import { getRestaurantSlugFromHostname } from "@/lib/subdomain-routing";
 
-const ROOT_DOMAIN = getRootDomain();
+const ROOT_DOMAIN = (process.env.MENUI_ROOT_DOMAIN ?? "menui.online")
+  .replace(/^https?:\/\//, "")
+  .replace(/^www\./, "")
+  .replace(/\/$/, "")
+  .toLowerCase();
 
 const RESERVED_PATHS = [
   "/api",
@@ -20,12 +22,26 @@ const MAIN_HOSTS = new Set([
 ]);
 
 function getHostname(request: NextRequest) {
-  const forwardedHost = request.headers.get("x-forwarded-host");
-  const hostHeader = forwardedHost ?? request.headers.get("host");
-  const rawHost =
-    hostHeader?.split(",")[0]?.trim() ?? request.nextUrl.hostname ?? "";
+  const host = request.headers.get("host") ?? "";
+  return host.split(":")[0].toLowerCase();
+}
 
-  return normalizeHostname(rawHost);
+function getRestaurantSlugFromHost(hostname: string) {
+  if (MAIN_HOSTS.has(hostname)) {
+    return null;
+  }
+
+  if (hostname.endsWith(`.${ROOT_DOMAIN}`)) {
+    const subdomain = hostname.replace(`.${ROOT_DOMAIN}`, "");
+    return subdomain.split(".")[0] || null;
+  }
+
+  if (hostname.endsWith(".localhost")) {
+    const subdomain = hostname.replace(".localhost", "");
+    return subdomain.split(".")[0] || null;
+  }
+
+  return null;
 }
 
 export function middleware(request: NextRequest) {
@@ -36,14 +52,24 @@ export function middleware(request: NextRequest) {
   }
 
   const hostname = getHostname(request);
-  const restaurantSlug =
-    MAIN_HOSTS.has(hostname) ? null : getRestaurantSlugFromHostname(hostname);
+  const restaurantSlug = getRestaurantSlugFromHost(hostname);
 
   if (!restaurantSlug) {
     return NextResponse.next();
   }
 
   const url = request.nextUrl.clone();
+
+  /**
+   * Si por alguna razón el navegador terminó mostrando
+   * /menu/[slug] en un subdominio, lo limpiamos y volvemos a "/".
+   * La URL pública correcta debe ser:
+   * https://nicolasito.menui.online/
+   */
+  if (pathname.startsWith("/menu/")) {
+    url.pathname = "/";
+    return NextResponse.redirect(url);
+  }
 
   if (pathname === "/") {
     url.pathname = `/menu/${restaurantSlug}`;
@@ -55,12 +81,7 @@ export function middleware(request: NextRequest) {
     return NextResponse.rewrite(url);
   }
 
-  if (pathname === "/admin") {
-    url.pathname = `/restaurant/${restaurantSlug}/admin`;
-    return NextResponse.rewrite(url);
-  }
-
-  if (pathname.startsWith("/admin/")) {
+  if (pathname === "/admin" || pathname.startsWith("/admin/")) {
     url.pathname = `/restaurant/${restaurantSlug}${pathname}`;
     return NextResponse.rewrite(url);
   }
