@@ -1,8 +1,10 @@
 .shell {
-  width: min(100%, 1400px);
-  margin: 0 auto;
+  width: 100%;
+  min-height: 100vh;
+  margin: 0;
   color: var(--text);
   padding-bottom: 6rem;
+  background: var(--page-background, var(--surface));
 }
 
 .hero {
@@ -686,6 +688,9 @@
   --menu-radius-pill: 0px;
   --product-image-height: 12rem;
   --card-padding: 1rem;
+  --page-background:
+    radial-gradient(circle at top left, rgba(240, 196, 0, 0.12), transparent 24%),
+    linear-gradient(180deg, #f8f6ea 0%, #efe8d4 100%);
 }
 
 .shell[data-template="classic-delivery"] .hero {
@@ -714,6 +719,9 @@
   --product-image-height: 15rem;
   --card-padding: 0.85rem;
   --soft-shadow: 0 18px 50px rgba(0, 0, 0, 0.26);
+  --page-background:
+    radial-gradient(circle at top, rgba(248, 193, 92, 0.08), transparent 22%),
+    linear-gradient(180deg, #090d13 0%, #111827 52%, #06080d 100%);
 }
 
 .shell[data-template="dark-premium"] .hero {
@@ -760,6 +768,9 @@
   --product-image-height: 8rem;
   --card-padding: 0.8rem;
   --soft-shadow: 0 14px 35px rgba(16, 185, 129, 0.13);
+  --page-background:
+    radial-gradient(circle at top left, rgba(34, 197, 94, 0.14), transparent 22%),
+    linear-gradient(180deg, #f3fff6 0%, #e4f8ea 100%);
 }
 
 .shell[data-template="fresh-green"] .hero {
@@ -832,6 +843,9 @@
   --product-image-height: 11rem;
   --card-padding: 1rem;
   --soft-shadow: 0 12px 35px rgba(101, 67, 33, 0.14);
+  --page-background:
+    radial-gradient(circle at top, rgba(154, 92, 46, 0.12), transparent 24%),
+    linear-gradient(180deg, #fff8ef 0%, #f1e0cd 100%);
 }
 
 .shell[data-template="coffee-cream"] .hero {
@@ -880,6 +894,9 @@
   --product-image-height: 9rem;
   --card-padding: 0.75rem;
   --soft-shadow: 0 10px 0 rgba(0, 0, 0, 0.12);
+  --page-background:
+    radial-gradient(circle at top right, rgba(255, 61, 0, 0.15), transparent 20%),
+    linear-gradient(180deg, #fff7f1 0%, #ffe1d1 100%);
 }
 
 .shell[data-template="burger-pop"] .hero {
@@ -948,6 +965,9 @@
   --product-image-height: 10rem;
   --card-padding: 0.85rem;
   --soft-shadow: 0 18px 42px rgba(0, 0, 0, 0.28);
+  --page-background:
+    radial-gradient(circle at top, rgba(217, 119, 6, 0.12), transparent 20%),
+    linear-gradient(180deg, #1d1511 0%, #120d0b 100%);
 }
 
 .shell[data-template="parrilla-criolla"] .hero {
@@ -998,6 +1018,9 @@
   --product-image-height: 12rem;
   --card-padding: 1rem;
   --soft-shadow: 0 16px 42px rgba(245, 158, 139, 0.14);
+  --page-background:
+    radial-gradient(circle at top left, rgba(245, 158, 139, 0.16), transparent 20%),
+    linear-gradient(180deg, #fff9f5 0%, #f7eee5 52%, #ebf4ec 100%);
 }
 
 .shell[data-template="brunch-pastel"] .hero {
@@ -1059,6 +1082,10 @@
   --product-image-height: 11rem;
   --card-padding: 0.8rem;
   --soft-shadow: 0 18px 44px rgba(0, 0, 0, 0.34);
+  --page-background:
+    radial-gradient(circle at top right, rgba(163, 255, 18, 0.12), transparent 18%),
+    radial-gradient(circle at top left, rgba(45, 212, 191, 0.1), transparent 16%),
+    linear-gradient(180deg, #05070c 0%, #0a0f18 100%);
 }
 
 .shell[data-template="asian-neon"] .hero {
@@ -1118,6 +1145,9 @@
   --product-image-height: 12rem;
   --card-padding: 0.95rem;
   --soft-shadow: 0 16px 38px rgba(23, 48, 66, 0.12);
+  --page-background:
+    radial-gradient(circle at top, rgba(37, 99, 235, 0.12), transparent 20%),
+    linear-gradient(180deg, #f9fcff 0%, #eef5fb 48%, #f2ebdf 100%);
 }
 
 .shell[data-template="mediterranean-light"] .hero {
