@@ -1,16 +1,43 @@
 "use client";
 
+import type { CSSProperties } from "react";
 import { ChangeEvent, KeyboardEvent, useEffect, useMemo, useState } from "react";
 import styles from "./restaurant-admin-panel.module.css";
 import { demoRestaurant } from "@/data/platform";
 import { MenuCategory, MenuItem, OpeningHour, RestaurantRecord } from "@/types/platform";
-import { menuTemplates } from "@/data/menu-templates";
+import { menuTemplates, type MenuTemplatePreset } from "@/data/menu-templates";
 
 const money = new Intl.NumberFormat("es-AR", {
   style: "currency",
   currency: "ARS",
   maximumFractionDigits: 0,
 });
+
+const templateFilterOptions = [
+  "Todos",
+  "Delivery",
+  "Pizzeria",
+  "Sushi",
+  "Cafeteria",
+  "Healthy",
+  "Fast food",
+  "Parrilla",
+  "Brunch",
+  "Asian",
+  "Mediterraneo",
+] as const;
+
+const extractGradientStops = (gradient: string) => {
+  const colors = gradient.match(/#(?:[0-9a-fA-F]{3,8})/g) ?? [];
+
+  return {
+    start: colors[0] ?? "#1f2937",
+    end: colors[1] ?? colors[0] ?? "#111827",
+  };
+};
+
+const buildHeroGradient = (start: string, end: string) =>
+  `linear-gradient(180deg, ${start} 0%, ${end} 100%)`;
 
 
 
@@ -139,6 +166,8 @@ export function RestaurantAdminPanel({
   const [appearanceSaving, setAppearanceSaving] = useState(false);
   const [appearanceError, setAppearanceError] = useState<string | null>(null);
   const [appearanceSuccess, setAppearanceSuccess] = useState<string | null>(null);
+  const [templateFilter, setTemplateFilter] =
+    useState<(typeof templateFilterOptions)[number]>("Todos");
 
   const [newCategoryName, setNewCategoryName] = useState("");
   const [activeSection, setActiveSection] = useState<AdminSection>("overview");
@@ -566,6 +595,15 @@ const [cashSuccess, setCashSuccess] = useState<string | null>(null);
   const adminWhatsappUrl = `https://wa.me/${restaurant.customerWhatsapp}`;
   const activeMeta = sections.find((section) => section.id === activeSection) ?? sections[0];
   const currentRestaurantSlug = restaurantSlug ?? restaurant.slug;
+  const selectedTemplate =
+    menuTemplates.find((template) => template.id === appearanceDraft.menuTemplate) ??
+    menuTemplates[0];
+  const gradientStops = extractGradientStops(appearanceDraft.heroGradient);
+  const visibleTemplates = menuTemplates.filter((template) => {
+    if (templateFilter === "Todos") return true;
+
+    return template.tags.includes(templateFilter);
+  });
 
   const updateAppearanceDraft = (
     field: keyof typeof appearanceDraft,
@@ -576,6 +614,29 @@ const [cashSuccess, setCashSuccess] = useState<string | null>(null);
       [field]: value,
     }));
   };
+
+  const updateGradientStop = (field: "start" | "end", value: string) => {
+    const currentStops = extractGradientStops(appearanceDraft.heroGradient);
+    const start = field === "start" ? value : currentStops.start;
+    const end = field === "end" ? value : currentStops.end;
+
+    setAppearanceDraft((current) => ({
+      ...current,
+      heroGradient: buildHeroGradient(start, end),
+    }));
+  };
+
+  const getTemplateCardStyle = (template: MenuTemplatePreset) =>
+    ({
+      ["--template-accent" as string]: template.accent,
+      ["--template-accent-soft" as string]: template.accentSoft,
+      ["--template-surface" as string]: template.surface,
+      ["--template-surface-alt" as string]: template.surfaceAlt,
+      ["--template-border" as string]: template.border,
+      ["--template-text" as string]: template.text,
+      ["--template-muted" as string]: template.muted,
+      ["--template-hero" as string]: template.heroGradient,
+    } as CSSProperties);
   
   const applyTemplate = (templateId: string) => {
     const template = menuTemplates.find((entry) => entry.id === templateId);
@@ -2834,11 +2895,11 @@ const [cashSuccess, setCashSuccess] = useState<string | null>(null);
     <section className={styles.panel}>
       <div className={styles.panelHeader}>
         <div>
-          <span className={styles.eyebrow}>Personalización</span>
-          <h3>Estética del menú</h3>
+          <span className={styles.eyebrow}>Personalizacion</span>
+          <h3>Estetica del menu</h3>
           <p>
-            Elegí una plantilla visual y ajustá colores, logo e imagen principal
-            del menú público.
+            Elige una plantilla visual y ajusta colores, logo e imagen principal
+            del menu publico.
           </p>
         </div>
 
@@ -2848,7 +2909,7 @@ const [cashSuccess, setCashSuccess] = useState<string | null>(null);
           onClick={saveAppearance}
           type="button"
         >
-          {appearanceSaving ? "Guardando..." : "Guardar estética"}
+          {appearanceSaving ? "Guardando..." : "Guardar estetica"}
         </button>
       </div>
 
@@ -2864,162 +2925,195 @@ const [cashSuccess, setCashSuccess] = useState<string | null>(null);
     <section className={styles.panel}>
       <div className={styles.panelHeader}>
         <div>
-        <span className={styles.eyebrow}>Experiencia visual</span>
-<h3>Elegí cómo se siente tu menú</h3>
-<p>
-  Cada plantilla cambia colores, forma de botones, tamaño de imágenes,
-  estilo de cards y personalidad general del menú público.
-</p>
+          <span className={styles.eyebrow}>Experiencia visual</span>
+          <h3>Elegi como se siente tu menu</h3>
+          <p>
+            Ahora cada opcion muestra una mini escena real con hero, categorias y
+            producto para que no elijas a ciegas.
+          </p>
         </div>
       </div>
 
-      <div className={styles.templateGrid}>
-        {menuTemplates.map((template) => (
+      <div className={styles.filterRow}>
+        {templateFilterOptions.map((filter) => (
           <button
-            key={template.id}
+            key={filter}
+            aria-pressed={templateFilter === filter}
             className={
-              appearanceDraft.menuTemplate === template.id
-                ? styles.templateCardActive
-                : styles.templateCard
+              templateFilter === filter ? styles.filterChipActive : styles.filterChip
             }
-            onClick={() => applyTemplate(template.id)}
+            onClick={() => setTemplateFilter(filter)}
             type="button"
           >
-            <div
-              className={styles.templatePreview}
-              style={{
-                background: template.heroGradient,
-                borderColor: template.border,
-              }}
-            >
-              <span
-                style={{
-                  background: template.accent,
-                  color: template.text,
-                }}
-              />
-              <strong style={{ color: "#ffffff" }}>{template.name}</strong>
-            </div>
-
-            <div className={styles.templateInfo}>
-  <div className={styles.templateTitleRow}>
-    <strong>{template.name}</strong>
-    <span>{template.badge}</span>
-  </div>
-
-  <p>{template.description}</p>
-
-  <div className={styles.templateDetails}>
-    <small>Recomendado para</small>
-    <p>{template.bestFor}</p>
-  </div>
-
-  <div className={styles.templateDetails}>
-    <small>Estilo visual</small>
-    <p>{template.visualStyle}</p>
-  </div>
-</div>
+            {filter}
           </button>
         ))}
+      </div>
+
+      <div className={styles.templateGrid}>
+        {visibleTemplates.map((template) => {
+          const isActive = appearanceDraft.menuTemplate === template.id;
+
+          return (
+            <button
+              key={template.id}
+              aria-pressed={isActive}
+              className={isActive ? styles.templateCardActive : styles.templateCard}
+              onClick={() => applyTemplate(template.id)}
+              type="button"
+            >
+              <div
+                className={styles.templatePreview}
+                data-template={template.id}
+                style={getTemplateCardStyle(template)}
+              >
+                <div className={styles.templateMiniHero}>
+                  <span>{template.personality}</span>
+                  <strong>{template.name}</strong>
+                  <small>{template.badge}</small>
+                </div>
+
+                <div className={styles.templateMiniRail}>
+                  <span className={styles.templateMiniChipActive}>Top</span>
+                  <span className={styles.templateMiniChip}>Promo</span>
+                  <span className={styles.templateMiniChip}>Combo</span>
+                </div>
+
+                <div className={styles.templateMiniCard}>
+                  <div className={styles.templateMiniImage} />
+                  <div className={styles.templateMiniCopy}>
+                    <strong>Producto estrella</strong>
+                    <small>Foto, precio y CTA visibles</small>
+                    <span>$ 12.500</span>
+                  </div>
+                </div>
+              </div>
+
+              <div className={styles.templateInfo}>
+                <div className={styles.templateTitleRow}>
+                  <strong>{template.name}</strong>
+                  <span>{isActive ? "Activa" : template.badge}</span>
+                </div>
+
+                <p>{template.description}</p>
+
+                <div className={styles.templateMetaRow}>
+                  <span className={styles.personalityPill}>{template.personality}</span>
+                  {template.tags.slice(0, 2).map((tag) => (
+                    <span className={styles.metaPill} key={tag}>
+                      {tag}
+                    </span>
+                  ))}
+                </div>
+
+                <div className={styles.templateDetails}>
+                  <small>Recomendada para</small>
+                  <p>{template.bestFor}</p>
+                </div>
+
+                <div className={styles.templateDetails}>
+                  <small>Estilo visual</small>
+                  <p>{template.visualStyle}</p>
+                </div>
+              </div>
+            </button>
+          );
+        })}
       </div>
     </section>
 
     <section className={styles.panel}>
-  <div className={styles.panelHeader}>
-    <div>
-      <span className={styles.eyebrow}>Marca</span>
-      <h3>Logo e imagen principal</h3>
-      <p>
-        Subí el logo y una portada para personalizar el menú público del
-        restaurante.
-      </p>
-    </div>
-  </div>
-
-  <div className={styles.imageUploadGrid}>
-    <label className={styles.uploadBox}>
-      <span>Logo del restaurante</span>
-
-      <input
-        accept="image/*"
-        type="file"
-        onChange={(event) =>
-          handleAppearanceImageUpload("logoUrl", event)
-        }
-      />
-
-{imageUploadingKey === "logoUrl" ? (
-  <small className={styles.uploadStatus}>Subiendo logo...</small>
-) : null}
-
-      {appearanceDraft.logoUrl ? (
-        <img
-          className={styles.logoUploadPreview}
-          src={appearanceDraft.logoUrl}
-          alt="Logo del restaurante"
-        />
-      ) : (
-        <div className={styles.emptyUploadPreview}>
-          Sin logo cargado
+      <div className={styles.panelHeader}>
+        <div>
+          <span className={styles.eyebrow}>Marca</span>
+          <h3>Logo e imagen principal</h3>
+          <p>
+            Sube el logo y una portada para personalizar la cabecera del menu
+            publico del restaurante.
+          </p>
         </div>
-      )}
+      </div>
 
-      {appearanceDraft.logoUrl ? (
-        <button
-          className={styles.secondaryButton}
-          onClick={() => updateAppearanceDraft("logoUrl", "")}
-          type="button"
-        >
-          Quitar logo
-        </button>
-      ) : null}
-    </label>
+      <div className={styles.imageUploadGrid}>
+        <label className={styles.uploadBox}>
+          <span>Logo del restaurante</span>
 
-    <label className={styles.uploadBox}>
-      <span>Imagen de portada</span>
+          <input
+            accept="image/*"
+            type="file"
+            onChange={(event) => handleAppearanceImageUpload("logoUrl", event)}
+          />
 
-      <input
-        accept="image/*"
-        type="file"
-        onChange={(event) =>
-          handleAppearanceImageUpload("coverImageUrl", event)
-        }
-      />
+          {imageUploadingKey === "logoUrl" ? (
+            <small className={styles.uploadStatus}>Subiendo logo...</small>
+          ) : null}
 
-{imageUploadingKey === "coverImageUrl" ? (
-  <small className={styles.uploadStatus}>Subiendo portada...</small>
-) : null}
+          {appearanceDraft.logoUrl ? (
+            <img
+              className={styles.logoUploadPreview}
+              src={appearanceDraft.logoUrl}
+              alt="Logo del restaurante"
+            />
+          ) : (
+            <div className={styles.emptyUploadPreview}>Sin logo cargado</div>
+          )}
 
-      {appearanceDraft.coverImageUrl ? (
-        <img
-          className={styles.coverUploadPreview}
-          src={appearanceDraft.coverImageUrl}
-          alt="Imagen de portada"
-        />
-      ) : (
-        <div className={styles.emptyUploadPreview}>
-          Sin portada cargada
-        </div>
-      )}
+          {appearanceDraft.logoUrl ? (
+            <button
+              className={styles.secondaryButton}
+              onClick={() => updateAppearanceDraft("logoUrl", "")}
+              type="button"
+            >
+              Quitar logo
+            </button>
+          ) : null}
+        </label>
 
-      {appearanceDraft.coverImageUrl ? (
-        <button
-          className={styles.secondaryButton}
-          onClick={() => updateAppearanceDraft("coverImageUrl", "")}
-          type="button"
-        >
-          Quitar portada
-        </button>
-      ) : null}
-    </label>
-  </div>
-</section>
+        <label className={styles.uploadBox}>
+          <span>Imagen de portada</span>
+
+          <input
+            accept="image/*"
+            type="file"
+            onChange={(event) => handleAppearanceImageUpload("coverImageUrl", event)}
+          />
+
+          {imageUploadingKey === "coverImageUrl" ? (
+            <small className={styles.uploadStatus}>Subiendo portada...</small>
+          ) : null}
+
+          {appearanceDraft.coverImageUrl ? (
+            <img
+              className={styles.coverUploadPreview}
+              src={appearanceDraft.coverImageUrl}
+              alt="Imagen de portada"
+            />
+          ) : (
+            <div className={styles.emptyUploadPreview}>Sin portada cargada</div>
+          )}
+
+          {appearanceDraft.coverImageUrl ? (
+            <button
+              className={styles.secondaryButton}
+              onClick={() => updateAppearanceDraft("coverImageUrl", "")}
+              type="button"
+            >
+              Quitar portada
+            </button>
+          ) : null}
+        </label>
+      </div>
+    </section>
 
     <section className={`${styles.panel} ${styles.appearancePanel}`}>
       <div className={styles.panelHeader}>
         <div>
           <span className={styles.eyebrow}>Colores</span>
           <h3>Ajustes visuales</h3>
+          <p>
+            Ahora tambien puedes editar el texto secundario y el inicio y final
+            del gradiente principal.
+          </p>
         </div>
       </div>
 
@@ -3110,7 +3204,7 @@ const [cashSuccess, setCashSuccess] = useState<string | null>(null);
         </label>
 
         <label>
-          <span>Texto</span>
+          <span>Texto principal</span>
           <input
             type="color"
             value={appearanceDraft.text}
@@ -3125,6 +3219,49 @@ const [cashSuccess, setCashSuccess] = useState<string | null>(null);
             }
           />
         </label>
+
+        <label>
+          <span>Texto secundario</span>
+          <input
+            type="color"
+            value={appearanceDraft.muted}
+            onChange={(event) =>
+              updateAppearanceDraft("muted", event.target.value)
+            }
+          />
+          <input
+            value={appearanceDraft.muted}
+            onChange={(event) =>
+              updateAppearanceDraft("muted", event.target.value)
+            }
+          />
+        </label>
+
+        <label>
+          <span>Gradiente inicio</span>
+          <input
+            type="color"
+            value={gradientStops.start}
+            onChange={(event) => updateGradientStop("start", event.target.value)}
+          />
+          <input
+            value={gradientStops.start}
+            onChange={(event) => updateGradientStop("start", event.target.value)}
+          />
+        </label>
+
+        <label>
+          <span>Gradiente final</span>
+          <input
+            type="color"
+            value={gradientStops.end}
+            onChange={(event) => updateGradientStop("end", event.target.value)}
+          />
+          <input
+            value={gradientStops.end}
+            onChange={(event) => updateGradientStop("end", event.target.value)}
+          />
+        </label>
       </div>
     </section>
 
@@ -3132,26 +3269,42 @@ const [cashSuccess, setCashSuccess] = useState<string | null>(null);
       <div className={styles.panelHeader}>
         <div>
           <span className={styles.eyebrow}>Vista previa</span>
-          <h3>Preview del menú</h3>
+          <h3>Asi se ve ahora tu menu</h3>
+          <p>
+            Esta escena replica mejor el hero, las categorias y el producto
+            expandido que veran tus clientes.
+          </p>
+        </div>
+
+        <div className={styles.previewSummary}>
+          <strong>{selectedTemplate.name}</strong>
+          <span>{selectedTemplate.personality}</span>
         </div>
       </div>
 
       <div
         className={styles.menuPreview}
+        data-template={appearanceDraft.menuTemplate}
         style={{
           background: appearanceDraft.surface,
           color: appearanceDraft.text,
           borderColor: appearanceDraft.border,
+          ["--preview-accent" as string]: appearanceDraft.accent,
+          ["--preview-accent-soft" as string]: appearanceDraft.accentSoft,
+          ["--preview-surface-alt" as string]: appearanceDraft.surfaceAlt,
+          ["--preview-border" as string]: appearanceDraft.border,
+          ["--preview-text" as string]: appearanceDraft.text,
+          ["--preview-muted" as string]: appearanceDraft.muted,
         }}
       >
         <div
-  className={styles.menuPreviewHero}
-  style={{
-    background: appearanceDraft.coverImageUrl
-      ? `${appearanceDraft.heroGradient}, url(${appearanceDraft.coverImageUrl}) center/cover`
-      : appearanceDraft.heroGradient,
-  }}
->
+          className={styles.menuPreviewHero}
+          style={{
+            background: appearanceDraft.coverImageUrl
+              ? `${appearanceDraft.heroGradient}, url(${appearanceDraft.coverImageUrl}) center/cover`
+              : appearanceDraft.heroGradient,
+          }}
+        >
           {appearanceDraft.logoUrl ? (
             <img src={appearanceDraft.logoUrl} alt="Logo del restaurante" />
           ) : (
@@ -3160,7 +3313,12 @@ const [cashSuccess, setCashSuccess] = useState<string | null>(null);
             </div>
           )}
 
-          <span>Menu Delivery</span>
+          <div className={styles.previewHeroBadges}>
+            <span>{selectedTemplate.badge}</span>
+            <span>{selectedTemplate.personality}</span>
+          </div>
+
+          <span>Menu mobile first</span>
           <h4>{restaurant.name}</h4>
           <p>{restaurant.description}</p>
 
@@ -3172,19 +3330,67 @@ const [cashSuccess, setCashSuccess] = useState<string | null>(null);
               borderColor: appearanceDraft.border,
             }}
           >
-            Ver menú
+            Ver menu
           </button>
         </div>
 
+        <div className={styles.previewCategoryRail}>
+          <span className={styles.previewCategoryPillActive}>Destacados</span>
+          <span className={styles.previewCategoryPill}>Combos</span>
+          <span className={styles.previewCategoryPill}>Bebidas</span>
+        </div>
+
         <div className={styles.previewProducts}>
-          <article className={styles.previewProductCard} style={{ background: appearanceDraft.surfaceAlt }}>
-            <strong>Producto destacado</strong>
+          <article
+            className={styles.previewProductCard}
+            style={{ background: appearanceDraft.surfaceAlt }}
+          >
+            <div className={styles.previewProductVisual} />
+            <div className={styles.previewProductCopy}>
+              <strong>Producto destacado</strong>
+              <p>Card compacta con imagen, descripcion corta y accion visible.</p>
+            </div>
             <span>$ 9.900</span>
           </article>
 
-          <article className={styles.previewProductCard} style={{ background: appearanceDraft.surfaceAlt }}>
-            <strong>Combo especial</strong>
+          <article
+            className={styles.previewProductCard}
+            style={{ background: appearanceDraft.surfaceAlt }}
+          >
+            <div className={styles.previewProductVisual} />
+            <div className={styles.previewProductCopy}>
+              <strong>Combo especial</strong>
+              <p>Se mantiene una lectura rapida para menus largos y compras rapidas.</p>
+            </div>
             <span>$ 12.500</span>
+          </article>
+
+          <article
+            className={styles.previewExpandedProduct}
+            style={{ background: appearanceDraft.surfaceAlt }}
+          >
+            <div className={styles.previewExpandedImage} />
+            <div className={styles.previewExpandedCopy}>
+              <small>Producto expandido</small>
+              <strong>Item con mas contexto visual</strong>
+              <p>
+                Aqui se nota mejor la personalidad de la plantilla: jerarquia,
+                forma de card, peso del borde y estilo de llamado a la accion.
+              </p>
+              <div className={styles.previewExpandedFooter}>
+                <span>$ 14.500</span>
+                <button
+                  type="button"
+                  style={{
+                    background: appearanceDraft.accent,
+                    color: appearanceDraft.text,
+                    borderColor: appearanceDraft.border,
+                  }}
+                >
+                  Agregar
+                </button>
+              </div>
+            </div>
           </article>
         </div>
       </div>

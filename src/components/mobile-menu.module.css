@@ -937,6 +937,231 @@
 }
 
 /* ============================= */
+/* 6. PARRILLA CRIOLLA           */
+/* Carbon, cobre, fuego          */
+/* ============================= */
+
+.shell[data-template="parrilla-criolla"] {
+  --menu-radius: 10px;
+  --menu-radius-lg: 18px;
+  --menu-radius-pill: 999px;
+  --product-image-height: 10rem;
+  --card-padding: 0.85rem;
+  --soft-shadow: 0 18px 42px rgba(0, 0, 0, 0.28);
+}
+
+.shell[data-template="parrilla-criolla"] .hero {
+  min-height: 36rem;
+  border-bottom: 5px solid var(--accent);
+}
+
+.shell[data-template="parrilla-criolla"] .heroOverlay {
+  background:
+    radial-gradient(circle at top, rgba(255, 191, 87, 0.1), transparent 28%),
+    linear-gradient(180deg, rgba(25, 11, 7, 0.2), rgba(8, 5, 4, 0.76));
+}
+
+.shell[data-template="parrilla-criolla"] .restaurantLogo {
+  border-radius: 16px;
+  border: 2px solid rgba(255, 244, 230, 0.4);
+}
+
+.shell[data-template="parrilla-criolla"] .categoryRail {
+  background: rgba(21, 12, 10, 0.92);
+}
+
+.shell[data-template="parrilla-criolla"] .categoryRail button {
+  border: 2px solid var(--border);
+  background: rgba(255, 255, 255, 0.04);
+}
+
+.shell[data-template="parrilla-criolla"] .card {
+  border: 2px solid var(--border);
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.04), rgba(0, 0, 0, 0.08)),
+    rgba(14, 11, 9, 0.94);
+}
+
+.shell[data-template="parrilla-criolla"] .cardImage {
+  min-height: 10rem;
+}
+
+/* ============================= */
+/* 7. BRUNCH PASTEL              */
+/* Claro, aireado, delicado      */
+/* ============================= */
+
+.shell[data-template="brunch-pastel"] {
+  --menu-radius: 26px;
+  --menu-radius-lg: 34px;
+  --menu-radius-pill: 999px;
+  --product-image-height: 12rem;
+  --card-padding: 1rem;
+  --soft-shadow: 0 16px 42px rgba(245, 158, 139, 0.14);
+}
+
+.shell[data-template="brunch-pastel"] .hero {
+  min-height: 34rem;
+  border-bottom: 0;
+  border-radius: 0 0 38px 38px;
+}
+
+.shell[data-template="brunch-pastel"] .heroOverlay {
+  background:
+    radial-gradient(circle at top, rgba(255, 255, 255, 0.3), transparent 32%),
+    linear-gradient(180deg, rgba(255, 255, 255, 0.06), rgba(111, 78, 67, 0.3));
+}
+
+.shell[data-template="brunch-pastel"] .restaurantLogo {
+  border-radius: 18px;
+  transform: rotate(-2deg);
+}
+
+.shell[data-template="brunch-pastel"] .badge,
+.shell[data-template="brunch-pastel"] .badgeMuted,
+.shell[data-template="brunch-pastel"] .ctaPrimary,
+.shell[data-template="brunch-pastel"] .ctaGhost,
+.shell[data-template="brunch-pastel"] .addButton,
+.shell[data-template="brunch-pastel"] .fab,
+.shell[data-template="brunch-pastel"] .categoryRail button {
+  border-radius: 999px;
+}
+
+.shell[data-template="brunch-pastel"] .categoryRail {
+  background: rgba(255, 248, 242, 0.92);
+  border-bottom: 1px solid rgba(95, 62, 52, 0.12);
+}
+
+.shell[data-template="brunch-pastel"] .categoryRail button {
+  background: rgba(255, 255, 255, 0.74);
+  color: var(--text);
+}
+
+.shell[data-template="brunch-pastel"] .categoryRail small {
+  color: var(--muted);
+}
+
+.shell[data-template="brunch-pastel"] .card {
+  border-radius: 28px;
+  background: rgba(255, 255, 255, 0.84);
+  border: 1px solid rgba(95, 62, 52, 0.12);
+}
+
+/* ============================= */
+/* 8. ASIAN NEON                 */
+/* Street, electrico, nocturno   */
+/* ============================= */
+
+.shell[data-template="asian-neon"] {
+  --menu-radius: 8px;
+  --menu-radius-lg: 18px;
+  --menu-radius-pill: 999px;
+  --product-image-height: 11rem;
+  --card-padding: 0.8rem;
+  --soft-shadow: 0 18px 44px rgba(0, 0, 0, 0.34);
+}
+
+.shell[data-template="asian-neon"] .hero {
+  min-height: 40rem;
+  border-bottom: 2px solid var(--accent);
+}
+
+.shell[data-template="asian-neon"] .heroOverlay {
+  background:
+    radial-gradient(circle at top, rgba(163, 255, 18, 0.12), transparent 24%),
+    linear-gradient(180deg, rgba(4, 7, 12, 0.18), rgba(3, 6, 10, 0.82));
+}
+
+.shell[data-template="asian-neon"] .restaurantLogo {
+  border-radius: 16px;
+  transform: rotate(-4deg);
+}
+
+.shell[data-template="asian-neon"] .badge,
+.shell[data-template="asian-neon"] .badgeMuted,
+.shell[data-template="asian-neon"] .ctaPrimary,
+.shell[data-template="asian-neon"] .ctaGhost,
+.shell[data-template="asian-neon"] .addButton,
+.shell[data-template="asian-neon"] .fab {
+  border-radius: 999px;
+  border-color: var(--border);
+  box-shadow: 0 0 16px rgba(45, 212, 191, 0.12);
+}
+
+.shell[data-template="asian-neon"] .categoryRail button {
+  border: 1px solid var(--border);
+  background: rgba(6, 10, 18, 0.76);
+}
+
+.shell[data-template="asian-neon"] .card {
+  border: 1px solid var(--border);
+  background:
+    linear-gradient(180deg, rgba(45, 212, 191, 0.08), rgba(163, 255, 18, 0.02)),
+    rgba(9, 12, 18, 0.92);
+  box-shadow: 0 0 18px rgba(45, 212, 191, 0.08);
+}
+
+.shell[data-template="asian-neon"] .card h3 {
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+/* ============================= */
+/* 9. MEDITERRANEAN LIGHT        */
+/* Blanco, arena, azul mineral   */
+/* ============================= */
+
+.shell[data-template="mediterranean-light"] {
+  --menu-radius: 24px;
+  --menu-radius-lg: 34px;
+  --menu-radius-pill: 999px;
+  --product-image-height: 12rem;
+  --card-padding: 0.95rem;
+  --soft-shadow: 0 16px 38px rgba(23, 48, 66, 0.12);
+}
+
+.shell[data-template="mediterranean-light"] .hero {
+  min-height: 35rem;
+  border-bottom: 0;
+  border-radius: 0 0 44px 44px;
+}
+
+.shell[data-template="mediterranean-light"] .heroOverlay {
+  background:
+    radial-gradient(circle at top, rgba(255, 255, 255, 0.26), transparent 32%),
+    linear-gradient(180deg, rgba(23, 48, 66, 0.08), rgba(23, 48, 66, 0.34));
+}
+
+.shell[data-template="mediterranean-light"] .badge,
+.shell[data-template="mediterranean-light"] .badgeMuted,
+.shell[data-template="mediterranean-light"] .ctaPrimary,
+.shell[data-template="mediterranean-light"] .ctaGhost,
+.shell[data-template="mediterranean-light"] .addButton,
+.shell[data-template="mediterranean-light"] .fab,
+.shell[data-template="mediterranean-light"] .categoryRail button {
+  border-radius: 999px;
+}
+
+.shell[data-template="mediterranean-light"] .categoryRail {
+  background: rgba(248, 251, 255, 0.94);
+  border-bottom: 1px solid rgba(23, 48, 66, 0.08);
+}
+
+.shell[data-template="mediterranean-light"] .categoryRail button {
+  background: rgba(255, 255, 255, 0.76);
+  color: var(--text);
+}
+
+.shell[data-template="mediterranean-light"] .categoryRail small {
+  color: var(--muted);
+}
+
+.shell[data-template="mediterranean-light"] .card {
+  border: 1px solid rgba(23, 48, 66, 0.08);
+  background: rgba(255, 255, 255, 0.8);
+}
+
+/* ============================= */
 /* MOBILE-FIRST ADJUSTMENTS      */
 /* ============================= */
 
@@ -958,7 +1183,11 @@
 
   .shell[data-template="classic-delivery"] .cardImage,
   .shell[data-template="dark-premium"] .cardImage,
-  .shell[data-template="coffee-cream"] .cardImage {
+  .shell[data-template="coffee-cream"] .cardImage,
+  .shell[data-template="parrilla-criolla"] .cardImage,
+  .shell[data-template="brunch-pastel"] .cardImage,
+  .shell[data-template="asian-neon"] .cardImage,
+  .shell[data-template="mediterranean-light"] .cardImage {
     min-height: var(--product-image-height);
   }
 }

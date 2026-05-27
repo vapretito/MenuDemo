@@ -72,7 +72,11 @@ export type MenuTemplateId =
   | "dark-premium"
   | "fresh-green"
   | "coffee-cream"
-  | "burger-pop";
+  | "burger-pop"
+  | "parrilla-criolla"
+  | "brunch-pastel"
+  | "asian-neon"
+  | "mediterranean-light";
 
   export type OpeningHour = {
     day: string;
