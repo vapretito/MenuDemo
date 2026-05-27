@@ -228,6 +228,16 @@ const closeProductModal = () => {
     });
   };
 
+  const toggleCategoryView = (categoryId: string) => {
+    if (activeCategory === categoryId && !showAllCategories) {
+      setShowAllCategories(true);
+      return;
+    }
+
+    setActiveCategory(categoryId);
+    setShowAllCategories(false);
+  };
+
 
   const normalizeInstagramUrl = (value?: string | null) => {
     const cleanValue = value?.trim();
@@ -303,10 +313,7 @@ const closeProductModal = () => {
           <button
             className={activeCategory === category.id && !showAllCategories ? styles.categoryActive : ""}
             key={category.id}
-            onClick={() => {
-              setActiveCategory(category.id);
-              setShowAllCategories(false);
-            }}
+            onClick={() => toggleCategoryView(category.id)}
             type="button"
           >
             <span>{category.name}</span>
