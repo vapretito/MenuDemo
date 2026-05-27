@@ -808,6 +808,11 @@
   align-content: center;
   border: 1px solid var(--accent);
   background: var(--surface);
+  color: var(--text);
+}
+
+.shell[data-template="fresh-green"] .categoryRail button small {
+  color: var(--muted);
 }
 
 .shell[data-template="fresh-green"] .categoryRail button.categoryActive {
