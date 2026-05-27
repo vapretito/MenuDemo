@@ -810,6 +810,16 @@
   background: var(--surface);
 }
 
+.shell[data-template="fresh-green"] .categoryRail button.categoryActive {
+  background: var(--accent-soft) !important;
+  color: var(--text) !important;
+  border-color: var(--accent) !important;
+}
+
+.shell[data-template="fresh-green"] .categoryRail button.categoryActive small {
+  color: var(--muted) !important;
+}
+
 .shell[data-template="fresh-green"] .card {
   display: grid;
   grid-template-columns: 6.8rem minmax(0, 1fr);
@@ -1070,6 +1080,26 @@
   border: 1px solid rgba(95, 62, 52, 0.12);
 }
 
+.shell[data-template="brunch-pastel"] .card h3,
+.shell[data-template="brunch-pastel"] .cardFooter strong,
+.shell[data-template="brunch-pastel"] .cartRow strong,
+.shell[data-template="brunch-pastel"] .cartSummary strong,
+.shell[data-template="brunch-pastel"] .quantityBox span {
+  color: var(--text);
+}
+
+.shell[data-template="brunch-pastel"] .cardMeta span:last-child {
+  color: var(--muted);
+}
+
+.shell[data-template="brunch-pastel"] .addButton,
+.shell[data-template="brunch-pastel"] .quantityBox button,
+.shell[data-template="brunch-pastel"] .closeButton,
+.shell[data-template="brunch-pastel"] .clearButton,
+.shell[data-template="brunch-pastel"] .fab {
+  color: #ffffff;
+}
+
 /* ============================= */
 /* 8. ASIAN NEON                 */
 /* Street, electrico, nocturno   */
@@ -1189,6 +1219,26 @@
 .shell[data-template="mediterranean-light"] .card {
   border: 1px solid rgba(23, 48, 66, 0.08);
   background: rgba(255, 255, 255, 0.8);
+}
+
+.shell[data-template="mediterranean-light"] .card h3,
+.shell[data-template="mediterranean-light"] .cardFooter strong,
+.shell[data-template="mediterranean-light"] .cartRow strong,
+.shell[data-template="mediterranean-light"] .cartSummary strong,
+.shell[data-template="mediterranean-light"] .quantityBox span {
+  color: var(--text);
+}
+
+.shell[data-template="mediterranean-light"] .cardMeta span:last-child {
+  color: var(--muted);
+}
+
+.shell[data-template="mediterranean-light"] .addButton,
+.shell[data-template="mediterranean-light"] .quantityBox button,
+.shell[data-template="mediterranean-light"] .closeButton,
+.shell[data-template="mediterranean-light"] .clearButton,
+.shell[data-template="mediterranean-light"] .fab {
+  color: #ffffff;
 }
 
 /* ============================= */
