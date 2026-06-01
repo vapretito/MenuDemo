@@ -407,13 +407,11 @@ export default async function Home() {
             </div>
             <div>
               <h4>Accesos</h4>
-              <Link href="/backoffice/login">Login admin privado</Link>
               <Link href="/admin">Panel restaurante</Link>
-              <Link href="/superadmin">Superadmin</Link>
             </div>
             <div>
               <h4>Contacto</h4>
-              <a href="mailto:hola@menui.oi">hola@menui.oi</a>
+              <a href="mailto:hola@menui.oi">ox.originalz@gmail.com</a>
               <a href="https://wa.me/543516641124">WhatsApp</a>
               <span>14 días gratis y luego {money.format(monthlyPrice)} / mes</span>
             </div>
