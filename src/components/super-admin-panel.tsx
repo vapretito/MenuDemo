@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useEffectEvent, useMemo, useState } from "react";
 import styles from "./super-admin-panel.module.css";
 import { platformSnapshot } from "@/data/platform";
 import { RestaurantCreationInput, RestaurantRecord } from "@/types/platform";
@@ -22,6 +22,13 @@ const defaultForm: RestaurantCreationInput = {
   planId: "basic",
   status: "trial",
   billingMode: "mercado_pago_subscription",
+};
+
+type PasswordResetCredentials = {
+  restaurantName: string;
+  email: string;
+  temporaryPassword: string;
+  loginUrl: string;
 };
 
 type SuperAdminView = "dashboard" | "restaurants" | "billing";
@@ -66,6 +73,12 @@ export function SuperAdminPanel() {
 
   const [isLoadingRestaurants, setIsLoadingRestaurants] = useState(true);
   const [backofficeError, setBackofficeError] = useState<string | null>(null);
+  const [passwordResetRestaurantId, setPasswordResetRestaurantId] = useState<string | null>(null);
+  const [passwordResetError, setPasswordResetError] = useState<string | null>(null);
+  const [passwordResetCredentials, setPasswordResetCredentials] =
+    useState<PasswordResetCredentials | null>(null);
+  const [passwordResetLoading, setPasswordResetLoading] = useState(false);
+  const [passwordResetCopied, setPasswordResetCopied] = useState(false);
 
 
   const [trialDays, setTrialDays] = useState(7);
@@ -105,6 +118,17 @@ export function SuperAdminPanel() {
     );
   }, [restaurants, selectedSlug]);
 
+  const passwordResetTarget = useMemo(() => {
+    if (!passwordResetRestaurantId) {
+      return null;
+    }
+
+    return (
+      restaurants.find((restaurant) => restaurant.id === passwordResetRestaurantId) ??
+      null
+    );
+  }, [passwordResetRestaurantId, restaurants]);
+
   
 
   const stats = useMemo(() => {
@@ -126,7 +150,7 @@ export function SuperAdminPanel() {
     return { activeCount, monthlyRecurring, totalOrders, configuredCount };
   }, [restaurants, cartSummary]);
 
-  const loadRestaurants = async () => {
+  const loadRestaurants = useEffectEvent(async () => {
     setIsLoadingRestaurants(true);
     setBackofficeError(null);
 
@@ -167,10 +191,10 @@ export function SuperAdminPanel() {
     } finally {
       setIsLoadingRestaurants(false);
     }
-  };
+  });
 
 
-  const loadBackofficeCartSummary = async () => {
+  const loadBackofficeCartSummary = useEffectEvent(async () => {
     try {
       const response = await fetch("/api/backoffice/cart-events/summary", {
         cache: "no-store",
@@ -195,12 +219,18 @@ export function SuperAdminPanel() {
     } catch (error) {
       console.error("[Load Backoffice Cart Summary Error]", error);
     }
-  };
+  });
 
 
   useEffect(() => {
-    void loadRestaurants();
-    void loadBackofficeCartSummary();
+    const timeoutId = window.setTimeout(() => {
+      void loadRestaurants();
+      void loadBackofficeCartSummary();
+    }, 0);
+
+    return () => {
+      window.clearTimeout(timeoutId);
+    };
   }, []);
 
   const createRestaurant = async () => {
@@ -501,6 +531,98 @@ export function SuperAdminPanel() {
       );
     } finally {
       setMpLoading(false);
+    }
+  };
+
+  const openPasswordResetModal = (restaurantId: string) => {
+    setPasswordResetRestaurantId(restaurantId);
+    setPasswordResetError(null);
+    setPasswordResetCredentials(null);
+    setPasswordResetLoading(false);
+    setPasswordResetCopied(false);
+  };
+
+  const closePasswordResetModal = () => {
+    if (passwordResetLoading) {
+      return;
+    }
+
+    setPasswordResetRestaurantId(null);
+    setPasswordResetError(null);
+    setPasswordResetCredentials(null);
+    setPasswordResetCopied(false);
+  };
+
+  const confirmPasswordReset = async () => {
+    if (!passwordResetTarget) {
+      return;
+    }
+
+    setPasswordResetLoading(true);
+    setPasswordResetError(null);
+    setPasswordResetCredentials(null);
+    setPasswordResetCopied(false);
+
+    try {
+      const response = await fetch(
+        `/api/backoffice/restaurants/${passwordResetTarget.id}/reset-password`,
+        {
+          method: "POST",
+        }
+      );
+
+      const rawResponse = await response.text();
+
+      let data: {
+        credentials?: PasswordResetCredentials;
+        error?: string;
+      } = {};
+
+      try {
+        data = rawResponse ? JSON.parse(rawResponse) : {};
+      } catch {
+        throw new Error(
+          `La API no devolvio JSON. Status: ${response.status}.`
+        );
+      }
+
+      if (!response.ok || !data.credentials) {
+        throw new Error(
+          data.error ?? "No se pudo restablecer la contrasena del restaurante."
+        );
+      }
+
+      setPasswordResetCredentials(data.credentials);
+    } catch (error) {
+      setPasswordResetError(
+        error instanceof Error
+          ? error.message
+          : "Error restableciendo la contrasena."
+      );
+    } finally {
+      setPasswordResetLoading(false);
+    }
+  };
+
+  const copyPasswordResetCredentials = async () => {
+    if (!passwordResetCredentials) {
+      return;
+    }
+
+    const text = [
+      `Restaurante: ${passwordResetCredentials.restaurantName}`,
+      `Login: ${passwordResetCredentials.loginUrl}`,
+      `Email: ${passwordResetCredentials.email}`,
+      `Contrasena temporal: ${passwordResetCredentials.temporaryPassword}`,
+    ].join("\n");
+
+    try {
+      await navigator.clipboard.writeText(text);
+      setPasswordResetCopied(true);
+    } catch {
+      setPasswordResetError(
+        "No se pudieron copiar las credenciales. Copialas manualmente."
+      );
     }
   };
 
@@ -1179,6 +1301,14 @@ export function SuperAdminPanel() {
       <option value="manual">manual</option>
     </select>
   </div>
+
+  <button
+    className={styles.secondaryAction}
+    onClick={() => openPasswordResetModal(selectedRestaurant.id)}
+    type="button"
+  >
+    Restablecer contrasena
+  </button>
 </div>
               </section>
             </section>
@@ -1251,6 +1381,99 @@ export function SuperAdminPanel() {
           </section>
         ) : null}
       </section>
+
+      {passwordResetTarget ? (
+        <div className={styles.modalOverlay} role="dialog" aria-modal="true">
+          <div className={styles.modalCard}>
+            <div className={styles.modalHeader}>
+              <div>
+                <span className={styles.eyebrow}>Acceso del restaurante</span>
+                <h3>Restablecer contrasena</h3>
+              </div>
+              <button
+                className={styles.modalClose}
+                onClick={closePasswordResetModal}
+                type="button"
+              >
+                Cerrar
+              </button>
+            </div>
+
+            <p className={styles.modalText}>
+              Vas a generar una contrasena temporal para{" "}
+              <strong>{passwordResetTarget.name}</strong>. Despues compartis las
+              credenciales con el cliente para que ingrese y la cambie desde su
+              panel.
+            </p>
+
+            {!passwordResetCredentials ? (
+              <div className={styles.warningBox}>
+                <strong>Confirmacion requerida</strong>
+                <p>
+                  La contrasena actual dejara de servir apenas generes la nueva
+                  temporal.
+                </p>
+              </div>
+            ) : null}
+
+            {passwordResetError ? (
+              <div className={styles.errorBox}>{passwordResetError}</div>
+            ) : null}
+
+            {passwordResetCredentials ? (
+              <div className={styles.credentialsBox}>
+                <span>Email del admin</span>
+                <strong>{passwordResetCredentials.email}</strong>
+                <span>Nueva contrasena temporal</span>
+                <strong>{passwordResetCredentials.temporaryPassword}</strong>
+                <span>Login</span>
+                <strong>{passwordResetCredentials.loginUrl}</strong>
+                <p>
+                  Pedile al cliente que entre con esta contrasena y luego la
+                  cambie desde su admin.
+                </p>
+              </div>
+            ) : null}
+
+            {passwordResetCopied ? (
+              <div className={styles.successBox}>
+                Credenciales copiadas al portapapeles.
+              </div>
+            ) : null}
+
+            <div className={styles.modalActions}>
+              {passwordResetCredentials ? (
+                <button
+                  className={styles.actionButton}
+                  onClick={copyPasswordResetCredentials}
+                  type="button"
+                >
+                  Copiar credenciales
+                </button>
+              ) : (
+                <button
+                  className={styles.deleteButton}
+                  disabled={passwordResetLoading}
+                  onClick={confirmPasswordReset}
+                  type="button"
+                >
+                  {passwordResetLoading
+                    ? "Restableciendo..."
+                    : "Confirmar restablecimiento"}
+                </button>
+              )}
+
+              <button
+                className={styles.secondaryAction}
+                onClick={closePasswordResetModal}
+                type="button"
+              >
+                {passwordResetCredentials ? "Cerrar" : "Cancelar"}
+              </button>
+            </div>
+          </div>
+        </div>
+      ) : null}
     </div>
   );
 }
