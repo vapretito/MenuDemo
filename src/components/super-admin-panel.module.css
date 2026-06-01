@@ -334,6 +334,64 @@
   gap: 0.55rem;
 }
 
+.filterGrid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.75rem;
+}
+
+.filterGrid label {
+  display: grid;
+  gap: 0.35rem;
+}
+
+.filterGrid span {
+  color: var(--muted);
+  font-size: 0.78rem;
+  font-weight: 700;
+}
+
+.filterInput {
+  width: 100%;
+  min-height: 2.65rem;
+  padding: 0.75rem 0.8rem;
+  border: 1px solid var(--border-strong);
+  background: #ffffff;
+  color: var(--text);
+  font: inherit;
+  outline: none;
+}
+
+.filterInput:focus {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px rgba(29, 78, 216, 0.12);
+}
+
+.quickFilters {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.55rem;
+}
+
+.quickFilterButton,
+.quickFilterButtonActive {
+  min-height: 2.35rem;
+  padding: 0.55rem 0.8rem;
+  border: 1px solid var(--border);
+  background: var(--surface-soft);
+  color: var(--muted);
+  font: inherit;
+  font-size: 0.82rem;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.quickFilterButtonActive {
+  border-color: var(--accent);
+  background: var(--accent-soft);
+  color: var(--accent);
+}
+
 .restaurantCard {
   display: flex;
   justify-content: space-between;
@@ -366,6 +424,24 @@
   font-size: 0.72rem;
   font-weight: 700;
   text-transform: uppercase;
+}
+
+.emptyFilterState {
+  display: grid;
+  gap: 0.35rem;
+  padding: 1rem;
+  border: 1px dashed var(--border-strong);
+  background: var(--surface-soft);
+}
+
+.emptyFilterState strong {
+  color: var(--text);
+}
+
+.emptyFilterState p {
+  margin: 0;
+  color: var(--muted);
+  line-height: 1.5;
 }
 
 .detailGrid {
@@ -624,7 +700,8 @@
   .sideNav,
   .createGrid,
   .detailGrid,
-  .billingGrid {
+  .billingGrid,
+  .filterGrid {
     grid-template-columns: 1fr;
   }
 

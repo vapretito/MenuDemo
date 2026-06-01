@@ -32,6 +32,11 @@ type PasswordResetCredentials = {
 };
 
 type SuperAdminView = "dashboard" | "restaurants" | "billing";
+type RestaurantQuickFilter =
+  | "all"
+  | "trials_due"
+  | "suspended"
+  | "pending_payments";
 
 const sidebarItems: Array<{
   id: SuperAdminView;
@@ -54,6 +59,31 @@ const sidebarItems: Array<{
     description: "Mercado Pago",
   },
 ];
+
+const TRIAL_WARNING_DAYS = 7;
+
+const isTrialEndingSoon = (restaurant: RestaurantRecord) => {
+  if (restaurant.status !== "trial" || !restaurant.trialEndsAt) {
+    return false;
+  }
+
+  const trialEndsAt = new Date(restaurant.trialEndsAt).getTime();
+
+  if (Number.isNaN(trialEndsAt)) {
+    return false;
+  }
+
+  const warningWindow = Date.now() + TRIAL_WARNING_DAYS * 24 * 60 * 60 * 1000;
+
+  return trialEndsAt <= warningWindow;
+};
+
+const hasPendingPayment = (restaurant: RestaurantRecord) => {
+  return (
+    restaurant.status === "past_due" ||
+    restaurant.subscription.status === "requires_attention"
+  );
+};
 
 
 
@@ -79,6 +109,13 @@ export function SuperAdminPanel() {
     useState<PasswordResetCredentials | null>(null);
   const [passwordResetLoading, setPasswordResetLoading] = useState(false);
   const [passwordResetCopied, setPasswordResetCopied] = useState(false);
+  const [nameFilter, setNameFilter] = useState("");
+  const [slugFilter, setSlugFilter] = useState("");
+  const [planFilter, setPlanFilter] = useState("all");
+  const [statusFilter, setStatusFilter] = useState("all");
+  const [dnsFilter, setDnsFilter] = useState("all");
+  const [quickFilter, setQuickFilter] =
+    useState<RestaurantQuickFilter>("all");
 
 
   const [trialDays, setTrialDays] = useState(7);
@@ -109,14 +146,6 @@ export function SuperAdminPanel() {
     }>,
   });
 
-
-  const selectedRestaurant = useMemo(() => {
-    return (
-      restaurants.find((restaurant) => restaurant.slug === selectedSlug) ??
-      restaurants[0] ??
-      null
-    );
-  }, [restaurants, selectedSlug]);
 
   const passwordResetTarget = useMemo(() => {
     if (!passwordResetRestaurantId) {
@@ -149,6 +178,72 @@ export function SuperAdminPanel() {
 
     return { activeCount, monthlyRecurring, totalOrders, configuredCount };
   }, [restaurants, cartSummary]);
+
+  const filteredRestaurants = useMemo(() => {
+    const normalizedName = nameFilter.trim().toLowerCase();
+    const normalizedSlug = slugFilter.trim().toLowerCase();
+
+    return restaurants.filter((restaurant) => {
+      if (
+        normalizedName &&
+        !restaurant.name.toLowerCase().includes(normalizedName)
+      ) {
+        return false;
+      }
+
+      if (
+        normalizedSlug &&
+        !restaurant.slug.toLowerCase().includes(normalizedSlug)
+      ) {
+        return false;
+      }
+
+      if (
+        planFilter !== "all" &&
+        restaurant.subscription.planId !== planFilter
+      ) {
+        return false;
+      }
+
+      if (statusFilter !== "all" && restaurant.status !== statusFilter) {
+        return false;
+      }
+
+      if (dnsFilter !== "all" && restaurant.dnsStatus !== dnsFilter) {
+        return false;
+      }
+
+      if (quickFilter === "trials_due" && !isTrialEndingSoon(restaurant)) {
+        return false;
+      }
+
+      if (quickFilter === "suspended" && restaurant.status !== "suspended") {
+        return false;
+      }
+
+      if (quickFilter === "pending_payments" && !hasPendingPayment(restaurant)) {
+        return false;
+      }
+
+      return true;
+    });
+  }, [
+    restaurants,
+    nameFilter,
+    slugFilter,
+    planFilter,
+    statusFilter,
+    dnsFilter,
+    quickFilter,
+  ]);
+
+  const selectedRestaurant = useMemo(() => {
+    return (
+      filteredRestaurants.find((restaurant) => restaurant.slug === selectedSlug) ??
+      filteredRestaurants[0] ??
+      null
+    );
+  }, [filteredRestaurants, selectedSlug]);
 
   const loadRestaurants = useEffectEvent(async () => {
     setIsLoadingRestaurants(true);
@@ -649,7 +744,7 @@ export function SuperAdminPanel() {
     );
   }
 
-  if (!selectedRestaurant) {
+  if (restaurants.length === 0) {
     return (
       <div className={styles.shell}>
         <section className={styles.content}>
@@ -1120,32 +1215,161 @@ export function SuperAdminPanel() {
                     <span className={styles.eyebrow}>Portfolio</span>
                     <h3>Restaurantes</h3>
                   </div>
-                  <span className={styles.countBadge}>{restaurants.length}</span>
+                  <span className={styles.countBadge}>
+                    {filteredRestaurants.length} / {restaurants.length}
+                  </span>
+                </div>
+
+                <div className={styles.filterGrid}>
+                  <label>
+                    <span>Buscar por nombre</span>
+                    <input
+                      className={styles.filterInput}
+                      placeholder="Ej. Subway"
+                      value={nameFilter}
+                      onChange={(event) => setNameFilter(event.target.value)}
+                    />
+                  </label>
+
+                  <label>
+                    <span>Buscar por slug</span>
+                    <input
+                      className={styles.filterInput}
+                      placeholder="Ej. subway"
+                      value={slugFilter}
+                      onChange={(event) => setSlugFilter(event.target.value)}
+                    />
+                  </label>
+
+                  <label>
+                    <span>Plan</span>
+                    <select
+                      className={styles.filterInput}
+                      value={planFilter}
+                      onChange={(event) => setPlanFilter(event.target.value)}
+                    >
+                      <option value="all">Todos</option>
+                      {platformSnapshot.plans.map((plan) => (
+                        <option key={plan.id} value={plan.id}>
+                          {plan.name}
+                        </option>
+                      ))}
+                    </select>
+                  </label>
+
+                  <label>
+                    <span>Estado</span>
+                    <select
+                      className={styles.filterInput}
+                      value={statusFilter}
+                      onChange={(event) => setStatusFilter(event.target.value)}
+                    >
+                      <option value="all">Todos</option>
+                      <option value="trial">trial</option>
+                      <option value="active">active</option>
+                      <option value="past_due">past_due</option>
+                      <option value="suspended">suspended</option>
+                      <option value="cancelled">cancelled</option>
+                      <option value="manual">manual</option>
+                    </select>
+                  </label>
+
+                  <label>
+                    <span>DNS</span>
+                    <select
+                      className={styles.filterInput}
+                      value={dnsFilter}
+                      onChange={(event) => setDnsFilter(event.target.value)}
+                    >
+                      <option value="all">Todos</option>
+                      <option value="configured">configured</option>
+                      <option value="pending">pending</option>
+                    </select>
+                  </label>
+                </div>
+
+                <div className={styles.quickFilters}>
+                  <button
+                    className={
+                      quickFilter === "all"
+                        ? styles.quickFilterButtonActive
+                        : styles.quickFilterButton
+                    }
+                    onClick={() => setQuickFilter("all")}
+                    type="button"
+                  >
+                    Todos
+                  </button>
+                  <button
+                    className={
+                      quickFilter === "trials_due"
+                        ? styles.quickFilterButtonActive
+                        : styles.quickFilterButton
+                    }
+                    onClick={() => setQuickFilter("trials_due")}
+                    type="button"
+                  >
+                    Trials por vencer
+                  </button>
+                  <button
+                    className={
+                      quickFilter === "suspended"
+                        ? styles.quickFilterButtonActive
+                        : styles.quickFilterButton
+                    }
+                    onClick={() => setQuickFilter("suspended")}
+                    type="button"
+                  >
+                    Suspendidos
+                  </button>
+                  <button
+                    className={
+                      quickFilter === "pending_payments"
+                        ? styles.quickFilterButtonActive
+                        : styles.quickFilterButton
+                    }
+                    onClick={() => setQuickFilter("pending_payments")}
+                    type="button"
+                  >
+                    Pagos pendientes
+                  </button>
                 </div>
   
                 <div className={styles.restaurantList}>
-                  {restaurants.map((restaurant) => (
-                    <button
-                      className={`${styles.restaurantCard} ${
-                        selectedSlug === restaurant.slug
-                          ? styles.restaurantCardActive
-                          : ""
-                      }`}
-                      key={restaurant.id}
-                      onClick={() => setSelectedSlug(restaurant.slug)}
-                      type="button"
-                    >
-                      <div>
-                        <strong>{restaurant.name}</strong>
-                        <span>{restaurant.subdomain}</span>
-                      </div>
-                      <small>{restaurant.status}</small>
-                    </button>
-                  ))}
+                  {filteredRestaurants.length ? (
+                    filteredRestaurants.map((restaurant) => (
+                      <button
+                        className={`${styles.restaurantCard} ${
+                          selectedSlug === restaurant.slug
+                            ? styles.restaurantCardActive
+                            : ""
+                        }`}
+                        key={restaurant.id}
+                        onClick={() => setSelectedSlug(restaurant.slug)}
+                        type="button"
+                      >
+                        <div>
+                          <strong>{restaurant.name}</strong>
+                          <span>{restaurant.subdomain}</span>
+                        </div>
+                        <small>{restaurant.status}</small>
+                      </button>
+                    ))
+                  ) : (
+                    <div className={styles.emptyFilterState}>
+                      <strong>Sin coincidencias</strong>
+                      <p>
+                        Ajusta los filtros para ver restaurantes o limpiar la
+                        busqueda actual.
+                      </p>
+                    </div>
+                  )}
                 </div>
               </aside>
   
               <section className={styles.panelSection}>
+                {selectedRestaurant ? (
+                  <>
                 <div className={styles.detailHeader}>
                   <div>
                     <span className={styles.eyebrow}>Ficha operativa</span>
@@ -1310,6 +1534,16 @@ export function SuperAdminPanel() {
     Restablecer contrasena
   </button>
 </div>
+                  </>
+                ) : (
+                  <div className={styles.emptyFilterState}>
+                    <strong>No hay un restaurante visible seleccionado</strong>
+                    <p>
+                      Con los filtros actuales no hay fichas para mostrar en el
+                      detalle.
+                    </p>
+                  </div>
+                )}
               </section>
             </section>
           </div>
@@ -1317,6 +1551,8 @@ export function SuperAdminPanel() {
   
         {activeView === "billing" ? (
           <section className={styles.panelSection}>
+            {selectedRestaurant ? (
+              <>
             <div className={styles.panelHeader}>
               <div>
                 <span className={styles.eyebrow}>Mercado Pago</span>
@@ -1378,6 +1614,16 @@ export function SuperAdminPanel() {
                 </a>
               ) : null}
             </div>
+              </>
+            ) : (
+              <div className={styles.emptyFilterState}>
+                <strong>No hay un restaurante visible para facturacion</strong>
+                <p>
+                  Limpia o ajusta los filtros actuales para volver a seleccionar
+                  un cliente.
+                </p>
+              </div>
+            )}
           </section>
         ) : null}
       </section>

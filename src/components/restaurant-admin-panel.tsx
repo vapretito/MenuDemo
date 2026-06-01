@@ -3041,6 +3041,12 @@ const [cashSuccess, setCashSuccess] = useState<string | null>(null);
         <label className={styles.uploadBox}>
           <span>Logo del restaurante</span>
 
+          <div className={styles.importantUploadNotice}>
+            <strong>Importante:</strong> para aprovechar mucho mejor la
+            plataforma, el logo del restaurante debe subirse sin fondo o con
+            fondo transparente.
+          </div>
+
           <input
             accept="image/*"
             type="file"
