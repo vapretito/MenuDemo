@@ -29,12 +29,6 @@ const plans = [
     price: "$20.000 ARS / mes",
     description: "Plan comercial base para restaurantes.",
   },
-  {
-    id: "test_real",
-    name: "Menui Test Real",
-    price: "$500 ARS / mes",
-    description: "Plan interno para probar Mercado Pago con dinero real.",
-  },
 ];
 
 const slugify = (value: string) =>
@@ -46,6 +40,8 @@ const slugify = (value: string) =>
     .replace(/(^-|-$)/g, "");
 
 const normalizeWhatsapp = (value: string) => value.replace(/\D/g, "").slice(0, 15);
+const ARGENTINA_PREFIX = "54";
+const LOCAL_WHATSAPP_MAX_LENGTH = 13;
 
 export function OnboardingForm() {
   const [form, setForm] = useState({
@@ -69,6 +65,7 @@ export function OnboardingForm() {
     [form.restaurantName, form.slug]
   );
   const generatedSubdomain = suggestedSlug ? `${suggestedSlug}.menui.online` : "";
+  const fullWhatsapp = `${ARGENTINA_PREFIX}${form.whatsapp}`;
 
   const updateField = (name: keyof typeof form, value: string) => {
     setForm((current) => ({
@@ -85,9 +82,9 @@ export function OnboardingForm() {
       return;
     }
 
-    if (form.whatsapp.length < 10 || form.whatsapp.length > 15) {
+    if (form.whatsapp.length < 8 || form.whatsapp.length > LOCAL_WHATSAPP_MAX_LENGTH) {
       setError(
-        "El WhatsApp del local debe tener entre 10 y 15 digitos y corresponder al numero real del delivery."
+        "El WhatsApp del local debe completarse despues del +54 y tener entre 8 y 13 digitos."
       );
       return;
     }
@@ -104,6 +101,7 @@ export function OnboardingForm() {
         },
         body: JSON.stringify({
           ...form,
+          whatsapp: fullWhatsapp,
           slug: suggestedSlug,
           acceptedLegal,
         }),
@@ -238,18 +236,24 @@ export function OnboardingForm() {
 
           <label>
             <span>WhatsApp del local</span>
-            <input
-              value={form.whatsapp}
-              onChange={(event) =>
-                updateField("whatsapp", normalizeWhatsapp(event.target.value))
-              }
-              placeholder="5493510000000"
-              inputMode="numeric"
-              maxLength={15}
-            />
+            <div className={styles.phoneInput}>
+              <span className={styles.phonePrefix}>+54</span>
+              <input
+                value={form.whatsapp}
+                onChange={(event) =>
+                  updateField(
+                    "whatsapp",
+                    normalizeWhatsapp(event.target.value).slice(0, LOCAL_WHATSAPP_MAX_LENGTH)
+                  )
+                }
+                placeholder="93510000000"
+                inputMode="numeric"
+                maxLength={LOCAL_WHATSAPP_MAX_LENGTH}
+              />
+            </div>
             <small className={styles.fieldHelp}>
               Tiene que ser el numero real del WhatsApp donde reciben los pedidos del
-              delivery. Solo se permiten digitos, entre 10 y 15.
+              delivery. Vos completas solo el prefijo y numero local: el +54 ya viene fijo.
             </small>
           </label>
 
@@ -305,11 +309,7 @@ export function OnboardingForm() {
               onClick={() => updateField("planId", plan.id)}
               type="button"
             >
-              {plan.id === "test_real" ? (
-                <small>Prueba real</small>
-              ) : (
-                <small>Plan comercial</small>
-              )}
+              <small>Plan comercial</small>
 
               <strong>{plan.name}</strong>
               <span>{plan.price}</span>

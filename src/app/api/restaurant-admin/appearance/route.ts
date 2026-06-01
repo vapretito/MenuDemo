@@ -37,6 +37,7 @@ export async function PATCH(request: Request) {
     const surfaceAlt = String(body.surfaceAlt ?? selectedTemplate.surfaceAlt).trim();
     const border = String(body.border ?? selectedTemplate.border).trim();
     const text = String(body.text ?? selectedTemplate.text).trim();
+    const titleColor = String(body.titleColor ?? selectedTemplate.titleColor).trim();
     const muted = String(body.muted ?? selectedTemplate.muted).trim();
     const heroGradient = String(
       body.heroGradient ?? selectedTemplate.heroGradient
@@ -56,6 +57,7 @@ export async function PATCH(request: Request) {
         surfaceAlt,
         border,
         text,
+        titleColor,
         muted,
         heroGradient,
       },
@@ -75,6 +77,7 @@ export async function PATCH(request: Request) {
           surfaceAlt: restaurant.surfaceAlt,
           border: restaurant.border,
           text: restaurant.text,
+          titleColor: restaurant.titleColor,
           muted: restaurant.muted,
           heroGradient: restaurant.heroGradient,
         },

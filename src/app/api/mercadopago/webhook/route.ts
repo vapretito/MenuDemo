@@ -207,6 +207,14 @@ async function handlePaymentNotification(resourceId: string) {
 async function handlePreapprovalNotification(resourceId: string) {
   const preapproval = await getMercadoPagoPreapproval(resourceId);
 
+  console.log("[MP Webhook] Preapproval consultada", {
+    id: preapproval.id,
+    status: preapproval.status,
+    externalReference: preapproval.external_reference,
+    payerEmail: preapproval.payer_email,
+    preapproval,
+  });
+
   const nextStatus = mapPreapprovalStatusToRestaurantStatus(preapproval.status);
 
   if (!nextStatus) {

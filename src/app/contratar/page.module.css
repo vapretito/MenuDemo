@@ -151,6 +151,40 @@
     font: inherit;
     outline: none;
   }
+
+  .phoneInput {
+    display: grid;
+    grid-template-columns: auto 1fr;
+    align-items: stretch;
+    border: 1px solid var(--border-strong);
+    background: #ffffff;
+  }
+
+  .phoneInput:focus-within {
+    border-color: var(--accent);
+    box-shadow: 0 0 0 3px rgba(29, 78, 216, 0.12);
+  }
+
+  .phonePrefix {
+    min-width: 4rem;
+    padding: 0.78rem 0.85rem;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    background: var(--surface-soft);
+    border-right: 1px solid var(--border);
+    color: var(--text);
+    font-weight: 800;
+  }
+
+  .phoneInput input {
+    border: 0;
+    box-shadow: none;
+  }
+
+  .phoneInput input:focus {
+    box-shadow: none;
+  }
   
   .formGrid input:focus {
     border-color: var(--accent);

@@ -49,6 +49,7 @@ const slugify = (value: string) =>
     .replace(/(^-|-$)/g, "");
 
 const normalizeWhatsapp = (value: string) => value.replace(/\D/g, "");
+const ARGENTINA_PREFIX = "54";
 
 const getBaseUrl = () => {
   const baseUrl = process.env.MENUI_BASE_URL?.trim() ?? "https://menui.online";
@@ -130,11 +131,15 @@ export async function POST(request: Request) {
       );
     }
 
-    if (whatsapp.length < 10 || whatsapp.length > 15) {
+    if (
+      !whatsapp.startsWith(ARGENTINA_PREFIX) ||
+      whatsapp.length < 10 ||
+      whatsapp.length > 15
+    ) {
       return NextResponse.json(
         {
           error:
-            "El WhatsApp del local debe tener entre 10 y 15 digitos y corresponder al numero real del delivery.",
+            "El WhatsApp del local debe incluir +54 y completarse con un numero valido del delivery.",
         },
         { status: 400 }
       );

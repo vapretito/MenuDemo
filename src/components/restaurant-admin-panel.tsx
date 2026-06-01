@@ -159,6 +159,7 @@ export function RestaurantAdminPanel({
     surfaceAlt: restaurant.theme.surfaceAlt,
     border: restaurant.theme.border,
     text: restaurant.theme.text,
+    titleColor: restaurant.theme.titleColor,
     muted: restaurant.theme.muted,
     heroGradient: restaurant.theme.heroGradient,
   });
@@ -634,6 +635,7 @@ const [cashSuccess, setCashSuccess] = useState<string | null>(null);
       ["--template-surface-alt" as string]: template.surfaceAlt,
       ["--template-border" as string]: template.border,
       ["--template-text" as string]: template.text,
+      ["--template-title" as string]: template.titleColor,
       ["--template-muted" as string]: template.muted,
       ["--template-hero" as string]: template.heroGradient,
     } as CSSProperties);
@@ -652,6 +654,7 @@ const [cashSuccess, setCashSuccess] = useState<string | null>(null);
       surfaceAlt: template.surfaceAlt,
       border: template.border,
       text: template.text,
+      titleColor: template.titleColor,
       muted: template.muted,
       heroGradient: template.heroGradient,
     }));
@@ -3221,6 +3224,23 @@ const [cashSuccess, setCashSuccess] = useState<string | null>(null);
         </label>
 
         <label>
+          <span>Titulo del restaurante</span>
+          <input
+            type="color"
+            value={appearanceDraft.titleColor}
+            onChange={(event) =>
+              updateAppearanceDraft("titleColor", event.target.value)
+            }
+          />
+          <input
+            value={appearanceDraft.titleColor}
+            onChange={(event) =>
+              updateAppearanceDraft("titleColor", event.target.value)
+            }
+          />
+        </label>
+
+        <label>
           <span>Texto secundario</span>
           <input
             type="color"
@@ -3294,6 +3314,7 @@ const [cashSuccess, setCashSuccess] = useState<string | null>(null);
           ["--preview-surface-alt" as string]: appearanceDraft.surfaceAlt,
           ["--preview-border" as string]: appearanceDraft.border,
           ["--preview-text" as string]: appearanceDraft.text,
+          ["--preview-title" as string]: appearanceDraft.titleColor,
           ["--preview-muted" as string]: appearanceDraft.muted,
         }}
       >

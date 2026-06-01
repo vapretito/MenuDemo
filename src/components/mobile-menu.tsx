@@ -274,6 +274,7 @@ const closeProductModal = () => {
       ["--surface-alt" as string]: restaurant.theme.surfaceAlt,
       ["--border" as string]: restaurant.theme.border,
       ["--text" as string]: restaurant.theme.text,
+      ["--hero-title" as string]: restaurant.theme.titleColor,
       ["--muted" as string]: restaurant.theme.muted,
       ["--hero-gradient" as string]: restaurant.theme.heroGradient,
       ["--hero-image" as string]: heroVisualImage

@@ -1011,7 +1011,7 @@
 }
 
 .templateMiniHero strong {
-  color: #ffffff;
+  color: var(--template-title, #ffffff);
   font-size: 0.96rem;
 }
 
@@ -1255,7 +1255,7 @@
 
 .menuPreviewHero h4 {
   margin: 0;
-  color: #ffffff;
+  color: var(--preview-title, #ffffff);
   font-size: 2.2rem;
   line-height: 0.95;
 }
@@ -1457,10 +1457,8 @@
   color: #5f3e34;
 }
 
-.templatePreview[data-template="brunch-pastel"] .templateMiniHero strong,
 .templatePreview[data-template="brunch-pastel"] .templateMiniHero span,
 .templatePreview[data-template="brunch-pastel"] .templateMiniHero small,
-.menuPreview[data-template="brunch-pastel"] .menuPreviewHero h4,
 .menuPreview[data-template="brunch-pastel"] .menuPreviewHero p,
 .menuPreview[data-template="brunch-pastel"] .menuPreviewHero > span,
 .menuPreview[data-template="brunch-pastel"] .previewHeroBadges span {
@@ -1489,10 +1487,8 @@
   border-radius: 0 0 2rem 2rem;
 }
 
-.templatePreview[data-template="mediterranean-light"] .templateMiniHero strong,
 .templatePreview[data-template="mediterranean-light"] .templateMiniHero span,
 .templatePreview[data-template="mediterranean-light"] .templateMiniHero small,
-.menuPreview[data-template="mediterranean-light"] .menuPreviewHero h4,
 .menuPreview[data-template="mediterranean-light"] .menuPreviewHero p,
 .menuPreview[data-template="mediterranean-light"] .menuPreviewHero > span,
 .menuPreview[data-template="mediterranean-light"] .previewHeroBadges span {

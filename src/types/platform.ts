@@ -23,6 +23,7 @@ export type RestaurantTheme = {
   surfaceAlt: string;
   border: string;
   text: string;
+  titleColor: string;
   muted: string;
   heroGradient: string;
 };

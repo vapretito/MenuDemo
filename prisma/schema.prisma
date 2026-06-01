@@ -122,6 +122,7 @@ model Restaurant {
   surfaceAlt   String @default("#f4f2e8")
   border       String @default("#1f4723")
   text         String @default("#162218")
+  titleColor   String @default("#ffffff")
   muted        String @default("#58705c")
   heroGradient String @default("linear-gradient(180deg, #2f7f3a 0%, #1f4723 100%)")
 

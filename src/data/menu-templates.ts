@@ -15,6 +15,7 @@ export type MenuTemplatePreset = {
   surfaceAlt: string;
   border: string;
   text: string;
+  titleColor: string;
   muted: string;
   heroGradient: string;
 };
@@ -35,6 +36,7 @@ export const menuTemplates: MenuTemplatePreset[] = [
     surfaceAlt: "#f4f2e8",
     border: "#1f4723",
     text: "#162218",
+    titleColor: "#ffffff",
     muted: "#58705c",
     heroGradient: "linear-gradient(180deg, #2f7f3a 0%, #1f4723 100%)",
   },
@@ -53,6 +55,7 @@ export const menuTemplates: MenuTemplatePreset[] = [
     surfaceAlt: "#181d25",
     border: "#303846",
     text: "#f8fafc",
+    titleColor: "#ffffff",
     muted: "#a0aec0",
     heroGradient: "linear-gradient(180deg, #111827 0%, #020617 100%)",
   },
@@ -71,6 +74,7 @@ export const menuTemplates: MenuTemplatePreset[] = [
     surfaceAlt: "#ecfdf3",
     border: "#86efac",
     text: "#052e16",
+    titleColor: "#ffffff",
     muted: "#4b7060",
     heroGradient: "linear-gradient(180deg, #16a34a 0%, #14532d 100%)",
   },
@@ -89,6 +93,7 @@ export const menuTemplates: MenuTemplatePreset[] = [
     surfaceAlt: "#f3e4d4",
     border: "#c49a6c",
     text: "#2b1b10",
+    titleColor: "#ffffff",
     muted: "#7a5b45",
     heroGradient: "linear-gradient(180deg, #7c3f1d 0%, #2b1b10 100%)",
   },
@@ -107,6 +112,7 @@ export const menuTemplates: MenuTemplatePreset[] = [
     surfaceAlt: "#ffe8dc",
     border: "#111827",
     text: "#111827",
+    titleColor: "#ffffff",
     muted: "#6b3f2e",
     heroGradient: "linear-gradient(180deg, #ff6b00 0%, #c1121f 100%)",
   },
@@ -125,6 +131,7 @@ export const menuTemplates: MenuTemplatePreset[] = [
     surfaceAlt: "#2a1d17",
     border: "#8b5e34",
     text: "#fff4e6",
+    titleColor: "#ffffff",
     muted: "#d6b08d",
     heroGradient: "linear-gradient(180deg, #3f1d13 0%, #120c0a 100%)",
   },
@@ -143,6 +150,7 @@ export const menuTemplates: MenuTemplatePreset[] = [
     surfaceAlt: "#f6efe8",
     border: "#d7b7a8",
     text: "#5f3e34",
+    titleColor: "#5f3e34",
     muted: "#9f7f72",
     heroGradient: "linear-gradient(180deg, #ffd8c8 0%, #c9e1d1 100%)",
   },
@@ -161,6 +169,7 @@ export const menuTemplates: MenuTemplatePreset[] = [
     surfaceAlt: "#111722",
     border: "#2dd4bf",
     text: "#f7fee7",
+    titleColor: "#f7fee7",
     muted: "#94a3b8",
     heroGradient: "linear-gradient(180deg, #111827 0%, #05070c 100%)",
   },
@@ -179,6 +188,7 @@ export const menuTemplates: MenuTemplatePreset[] = [
     surfaceAlt: "#edf4f8",
     border: "#9db8c7",
     text: "#173042",
+    titleColor: "#173042",
     muted: "#597385",
     heroGradient: "linear-gradient(180deg, #7cc8e9 0%, #f3ead8 100%)",
   },

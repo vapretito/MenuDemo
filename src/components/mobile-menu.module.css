@@ -73,6 +73,7 @@
 .hero h1 {
   font-size: clamp(3rem, 10vw, 6.2rem);
   line-height: 0.92;
+  color: var(--hero-title, #ffffff);
 }
 
 .hero p {
