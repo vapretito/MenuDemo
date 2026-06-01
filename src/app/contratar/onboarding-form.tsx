@@ -1,7 +1,9 @@
 "use client";
 
+import Link from "next/link";
 import { useMemo, useState } from "react";
 import styles from "./page.module.css";
+import { MENUI_TRIAL_DAYS, menuiLegalHighlights } from "@/data/legal";
 
 type OnboardingResult = {
   restaurant: {
@@ -43,6 +45,8 @@ const slugify = (value: string) =>
     .replace(/[^a-z0-9]+/g, "-")
     .replace(/(^-|-$)/g, "");
 
+const normalizeWhatsapp = (value: string) => value.replace(/\D/g, "").slice(0, 15);
+
 export function OnboardingForm() {
   const [form, setForm] = useState({
     restaurantName: "",
@@ -58,11 +62,13 @@ export function OnboardingForm() {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState("");
   const [result, setResult] = useState<OnboardingResult | null>(null);
+  const [acceptedLegal, setAcceptedLegal] = useState(false);
 
   const suggestedSlug = useMemo(
     () => slugify(form.slug || form.restaurantName),
     [form.restaurantName, form.slug]
   );
+  const generatedSubdomain = suggestedSlug ? `${suggestedSlug}.menui.online` : "";
 
   const updateField = (name: keyof typeof form, value: string) => {
     setForm((current) => ({
@@ -72,6 +78,20 @@ export function OnboardingForm() {
   };
 
   const submitOnboarding = async () => {
+    if (!acceptedLegal) {
+      setError(
+        "Tenes que aceptar los terminos y la politica de privacidad para continuar."
+      );
+      return;
+    }
+
+    if (form.whatsapp.length < 10 || form.whatsapp.length > 15) {
+      setError(
+        "El WhatsApp del local debe tener entre 10 y 15 digitos y corresponder al numero real del delivery."
+      );
+      return;
+    }
+
     setIsLoading(true);
     setError("");
     setResult(null);
@@ -85,6 +105,7 @@ export function OnboardingForm() {
         body: JSON.stringify({
           ...form,
           slug: suggestedSlug,
+          acceptedLegal,
         }),
       });
 
@@ -97,9 +118,7 @@ export function OnboardingForm() {
       try {
         data = JSON.parse(rawResponse);
       } catch {
-        throw new Error(
-          `La API no devolvió JSON. Status: ${response.status}.`
-        );
+        throw new Error(`La API no devolvio JSON. Status: ${response.status}.`);
       }
 
       if (!response.ok) {
@@ -107,11 +126,11 @@ export function OnboardingForm() {
       }
 
       setResult(data);
-    } catch (error) {
+    } catch (nextError) {
       setError(
-        error instanceof Error
-          ? error.message
-          : "No se pudo iniciar el alta automática."
+        nextError instanceof Error
+          ? nextError.message
+          : "No se pudo iniciar el alta automatica."
       );
     } finally {
       setIsLoading(false);
@@ -123,10 +142,8 @@ export function OnboardingForm() {
       <main className={styles.shell}>
         <section className={styles.resultCard}>
           <span className={styles.eyebrow}>Alta iniciada</span>
-          <h1>{result.restaurant.name} ya está preparado.</h1>
-          <p>
-            Ahora falta completar el pago para activar el menú y el panel admin.
-          </p>
+          <h1>{result.restaurant.name} ya esta preparado.</h1>
+          <p>Ahora falta completar el pago para activar el menu y el panel admin.</p>
 
           <div className={styles.infoBox}>
             <span>Subdominio</span>
@@ -141,24 +158,18 @@ export function OnboardingForm() {
 
           <div className={styles.credentialsBox}>
             <span>Credenciales temporales</span>
-            <p>
-              Guardalas ahora. La contraseña se muestra una sola vez en esta
-              pantalla.
-            </p>
+            <p>Guardalas ahora. La contrasena se muestra una sola vez en esta pantalla.</p>
             <strong>Email: {result.credentials.email}</strong>
-            <strong>Contraseña: {result.credentials.temporaryPassword}</strong>
+            <strong>Contrasena: {result.credentials.temporaryPassword}</strong>
           </div>
 
-          <a
-  className={styles.primaryButton}
-  href={result.checkoutUrl || result.paymentUrl}
->
-  Continuar a Mercado Pago
-</a>
-
-          <a className={styles.secondaryLink} href="/">
-            Volver a Menui
+          <a className={styles.primaryButton} href={result.checkoutUrl || result.paymentUrl}>
+            Continuar a Mercado Pago
           </a>
+
+          <Link className={styles.secondaryLink} href="/">
+            Volver a Menui
+          </Link>
         </section>
       </main>
     );
@@ -168,12 +179,21 @@ export function OnboardingForm() {
     <main className={styles.shell}>
       <section className={styles.brandPanel}>
         <div>
-          <span className={styles.eyebrow}>Alta automática</span>
-          <h1>Creá tu app menú y activala con Mercado Pago.</h1>
+          <span className={styles.eyebrow}>Alta automatica</span>
+          <h1>Crea tu app menu y activala con Mercado Pago.</h1>
           <p>
-            Completá los datos del restaurante, elegí un plan y generá el acceso
-            inicial. El menú se activa cuando se confirma el pago.
+            Completa los datos del restaurante, elegi un plan y genera el acceso
+            inicial. El menu se activa cuando se confirma el pago.
           </p>
+
+          <div className={styles.summaryCard}>
+            <strong>Condiciones basicas antes de activar</strong>
+            <ul>
+              {menuiLegalHighlights.map((item) => (
+                <li key={item}>{item}</li>
+              ))}
+            </ul>
+          </div>
         </div>
       </section>
 
@@ -188,10 +208,8 @@ export function OnboardingForm() {
             <span>Nombre del restaurante</span>
             <input
               value={form.restaurantName}
-              onChange={(event) =>
-                updateField("restaurantName", event.target.value)
-              }
-              placeholder="Pizzería Roma"
+              onChange={(event) => updateField("restaurantName", event.target.value)}
+              placeholder="Pizzeria Roma"
             />
           </label>
 
@@ -200,7 +218,7 @@ export function OnboardingForm() {
             <input
               value={form.ownerName}
               onChange={(event) => updateField("ownerName", event.target.value)}
-              placeholder="Juan Pérez"
+              placeholder="Juan Perez"
             />
           </label>
 
@@ -209,20 +227,30 @@ export function OnboardingForm() {
             <input
               type="email"
               value={form.ownerEmail}
-              onChange={(event) =>
-                updateField("ownerEmail", event.target.value)
-              }
+              onChange={(event) => updateField("ownerEmail", event.target.value)}
               placeholder="dueno@email.com"
             />
+            <small className={styles.fieldHelp}>
+              Este email debe pertenecer a la cuenta de Mercado Pago que va a pagar la
+              suscripcion.
+            </small>
           </label>
 
           <label>
             <span>WhatsApp del local</span>
             <input
               value={form.whatsapp}
-              onChange={(event) => updateField("whatsapp", event.target.value)}
+              onChange={(event) =>
+                updateField("whatsapp", normalizeWhatsapp(event.target.value))
+              }
               placeholder="5493510000000"
+              inputMode="numeric"
+              maxLength={15}
             />
+            <small className={styles.fieldHelp}>
+              Tiene que ser el numero real del WhatsApp donde reciben los pedidos del
+              delivery. Solo se permiten digitos, entre 10 y 15.
+            </small>
           </label>
 
           <label>
@@ -230,7 +258,7 @@ export function OnboardingForm() {
             <input
               value={form.city}
               onChange={(event) => updateField("city", event.target.value)}
-              placeholder="Córdoba"
+              placeholder="Cordoba"
             />
           </label>
 
@@ -239,53 +267,78 @@ export function OnboardingForm() {
             <input
               value={form.cuisine}
               onChange={(event) => updateField("cuisine", event.target.value)}
-              placeholder="Pizzas, hamburguesas, cafetería..."
+              placeholder="Pizzas, hamburguesas, cafeteria..."
             />
           </label>
 
           <label>
-            <span>Slug deseado</span>
+            <span>Subdominio deseado</span>
             <input
               value={form.slug}
               onChange={(event) => updateField("slug", event.target.value)}
               placeholder="pizzeria-roma"
             />
+            <small className={styles.fieldHelp}>
+              Este seria el nombre base del subdominio de tu restaurante dentro de Menui.
+            </small>
           </label>
 
           <label>
             <span>Subdominio generado</span>
             <input
               readOnly
-              value={suggestedSlug ? `${suggestedSlug}.menui.online` : ""}
+              value={generatedSubdomain}
               placeholder="restaurante.menui.online"
             />
+            <small className={styles.fieldHelpStrong}>
+              Tu subdominio quedaria asi:{" "}
+              <strong>{generatedSubdomain || "nombre.menui.online"}</strong>
+            </small>
           </label>
         </div>
 
         <div className={styles.planGrid}>
-  {plans.map((plan) => (
-    <button
-      key={plan.id}
-      className={
-        form.planId === plan.id
-          ? styles.planCardActive
-          : styles.planCard
-      }
-      onClick={() => updateField("planId", plan.id)}
-      type="button"
-    >
-      {plan.id === "test_real" ? (
-        <small>Prueba real</small>
-      ) : (
-        <small>Plan comercial</small>
-      )}
+          {plans.map((plan) => (
+            <button
+              key={plan.id}
+              className={form.planId === plan.id ? styles.planCardActive : styles.planCard}
+              onClick={() => updateField("planId", plan.id)}
+              type="button"
+            >
+              {plan.id === "test_real" ? (
+                <small>Prueba real</small>
+              ) : (
+                <small>Plan comercial</small>
+              )}
 
-      <strong>{plan.name}</strong>
-      <span>{plan.price}</span>
-      <p>{plan.description}</p>
-    </button>
-  ))}
-</div>
+              <strong>{plan.name}</strong>
+              <span>{plan.price}</span>
+              <p>{plan.description}</p>
+            </button>
+          ))}
+        </div>
+
+        <section className={styles.legalCard} aria-label="Condiciones legales basicas">
+          <strong>Antes de continuar</strong>
+          <ul className={styles.legalList}>
+            {menuiLegalHighlights.map((item) => (
+              <li key={item}>{item}</li>
+            ))}
+          </ul>
+
+          <label className={styles.checkboxRow}>
+            <input
+              type="checkbox"
+              checked={acceptedLegal}
+              onChange={(event) => setAcceptedLegal(event.target.checked)}
+            />
+            <span>
+              Acepto los <Link href="/terminos">Terminos y condiciones</Link> y la{" "}
+              <Link href="/privacidad">Politica de privacidad</Link>, incluyendo el
+              trial de {MENUI_TRIAL_DAYS} dias y la renovacion mensual.
+            </span>
+          </label>
+        </section>
 
         {error ? <p className={styles.errorBox}>{error}</p> : null}
 

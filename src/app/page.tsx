@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import styles from "./page.module.css";
+import { MENUI_MONTHLY_PRICE_ARS, menuiLegalHighlights } from "@/data/legal";
 import { platformSnapshot } from "@/data/platform";
 import type { CSSProperties } from "react";
 import { getRestaurantSlugFromRequestHeaders } from "@/lib/subdomain-routing";
@@ -65,8 +66,7 @@ export default async function Home() {
   }
 
   const featuredRestaurant = platformSnapshot.restaurants[0];
-  const monthlyPrice = 20000;
-  const yearlyEstimate = monthlyPrice * 12;
+  const monthlyPrice = MENUI_MONTHLY_PRICE_ARS;
 
   return (
     <main className={styles.page}>
@@ -125,10 +125,13 @@ export default async function Home() {
           </nav>
 
           <div className={styles.topbarActions}>
+            <Link className={styles.primaryButton} href="/contratar">
+              Contratar
+            </Link>
             <Link className={styles.secondaryButton} href={`/menu/${featuredRestaurant.slug}`}>
               Ver demo
             </Link>
-            <a className={styles.primaryButton} href="#contacto">
+            <a className={styles.secondaryButton} href="#contacto">
               Contacto
             </a>
           </div>
@@ -142,10 +145,13 @@ export default async function Home() {
             </h1>
             <p className={styles.heroLead}>
               Subdominio, panel privado y un carrito simple que convierte el pedido en mensaje de
-              WhatsApp.
+              WhatsApp. El alta y la suscripcion mensual se pagan con Mercado Pago.
             </p>
 
             <div className={styles.heroActions}>
+              <Link className={styles.primaryButton} href="/contratar">
+                Contratar ahora
+              </Link>
               <Link className={styles.primaryButton} href={`/menu/${featuredRestaurant.slug}`}>
                 Probar menú demo
               </Link>
@@ -157,6 +163,7 @@ export default async function Home() {
             <div className={styles.heroNotes} aria-label="Beneficios rápidos">
               <span>14 días gratis</span>
               <span>{money.format(monthlyPrice)} / mes</span>
+              <span>Pago con Mercado Pago</span>
               <span>Sin comisiones por venta</span>
             </div>
           </div>
@@ -202,6 +209,12 @@ export default async function Home() {
             </aside>
           </div>
         </div>
+
+        <div className={styles.legalStrip}>
+          {menuiLegalHighlights.map((item) => (
+            <p key={item}>{item}</p>
+          ))}
+        </div>
       </section>
 
       <section className={styles.logoSection} aria-label="Características de Menui">
@@ -246,7 +259,8 @@ export default async function Home() {
           <h2>Un precio mensual fácil de explicar.</h2>
           <p>
             La membresía mantiene online el menú, el subdominio, el panel y el soporte
-            base del restaurante.
+            base del restaurante. El pago del alta y la renovacion mensual se gestiona con
+            Mercado Pago.
           </p>
         </div>
 
@@ -403,6 +417,12 @@ export default async function Home() {
               <a href="https://wa.me/543516641124">WhatsApp</a>
               <span>14 días gratis y luego {money.format(monthlyPrice)} / mes</span>
             </div>
+            <div>
+              <h4>Legal</h4>
+              <Link href="/terminos">Terminos y condiciones</Link>
+              <Link href="/privacidad">Politica de privacidad</Link>
+              <span>Pedidos sujetos a confirmacion final por WhatsApp.</span>
+            </div>
           </div>
         </footer>
       </section>
@@ -411,9 +431,9 @@ export default async function Home() {
         <Link className={styles.secondaryButton} href={`/menu/${featuredRestaurant.slug}`}>
           Ver menú
         </Link>
-        <a className={styles.primaryButton} href="#contacto">
-          Contacto
-        </a>
+        <Link className={styles.primaryButton} href="/contratar">
+          Contratar
+        </Link>
       </div>
 
       <a

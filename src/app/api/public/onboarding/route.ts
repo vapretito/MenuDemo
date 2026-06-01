@@ -48,6 +48,8 @@ const slugify = (value: string) =>
     .replace(/[^a-z0-9]+/g, "-")
     .replace(/(^-|-$)/g, "");
 
+const normalizeWhatsapp = (value: string) => value.replace(/\D/g, "");
+
 const getBaseUrl = () => {
   const baseUrl = process.env.MENUI_BASE_URL?.trim() ?? "https://menui.online";
 
@@ -62,21 +64,17 @@ const getBaseUrl = () => {
 
 const getRootDomain = () => process.env.MENUI_ROOT_DOMAIN ?? "menui.online";
 
-
 const getTrialEndsAt = (planId: string) => {
   const trialEndsAt = new Date();
 
   if (planId === "test_real") {
-    // Para pruebas: el trial termina en 10 minutos.
     trialEndsAt.setMinutes(trialEndsAt.getMinutes() + 10);
     return trialEndsAt;
   }
 
-  // Plan real: 7 días de prueba.
   trialEndsAt.setDate(trialEndsAt.getDate() + 7);
   return trialEndsAt;
 };
-
 
 export async function GET() {
   return NextResponse.json({
@@ -94,10 +92,11 @@ export async function POST(request: Request) {
     const restaurantName = String(body.restaurantName ?? "").trim();
     const ownerName = String(body.ownerName ?? "").trim();
     const ownerEmail = String(body.ownerEmail ?? "").trim().toLowerCase();
-    const whatsapp = String(body.whatsapp ?? "").trim();
+    const whatsapp = normalizeWhatsapp(String(body.whatsapp ?? "").trim());
     const city = String(body.city ?? "").trim();
     const cuisine = String(body.cuisine ?? "").trim();
     const planId = String(body.planId ?? "basic").trim();
+    const acceptedLegal = Boolean(body.acceptedLegal);
 
     const wantedSlug = String(body.slug ?? "").trim();
     const slug = slugify(wantedSlug || restaurantName);
@@ -106,11 +105,13 @@ export async function POST(request: Request) {
     if (!selectedPlan) {
       return NextResponse.json(
         {
-          error: "Plan inválido. Elegí Menui Basic o Menui Test Real.",
+          error: "Plan invalido. Elegi Menui Basic o Menui Test Real.",
         },
         { status: 400 }
       );
-    }    const subdomain = `${slug}.${getRootDomain()}`.toLowerCase();
+    }
+
+    const subdomain = `${slug}.${getRootDomain()}`.toLowerCase();
 
     if (!restaurantName || !ownerName || !ownerEmail || !whatsapp || !city || !slug) {
       return NextResponse.json(
@@ -124,7 +125,27 @@ export async function POST(request: Request) {
 
     if (!ownerEmail.includes("@")) {
       return NextResponse.json(
-        { error: "El email del responsable no parece válido." },
+        { error: "El email del responsable no parece valido." },
+        { status: 400 }
+      );
+    }
+
+    if (whatsapp.length < 10 || whatsapp.length > 15) {
+      return NextResponse.json(
+        {
+          error:
+            "El WhatsApp del local debe tener entre 10 y 15 digitos y corresponder al numero real del delivery.",
+        },
+        { status: 400 }
+      );
+    }
+
+    if (!acceptedLegal) {
+      return NextResponse.json(
+        {
+          error:
+            "Tenes que aceptar los terminos y la politica de privacidad para continuar.",
+        },
         { status: 400 }
       );
     }
@@ -133,7 +154,7 @@ export async function POST(request: Request) {
       return NextResponse.json(
         {
           error:
-            "Ese slug está reservado por Menui. Probá con otro nombre para el restaurante.",
+            "Ese slug esta reservado por Menui. Proba con otro nombre para el restaurante.",
         },
         { status: 400 }
       );
@@ -141,14 +162,7 @@ export async function POST(request: Request) {
 
     const existingRestaurant = await prisma.restaurant.findFirst({
       where: {
-        OR: [
-          {
-            slug,
-          },
-          {
-            subdomain,
-          },
-        ],
+        OR: [{ slug }, { subdomain }],
       },
       select: {
         id: true,
@@ -158,7 +172,7 @@ export async function POST(request: Request) {
     if (existingRestaurant) {
       return NextResponse.json(
         {
-          error: "Ese slug o subdominio ya está ocupado. Probá con otro nombre.",
+          error: "Ese slug o subdominio ya esta ocupado. Proba con otro nombre.",
         },
         { status: 409 }
       );
@@ -177,7 +191,7 @@ export async function POST(request: Request) {
       return NextResponse.json(
         {
           error:
-            "Ese email ya está registrado. Usá otro email o gestioná el alta desde backoffice.",
+            "Ese email ya esta registrado. Usa otro email o gestiona el alta desde backoffice.",
         },
         { status: 409 }
       );
@@ -185,27 +199,27 @@ export async function POST(request: Request) {
 
     const temporaryPassword = generateTemporaryPassword();
     const passwordHash = hashPassword(temporaryPassword);
-
     const trialEndsAt = getTrialEndsAt(planId);
+
     const restaurant = await prisma.restaurant.create({
       data: {
         name: restaurantName,
         slug,
         subdomain,
         city,
-        cuisine: cuisine || "Gastronomía",
+        cuisine: cuisine || "Gastronomia",
         description:
-          "Restaurante creado desde el alta automática de Menui. Pendiente de activación por pago.",
-          status: RestaurantStatus.TRIAL,
-          trialEndsAt,
-          dnsStatus: DnsStatus.CONFIGURED,
+          "Restaurante creado desde el alta automatica de Menui. Pendiente de activacion por pago.",
+        status: RestaurantStatus.TRIAL,
+        trialEndsAt,
+        dnsStatus: DnsStatus.CONFIGURED,
         billingMode: BillingMode.MERCADO_PAGO_SUBSCRIPTION,
         connectedToDemo: false,
         adminName: ownerName,
         adminWhatsapp: whatsapp,
         customerWhatsapp: whatsapp,
         onboardingNote:
-          "Alta automática creada desde la landing. Pendiente de completar pago de membresía.",
+          "Alta automatica creada desde la landing. Pendiente de completar pago de membresia.",
         users: {
           create: {
             name: ownerName,
@@ -229,7 +243,7 @@ export async function POST(request: Request) {
           create: [
             {
               name: "Destacados",
-              description: "Productos principales del menú.",
+              description: "Productos principales del menu.",
               sortOrder: 0,
             },
           ],
@@ -255,7 +269,7 @@ export async function POST(request: Request) {
     const checkoutUrl = mercadoPagoSubscription.initPoint;
 
     if (!checkoutUrl) {
-      throw new Error("Mercado Pago no devolvió link de pago.");
+      throw new Error("Mercado Pago no devolvio link de pago.");
     }
 
     await prisma.subscription.update({
@@ -311,7 +325,7 @@ export async function POST(request: Request) {
         error:
           error instanceof Error
             ? error.message
-            : "No se pudo completar el alta automática.",
+            : "No se pudo completar el alta automatica.",
       },
       { status: 500 }
     );

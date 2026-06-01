@@ -306,8 +306,7 @@ export async function POST(request: NextRequest) {
   
   const isMercadoPagoSimulation =
     resourceId === "123456" ||
-    body.id === "123456" ||
-    body.action === "updated";
+    String(body.id ?? "").trim() === "123456";
   
   if (isMercadoPagoSimulation) {
     console.log("[MP Webhook] Simulación recibida correctamente", {

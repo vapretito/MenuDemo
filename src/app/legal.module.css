@@ -1,0 +1,106 @@
+.page {
+  min-height: 100vh;
+  padding: 32px 16px 64px;
+  background:
+    radial-gradient(circle at top left, rgba(37, 211, 102, 0.08), transparent 20rem),
+    linear-gradient(180deg, #fffdf8 0%, #f3ecdf 100%);
+  color: #151515;
+}
+
+.shell {
+  width: min(920px, 100%);
+  margin: 0 auto;
+  display: grid;
+  gap: 24px;
+}
+
+.backLink {
+  width: fit-content;
+  color: #264653;
+  font-weight: 800;
+  text-decoration: none;
+}
+
+.hero,
+.content {
+  padding: 28px;
+  border-radius: 28px;
+  background: rgba(255, 255, 255, 0.9);
+  border: 1px solid rgba(17, 17, 17, 0.08);
+  box-shadow: 0 18px 48px rgba(17, 17, 17, 0.08);
+}
+
+.eyebrow {
+  text-transform: uppercase;
+  letter-spacing: 0.16em;
+  font-size: 0.72rem;
+  font-weight: 900;
+  color: #5e6b66;
+}
+
+.hero h1 {
+  margin: 10px 0 12px;
+  font-size: clamp(2.4rem, 5vw, 4.5rem);
+  line-height: 0.92;
+  letter-spacing: -0.08em;
+}
+
+.hero p,
+.content p,
+.content li {
+  color: #4f4b45;
+  line-height: 1.75;
+}
+
+.meta {
+  display: inline-flex;
+  width: fit-content;
+  min-height: 38px;
+  padding: 0 14px;
+  align-items: center;
+  border-radius: 999px;
+  background: #f2eadc;
+  color: #5c564c;
+  font-size: 0.92rem;
+  font-weight: 700;
+}
+
+.content {
+  display: grid;
+  gap: 22px;
+}
+
+.section {
+  display: grid;
+  gap: 10px;
+}
+
+.section h2 {
+  margin: 0;
+  font-size: clamp(1.5rem, 2vw, 2rem);
+  letter-spacing: -0.05em;
+}
+
+.section ul {
+  margin: 0;
+  padding-left: 20px;
+}
+
+.noteBox {
+  padding: 18px;
+  border-radius: 20px;
+  background: #fbf7ef;
+  border: 1px solid rgba(17, 17, 17, 0.08);
+}
+
+@media (max-width: 720px) {
+  .page {
+    padding: 20px 12px 40px;
+  }
+
+  .hero,
+  .content {
+    padding: 20px;
+    border-radius: 22px;
+  }
+}
