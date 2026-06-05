@@ -143,6 +143,15 @@ export type RestaurantCreationInput = {
   billingMode: BillingMode;
 };
 
+export type FeedbackRecord = {
+  id: string;
+  restaurantId: string;
+  restaurantName: string;
+  restaurantSlug: string;
+  message: string;
+  createdAt: string;
+};
+
 export type CartLine = {
   itemId: string;
   quantity: number;

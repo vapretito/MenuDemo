@@ -150,10 +150,25 @@ model Restaurant {
   timeZone String @default("America/Argentina/Cordoba")
 
   cashClosures CashClosure[]
+  feedbackEntries Feedback[]
 
   @@index([status])
   @@index([dnsStatus])
   @@index([billingMode])
+}
+
+model Feedback {
+  id           String   @id @default(cuid())
+  restaurantId String
+  restaurant   Restaurant @relation(fields: [restaurantId], references: [id], onDelete: Cascade)
+
+  message String
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([restaurantId])
+  @@index([createdAt])
 }
 
 model CartEvent {

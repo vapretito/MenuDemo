@@ -49,7 +49,8 @@ type AdminSection =
   | "products"
   | "publishing"
   | "appearance"
-  | "security";
+  | "security"
+  | "help";
 
 
   type PaymentBreakdownItem = {
@@ -80,6 +81,7 @@ const sections: Array<{ id: AdminSection; label: string; hint: string }> = [
   { id: "publishing", label: "Publicación", hint: "Subdominio y WhatsApp" },
   { id: "appearance", label: "Estética", hint: "Diseño del menú" },
   { id: "security", label: "Seguridad", hint: "Cuenta y acceso" },
+  { id: "help", label: "Ayuda", hint: "Feedback, guia y soporte" },
 ];
 
 
@@ -255,6 +257,11 @@ const [passwordDraft, setPasswordDraft] = useState({
 const [passwordSaving, setPasswordSaving] = useState(false);
 const [passwordError, setPasswordError] = useState<string | null>(null);
 const [passwordSuccess, setPasswordSuccess] = useState<string | null>(null);
+
+const [feedbackMessage, setFeedbackMessage] = useState("");
+const [feedbackSaving, setFeedbackSaving] = useState(false);
+const [feedbackError, setFeedbackError] = useState<string | null>(null);
+const [feedbackSuccess, setFeedbackSuccess] = useState<string | null>(null);
 
 
 const [imageUploadingKey, setImageUploadingKey] = useState<string | null>(null);
@@ -594,6 +601,8 @@ const [cashSuccess, setCashSuccess] = useState<string | null>(null);
 
   const publicUrl = `https://${restaurant.subdomain}`;
   const adminWhatsappUrl = `https://wa.me/${restaurant.customerWhatsapp}`;
+  const supportUrl =
+    "https://wa.me/543516641124?text=Hola%2C%20necesito%20ayuda%20con%20mi%20panel%20admin%20de%20Menui";
   const activeMeta = sections.find((section) => section.id === activeSection) ?? sections[0];
   const currentRestaurantSlug = restaurantSlug ?? restaurant.slug;
   const selectedTemplate =
@@ -1246,6 +1255,60 @@ const [cashSuccess, setCashSuccess] = useState<string | null>(null);
       );
     } finally {
       setPasswordSaving(false);
+    }
+  };
+
+  const submitFeedback = async () => {
+    const message = feedbackMessage.trim();
+
+    if (message.length < 10) {
+      setFeedbackError("Escribi un mensaje un poco mas completo antes de enviarlo.");
+      setFeedbackSuccess(null);
+      return;
+    }
+
+    setFeedbackSaving(true);
+    setFeedbackError(null);
+    setFeedbackSuccess(null);
+
+    try {
+      const response = await fetch("/api/restaurant-admin/feedback", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          message,
+        }),
+      });
+
+      const rawResponse = await response.text();
+
+      let data: {
+        ok?: boolean;
+        error?: string;
+      } = {};
+
+      try {
+        data = rawResponse ? JSON.parse(rawResponse) : {};
+      } catch {
+        throw new Error(`La API no devolvio JSON. Status: ${response.status}.`);
+      }
+
+      if (!response.ok || !data.ok) {
+        throw new Error(data.error ?? "No se pudo enviar el feedback.");
+      }
+
+      setFeedbackMessage("");
+      setFeedbackSuccess(
+        "Feedback enviado. El superadmin ya lo puede ver en el backoffice."
+      );
+    } catch (error) {
+      setFeedbackError(
+        error instanceof Error ? error.message : "No se pudo enviar el feedback."
+      );
+    } finally {
+      setFeedbackSaving(false);
     }
   };
 
@@ -3519,6 +3582,98 @@ const [cashSuccess, setCashSuccess] = useState<string | null>(null);
         <li>No compartir la contraseña con empleados no autorizados.</li>
         <li>Cambiarla si alguien deja de trabajar en el restaurante.</li>
       </ul>
+    </section>
+  </div>
+) : null}
+
+
+{activeSection === "help" ? (
+  <div className={styles.stack}>
+    <section className={styles.panel}>
+      <div className={styles.panelHeader}>
+        <div>
+          <span className={styles.eyebrow}>Ayuda</span>
+          <h3>Como funciona este panel</h3>
+          <p>
+            Desde aca administras tu restaurante: editas datos del local, armas
+            categorias, cargas productos, configuras WhatsApp y ajustas la
+            apariencia del menu.
+          </p>
+        </div>
+      </div>
+
+      <ul className={styles.todoList}>
+        <li>Dashboard te muestra resumen operativo y caja diaria estimada.</li>
+        <li>Mi restaurante centraliza los datos comerciales y de contacto.</li>
+        <li>Categorias y Productos sirven para ordenar y vender mejor el menu.</li>
+        <li>Publicacion controla WhatsApp, horarios y pausas manuales.</li>
+        <li>Estetica cambia la imagen visual de tu menu online.</li>
+      </ul>
+    </section>
+
+    <section className={styles.panel}>
+      <div className={styles.panelHeader}>
+        <div>
+          <span className={styles.eyebrow}>Feedback</span>
+          <h3>Mandanos tu mensaje</h3>
+          <p>
+            Lo que escribas aca queda guardado y le llega al superadmin en el
+            backoffice, dentro del submenu Feedback.
+          </p>
+        </div>
+
+        <button
+          className={styles.primaryButton}
+          disabled={feedbackSaving}
+          onClick={submitFeedback}
+          type="button"
+        >
+          {feedbackSaving ? "Enviando..." : "Enviar feedback"}
+        </button>
+      </div>
+
+      {feedbackError ? <div className={styles.errorBox}>{feedbackError}</div> : null}
+      {feedbackSuccess ? <div className={styles.successBox}>{feedbackSuccess}</div> : null}
+
+      <div className={styles.formGrid}>
+        <label className={styles.full}>
+          <span>Mensaje</span>
+          <textarea
+            placeholder="Contanos que mejorarias, que no te resulto claro o que soporte necesitas."
+            rows={6}
+            value={feedbackMessage}
+            onChange={(event) => setFeedbackMessage(event.target.value)}
+          />
+        </label>
+      </div>
+    </section>
+
+    <section className={styles.panel}>
+      <div className={styles.panelHeader}>
+        <div>
+          <span className={styles.eyebrow}>Soporte</span>
+          <h3>Contacto directo</h3>
+          <p>
+            Si necesitas ayuda rapida para configurar el panel o resolver una
+            duda, escribinos por WhatsApp.
+          </p>
+        </div>
+
+        <a
+          className={styles.primaryButton}
+          href={supportUrl}
+          rel="noreferrer"
+          target="_blank"
+        >
+          Hablar con soporte
+        </a>
+      </div>
+
+      <div className={styles.publishCard}>
+        <span>WhatsApp de soporte</span>
+        <strong>3516641124</strong>
+        <p>Disponible para consultas del panel admin y configuracion del menu.</p>
+      </div>
     </section>
   </div>
 ) : null}

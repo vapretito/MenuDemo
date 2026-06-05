@@ -3,7 +3,11 @@
 import { useEffect, useEffectEvent, useMemo, useState } from "react";
 import styles from "./super-admin-panel.module.css";
 import { platformSnapshot } from "@/data/platform";
-import { RestaurantCreationInput, RestaurantRecord } from "@/types/platform";
+import {
+  FeedbackRecord,
+  RestaurantCreationInput,
+  RestaurantRecord,
+} from "@/types/platform";
 
 const money = new Intl.NumberFormat("es-AR", {
   style: "currency",
@@ -31,7 +35,7 @@ type PasswordResetCredentials = {
   loginUrl: string;
 };
 
-type SuperAdminView = "dashboard" | "restaurants" | "billing";
+type SuperAdminView = "dashboard" | "restaurants" | "billing" | "feedback";
 type RestaurantQuickFilter =
   | "all"
   | "trials_due"
@@ -57,6 +61,11 @@ const sidebarItems: Array<{
     id: "billing",
     label: "Membresías",
     description: "Mercado Pago",
+  },
+  {
+    id: "feedback",
+    label: "Feedback",
+    description: "Mensajes de clientes",
   },
 ];
 
@@ -145,6 +154,9 @@ export function SuperAdminPanel() {
       createdAt: string;
     }>,
   });
+  const [feedbackEntries, setFeedbackEntries] = useState<FeedbackRecord[]>([]);
+  const [feedbackLoading, setFeedbackLoading] = useState(true);
+  const [feedbackError, setFeedbackError] = useState<string | null>(null);
 
 
   const passwordResetTarget = useMemo(() => {
@@ -316,11 +328,49 @@ export function SuperAdminPanel() {
     }
   });
 
+  const loadFeedbackEntries = useEffectEvent(async () => {
+    setFeedbackLoading(true);
+    setFeedbackError(null);
+
+    try {
+      const response = await fetch("/api/backoffice/feedback", {
+        cache: "no-store",
+      });
+
+      const rawResponse = await response.text();
+
+      let data: {
+        ok?: boolean;
+        error?: string;
+        feedback?: FeedbackRecord[];
+      } = {};
+
+      try {
+        data = rawResponse ? JSON.parse(rawResponse) : {};
+      } catch {
+        throw new Error(`La API no devolvio JSON. Status: ${response.status}.`);
+      }
+
+      if (!response.ok || !data.ok) {
+        throw new Error(data.error ?? "No se pudo cargar el feedback.");
+      }
+
+      setFeedbackEntries(data.feedback ?? []);
+    } catch (error) {
+      setFeedbackError(
+        error instanceof Error ? error.message : "Error cargando feedback."
+      );
+    } finally {
+      setFeedbackLoading(false);
+    }
+  });
+
 
   useEffect(() => {
     const timeoutId = window.setTimeout(() => {
       void loadRestaurants();
       void loadBackofficeCartSummary();
+      void loadFeedbackEntries();
     }, 0);
 
     return () => {
@@ -841,7 +891,9 @@ export function SuperAdminPanel() {
                 ? "Resumen"
                 : activeView === "restaurants"
                   ? "Gestión comercial"
-                  : "Cobros y suscripciones"}
+                  : activeView === "billing"
+                    ? "Cobros y suscripciones"
+                    : "Mensajes de clientes"}
             </span>
             <h2>
               {activeView === "dashboard"
@@ -1545,6 +1597,56 @@ export function SuperAdminPanel() {
                   </div>
                 )}
               </section>
+            </section>
+          </div>
+        ) : null}
+
+        {activeView === "feedback" ? (
+          <div className={styles.viewStack}>
+            <section className={styles.panelSection}>
+              <div className={styles.panelHeader}>
+                <div>
+                  <span className={styles.eyebrow}>Feedback</span>
+                  <h3>Mensajes enviados desde el panel admin</h3>
+                </div>
+
+                <span className={styles.countBadge}>
+                  {feedbackEntries.length} mensajes
+                </span>
+              </div>
+
+              {feedbackError ? (
+                <div className={styles.errorBox}>{feedbackError}</div>
+              ) : null}
+
+              {feedbackLoading ? (
+                <div className={styles.emptyFilterState}>
+                  <strong>Cargando feedback...</strong>
+                  <p>Estamos trayendo los ultimos mensajes de los clientes.</p>
+                </div>
+              ) : feedbackEntries.length ? (
+                <div className={styles.infoGrid}>
+                  {feedbackEntries.map((entry) => (
+                    <article key={entry.id}>
+                      <span>
+                        {new Date(entry.createdAt).toLocaleString("es-AR")}
+                      </span>
+                      <strong>
+                        {entry.restaurantName} · {entry.restaurantSlug}
+                      </strong>
+                      <p>{entry.message}</p>
+                    </article>
+                  ))}
+                </div>
+              ) : (
+                <div className={styles.emptyFilterState}>
+                  <strong>Todavia no hay feedback guardado</strong>
+                  <p>
+                    Cuando un restaurante deje un mensaje desde Ayuda, lo vas a
+                    ver aca.
+                  </p>
+                </div>
+              )}
             </section>
           </div>
         ) : null}
