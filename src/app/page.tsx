@@ -249,9 +249,86 @@ export default async function Home() {
         </div>
       </section>
 
-      
+      <section className={styles.crmSection}>
+        <div className={styles.crmLayout}>
+          <article className={styles.crmLeadCard}>
+            <span className={styles.eyebrowLight}>Nuevo</span>
+            <h2>MENUI ahora suma CRM liviano para restaurantes.</h2>
+            <p>
+              Además de tomar el pedido por WhatsApp, la plataforma empieza a construir una base
+              simple de clientes para seguir, segmentar y volver a vender.
+            </p>
 
-     
+            <div className={styles.crmStats}>
+              <div>
+                <strong>CRM V1</strong>
+                <span>integrado al flujo real del carrito</span>
+              </div>
+              <div>
+                <strong>Clientes</strong>
+                <span>nuevos, frecuentes e inactivos</span>
+              </div>
+            </div>
+          </article>
+
+          <div className={styles.crmMockup} aria-label="Vista ejemplo del CRM de Menui">
+            <div className={styles.crmMockupHeader}>
+              <div>
+                <span>CRM MENUI</span>
+                <strong>Clientes del restaurante</strong>
+              </div>
+              <b>24 activos</b>
+            </div>
+
+            <div className={styles.crmMockupFilters}>
+              <span className={styles.crmFilterActive}>Nuevos</span>
+              <span>Frecuentes</span>
+              <span>Inactivos 30 días</span>
+            </div>
+
+            <div className={styles.crmMockupList}>
+              <article className={styles.crmCustomerCard}>
+                <div className={styles.crmCustomerTop}>
+                  <strong>Lucía Torres</strong>
+                  <span>Nuevo</span>
+                </div>
+                <p>+54 9 351 622 1840</p>
+                <div className={styles.crmCustomerMeta}>
+                  <small>1 pedido</small>
+                  <small>{money.format(18600)}</small>
+                  <small>Acepta promos</small>
+                </div>
+              </article>
+
+              <article className={styles.crmCustomerCard}>
+                <div className={styles.crmCustomerTop}>
+                  <strong>Martín Vega</strong>
+                  <span>Frecuente</span>
+                </div>
+                <p>+54 9 351 488 9022</p>
+                <div className={styles.crmCustomerMeta}>
+                  <small>4 pedidos</small>
+                  <small>{money.format(74200)}</small>
+                  <small>Último pedido ayer</small>
+                </div>
+              </article>
+
+              <article className={styles.crmCustomerCardMuted}>
+                <div className={styles.crmCustomerTop}>
+                  <strong>Paula Ríos</strong>
+                  <span>Inactivo</span>
+                </div>
+                <p>+54 9 351 305 7711</p>
+                <div className={styles.crmCustomerMeta}>
+                  <small>Sin volver hace 34 días</small>
+                  <small>{money.format(21800)}</small>
+                  <small>Reactivar por WhatsApp</small>
+                </div>
+              </article>
+            </div>
+          </div>
+        </div>
+      </section>
 
       <section className={styles.pricingSection} id="precios">
         <div className={styles.sectionIntro}>

@@ -927,6 +927,237 @@
   background-position: center;
 }
 
+.crmSection {
+  width: 100%;
+  padding: 26px 0 82px;
+}
+
+.crmLayout {
+  width: min(1320px, calc(100% - 32px));
+  margin: 0 auto;
+  display: grid;
+  grid-template-columns: minmax(320px, 0.88fr) minmax(0, 1.12fr);
+  gap: 20px;
+}
+
+.crmLeadCard,
+.crmMockup {
+  border-radius: 28px;
+  border: 1px solid rgba(17, 19, 15, 0.08);
+  box-shadow: 0 14px 40px rgba(17, 17, 17, 0.05);
+}
+
+.crmLeadCard {
+  padding: 30px;
+  display: grid;
+  gap: 18px;
+  color: #f7f1e7;
+  background:
+    radial-gradient(circle at 82% 18%, rgba(37, 211, 102, 0.18), transparent 15rem),
+    linear-gradient(180deg, #1c1b1a 0%, #111111 100%);
+}
+
+.crmLeadCard h2 {
+  margin: 0;
+  max-width: 10ch;
+  font-size: clamp(2.4rem, 4.8vw, 5rem);
+  line-height: 0.9;
+  letter-spacing: -0.075em;
+}
+
+.crmLeadCard p {
+  margin: 0;
+  max-width: 54ch;
+  color: rgba(247, 241, 231, 0.72);
+  line-height: 1.72;
+}
+
+.crmStats {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 14px;
+}
+
+.crmStats div {
+  min-height: 108px;
+  padding: 18px;
+  border-radius: 22px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: rgba(255, 255, 255, 0.05);
+  display: grid;
+  align-content: space-between;
+  gap: 8px;
+}
+
+.crmStats strong {
+  font-size: 1.5rem;
+  letter-spacing: -0.06em;
+}
+
+.crmStats span {
+  color: rgba(247, 241, 231, 0.66);
+  line-height: 1.45;
+}
+
+.crmMockup {
+  position: relative;
+  overflow: hidden;
+  padding: 22px;
+  display: grid;
+  gap: 18px;
+  background:
+    radial-gradient(circle at 86% 8%, rgba(244, 185, 66, 0.18), transparent 14rem),
+    linear-gradient(180deg, rgba(255, 255, 255, 0.88) 0%, rgba(247, 241, 231, 0.96) 100%);
+  animation: crmMockupFloat 5.8s ease-in-out infinite;
+}
+
+.crmMockup::after {
+  content: "";
+  position: absolute;
+  inset: -20%;
+  background: linear-gradient(
+    115deg,
+    transparent 22%,
+    rgba(255, 255, 255, 0.42) 38%,
+    transparent 52%
+  );
+  transform: translateX(-55%) rotate(8deg);
+  pointer-events: none;
+  animation: crmMockupShine 6.4s ease-in-out infinite;
+}
+
+.crmMockupHeader {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.crmMockupHeader span {
+  display: block;
+  margin-bottom: 8px;
+  color: #7a7369;
+  font-size: 0.8rem;
+  font-weight: 800;
+  letter-spacing: 0.16em;
+}
+
+.crmMockupHeader strong {
+  display: block;
+  font-size: clamp(1.6rem, 2.4vw, 2.4rem);
+  line-height: 0.96;
+  letter-spacing: -0.05em;
+}
+
+.crmMockupHeader b {
+  min-height: 40px;
+  padding: 0 14px;
+  border-radius: 999px;
+  display: inline-flex;
+  align-items: center;
+  background: #111111;
+  color: #f6f2ea;
+  font-size: 0.92rem;
+}
+
+.crmMockupFilters {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.crmMockupFilters span {
+  min-height: 38px;
+  padding: 0 14px;
+  border-radius: 999px;
+  display: inline-flex;
+  align-items: center;
+  border: 1px solid rgba(17, 17, 17, 0.1);
+  background: rgba(255, 255, 255, 0.76);
+  color: #5f5b53;
+  font-weight: 700;
+}
+
+.crmFilterActive {
+  background: #25d366 !important;
+  color: #0f1f12 !important;
+  border-color: rgba(37, 211, 102, 0.4) !important;
+}
+
+.crmMockupList {
+  display: grid;
+  gap: 14px;
+}
+
+.crmCustomerCard,
+.crmCustomerCardMuted {
+  position: relative;
+  padding: 18px;
+  border-radius: 22px;
+  border: 1px solid rgba(17, 17, 17, 0.08);
+  background: rgba(255, 255, 255, 0.78);
+  display: grid;
+  gap: 10px;
+  animation: crmCardPulse 5.2s ease-in-out infinite;
+}
+
+.crmCustomerCardMuted {
+  background: rgba(240, 234, 224, 0.9);
+  animation-delay: -1.8s;
+}
+
+.crmCustomerCard:nth-child(2) {
+  animation-delay: -0.9s;
+}
+
+.crmCustomerTop {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.crmCustomerTop strong {
+  font-size: 1.18rem;
+  letter-spacing: -0.04em;
+}
+
+.crmCustomerTop span {
+  min-height: 30px;
+  padding: 0 10px;
+  border-radius: 999px;
+  display: inline-flex;
+  align-items: center;
+  background: rgba(17, 17, 17, 0.08);
+  color: #333333;
+  font-size: 0.82rem;
+  font-weight: 800;
+}
+
+.crmCustomerCard p,
+.crmCustomerCardMuted p {
+  margin: 0;
+  color: #68645c;
+}
+
+.crmCustomerMeta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.crmCustomerMeta small {
+  min-height: 30px;
+  padding: 0 10px;
+  border-radius: 999px;
+  display: inline-flex;
+  align-items: center;
+  background: rgba(17, 17, 17, 0.05);
+  color: #5f5b53;
+  font-size: 0.8rem;
+  font-weight: 700;
+}
+
 .pricingSection .sectionIntro,
 .pricingSection .pricingLayout {
   width: min(1320px, calc(100% - 32px));
@@ -1202,6 +1433,8 @@
   .pricingCardSide,
   .adminCard,
   .adminCardMuted,
+  .crmLeadCard,
+  .crmMockup,
   .contactCardMain {
     animation: scrollReveal both;
     animation-timeline: view();
@@ -1365,6 +1598,48 @@
   }
 }
 
+@keyframes crmMockupFloat {
+  0%,
+  100% {
+    transform: translateY(0) rotate(0deg);
+    box-shadow: 0 14px 40px rgba(17, 17, 17, 0.05);
+  }
+  50% {
+    transform: translateY(-8px) rotate(-0.35deg);
+    box-shadow: 0 24px 54px rgba(17, 17, 17, 0.1);
+  }
+}
+
+@keyframes crmMockupShine {
+  0%,
+  100% {
+    transform: translateX(-55%) rotate(8deg);
+    opacity: 0;
+  }
+  14% {
+    opacity: 0;
+  }
+  28% {
+    opacity: 1;
+  }
+  44% {
+    transform: translateX(55%) rotate(8deg);
+    opacity: 0;
+  }
+}
+
+@keyframes crmCardPulse {
+  0%,
+  100% {
+    transform: translateY(0);
+    border-color: rgba(17, 17, 17, 0.08);
+  }
+  50% {
+    transform: translateY(-3px);
+    border-color: rgba(37, 211, 102, 0.22);
+  }
+}
+
 @media (prefers-reduced-motion: reduce) {
   .topbar,
   .heroCopy,
@@ -1385,9 +1660,16 @@
   .pricingCardSide,
   .adminCard,
   .adminCardMuted,
+  .crmMockup,
+  .crmCustomerCard,
+  .crmCustomerCardMuted,
   .contactCardMain,
   .orbOne,
   .orbTwo {
+    animation: none !important;
+  }
+
+  .crmMockup::after {
     animation: none !important;
   }
 }
@@ -1398,6 +1680,7 @@
   .showcaseSection,
   .pricingLayout,
   .adminGrid,
+  .crmLayout,
   .contactLayout,
   .footer,
   .footerColumns,
@@ -1475,7 +1758,8 @@
   .pricingSection .sectionIntro,
   .pricingSection .pricingLayout,
   .infoSection .sectionIntro,
-  .infoSection .featureGrid {
+  .infoSection .featureGrid,
+  .crmLayout {
     width: min(100% - 24px, 1320px);
   }
 
@@ -1551,6 +1835,7 @@
   }
 
   .infoSection,
+  .crmSection,
   .pricingSection,
   .adminSection,
   .flowSection {
@@ -1567,6 +1852,8 @@
   .pricingCardSide,
   .adminCard,
   .adminCardMuted,
+  .crmLeadCard,
+  .crmMockup,
   .contactCardMain,
   .stepCard,
   .showcaseCard,
@@ -1582,6 +1869,10 @@
 
   .logoTrack span {
     font-size: 0.95rem;
+  }
+
+  .crmStats {
+    grid-template-columns: 1fr;
   }
 
   .contactButton {
