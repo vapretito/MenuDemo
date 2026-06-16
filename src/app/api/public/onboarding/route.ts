@@ -10,6 +10,7 @@ import {
 import { createMercadoPagoPreapproval } from "@/lib/mercadopago";
 import { generateTemporaryPassword, hashPassword } from "@/lib/password";
 import { prisma } from "@/lib/prisma";
+import { normalizeWhatsapp } from "@/lib/whatsapp";
 
 const planCatalog: Record<
   string,
@@ -48,7 +49,6 @@ const slugify = (value: string) =>
     .replace(/[^a-z0-9]+/g, "-")
     .replace(/(^-|-$)/g, "");
 
-const normalizeWhatsapp = (value: string) => value.replace(/\D/g, "");
 const ARGENTINA_PREFIX = "54";
 
 const getBaseUrl = () => {

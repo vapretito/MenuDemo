@@ -1,6 +1,6 @@
 "use client";
 
-import { CSSProperties, useMemo, useState } from "react";
+import { CSSProperties, MouseEvent, useMemo, useState } from "react";
 import styles from "./mobile-menu.module.css";
 import { CartLine, RestaurantRecord } from "@/types/platform";
 import { getRestaurantOpeningStatus } from "@/lib/opening-hours";
@@ -26,6 +26,8 @@ const paymentLabels: Record<PaymentMethod, string> = {
 const buildWhatsappUrl = (
   restaurant: RestaurantRecord,
   cart: CartLine[],
+  customerName: string,
+  customerWhatsapp: string,
   deliveryAddress: string,
   paymentMethod: PaymentMethod,
   customerNote: string
@@ -54,6 +56,9 @@ const footerMessage = restaurant.whatsappFooterMessage?.trim();
 const message = [
   introMessage,
   "",
+  `Nombre: ${customerName.trim()}`,
+  `WhatsApp: ${customerWhatsapp.trim()}`,
+  "",
   lines,
   "",
   `Total estimado: ${money.format(total)}`,
@@ -78,9 +83,13 @@ export function MobileMenu({ restaurant }: MobileMenuProps) {
   const [sortMode, setSortMode] = useState<SortMode>("featured");
   const [showAllCategories, setShowAllCategories] = useState(false);
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
+  const [customerName, setCustomerName] = useState("");
+  const [customerWhatsapp, setCustomerWhatsapp] = useState("");
+  const [marketingConsent, setMarketingConsent] = useState(false);
   const [deliveryAddress, setDeliveryAddress] = useState("");
   const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>("efectivo");
   const [customerNote, setCustomerNote] = useState("");
+  const [checkoutError, setCheckoutError] = useState<string | null>(null);
 
   const [selectedProduct, setSelectedProduct] = useState<
   RestaurantRecord["items"][number] | null
@@ -180,10 +189,22 @@ const closeProductModal = () => {
   const whatsappUrl = buildWhatsappUrl(
     restaurant,
     cart,
+    customerName,
+    customerWhatsapp,
     deliveryAddress,
     paymentMethod,
     customerNote
   );
+
+  const normalizedCustomerWhatsapp = customerWhatsapp.replace(/\D/g, "");
+  const hasValidCustomerWhatsapp =
+    normalizedCustomerWhatsapp.length >= 10 &&
+    normalizedCustomerWhatsapp.length <= 15;
+  const canSubmitCheckout =
+    Boolean(customerName.trim()) &&
+    hasValidCustomerWhatsapp &&
+    cartItems.length > 0 &&
+    canSendOrders;
 
 
   const trackCartEvent = async () => {
@@ -198,6 +219,10 @@ const closeProductModal = () => {
         keepalive: true,
         body: JSON.stringify({
           restaurantSlug: restaurant.slug,
+          customerName,
+          customerWhatsapp,
+          marketingConsent,
+          source: "menu",
           paymentMethod,
           deliveryAddress,
           customerNote,
@@ -236,6 +261,28 @@ const closeProductModal = () => {
 
     setActiveCategory(categoryId);
     setShowAllCategories(false);
+  };
+
+  const handleSendOrderClick = (event: MouseEvent<HTMLAnchorElement>) => {
+    if (!cartItems.length || !canSendOrders) {
+      event.preventDefault();
+      return;
+    }
+
+    if (!customerName.trim()) {
+      event.preventDefault();
+      setCheckoutError("Escribí tu nombre para que el local pueda identificarte.");
+      return;
+    }
+
+    if (!hasValidCustomerWhatsapp) {
+      event.preventDefault();
+      setCheckoutError("Ingresá un WhatsApp válido para continuar con el pedido.");
+      return;
+    }
+
+    setCheckoutError(null);
+    void trackCartEvent();
   };
 
 
@@ -707,6 +754,30 @@ const closeProductModal = () => {
 
             <div className={styles.checkoutForm}>
               <label>
+                <span>Nombre</span>
+                <input
+                  placeholder="Tu nombre"
+                  type="text"
+                  value={customerName}
+                  onChange={(event) => {
+                    setCustomerName(event.target.value);
+                    if (checkoutError) setCheckoutError(null);
+                  }}
+                />
+              </label>
+              <label>
+                <span>WhatsApp</span>
+                <input
+                  placeholder="351 123 4567"
+                  type="tel"
+                  value={customerWhatsapp}
+                  onChange={(event) => {
+                    setCustomerWhatsapp(event.target.value);
+                    if (checkoutError) setCheckoutError(null);
+                  }}
+                />
+              </label>
+              <label>
                 <span>Direccion de entrega</span>
                 <textarea
                   placeholder="Calle, numero, piso, departamento y referencias"
@@ -733,6 +804,15 @@ const closeProductModal = () => {
                   onChange={(event) => setCustomerNote(event.target.value)}
                 />
               </label>
+              <label className={styles.checkoutConsent}>
+                <input
+                  checked={marketingConsent}
+                  type="checkbox"
+                  onChange={(event) => setMarketingConsent(event.target.checked)}
+                />
+                <span>Quiero recibir promociones y novedades del local por WhatsApp.</span>
+              </label>
+              {checkoutError ? <p className={styles.checkoutError}>{checkoutError}</p> : null}
             </div>
           </div>
 
@@ -742,19 +822,12 @@ const closeProductModal = () => {
               <strong>{money.format(total)}</strong>
             </div>
             <a
-  aria-disabled={!cartItems.length || !canSendOrders}
-  className={!cartItems.length || !canSendOrders ? styles.ctaDisabled : styles.cta}
-  href={cartItems.length && canSendOrders ? whatsappUrl : "#"}
+  aria-disabled={!canSubmitCheckout}
+  className={!canSubmitCheckout ? styles.ctaDisabled : styles.cta}
+  href={canSubmitCheckout ? whatsappUrl : "#"}
   rel="noreferrer"
   target="_blank"
-  onClick={(event) => {
-    if (!cartItems.length || !canSendOrders) {
-      event.preventDefault();
-      return;
-    }
-  
-    void trackCartEvent();
-  }}
+  onClick={handleSendOrderClick}
 >
   Enviar pedido por WhatsApp
 </a>

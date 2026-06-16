@@ -1,7 +1,14 @@
 "use client";
 
 import type { CSSProperties } from "react";
-import { ChangeEvent, KeyboardEvent, useEffect, useMemo, useState } from "react";
+import {
+  ChangeEvent,
+  KeyboardEvent,
+  useEffect,
+  useEffectEvent,
+  useMemo,
+  useState,
+} from "react";
 import styles from "./restaurant-admin-panel.module.css";
 import { demoRestaurant } from "@/data/platform";
 import { MenuCategory, MenuItem, OpeningHour, RestaurantRecord } from "@/types/platform";
@@ -44,6 +51,7 @@ const buildHeroGradient = (start: string, end: string) =>
 
 type AdminSection =
   | "overview"
+  | "customers"
   | "identity"
   | "categories"
   | "products"
@@ -72,9 +80,26 @@ type AdminSection =
     createdAt: string;
   };
 
+  type CustomerFilter = "all" | "new" | "frequent" | "inactive30";
+
+  type CustomerRecord = {
+    id: string;
+    name: string;
+    whatsapp: string;
+    marketingConsent: boolean;
+    source: string;
+    firstOrderAt: string;
+    lastOrderAt: string;
+    lastOrderTotalArs: number;
+    orderCount: number;
+    totalSpentArs: number;
+    createdAt: string;
+  };
+
 
 const sections: Array<{ id: AdminSection; label: string; hint: string }> = [
   { id: "overview", label: "Dashboard", hint: "Resumen operativo" },
+  { id: "customers", label: "Clientes", hint: "CRM y seguimiento" },
   { id: "identity", label: "Mi restaurante", hint: "Marca y datos" },
   { id: "categories", label: "Categorías", hint: "Estructura del menú" },
   { id: "products", label: "Productos", hint: "Precios, fotos y estado" },
@@ -83,6 +108,13 @@ const sections: Array<{ id: AdminSection; label: string; hint: string }> = [
   { id: "security", label: "Seguridad", hint: "Cuenta y acceso" },
   { id: "help", label: "Ayuda", hint: "Feedback, guia y soporte" },
 ];
+
+const customerFilterLabels: Record<CustomerFilter, string> = {
+  all: "Todos",
+  new: "Nuevos",
+  frequent: "Frecuentes",
+  inactive30: "Sin volver 30 dias",
+};
 
 
 const defaultOpeningHours: OpeningHour[] = [
@@ -148,6 +180,19 @@ export function RestaurantAdminPanel({
       createdAt: string;
     }>,
   });
+
+  const [customerFilter, setCustomerFilter] = useState<CustomerFilter>("all");
+  const [customerSummary, setCustomerSummary] = useState({
+    filter: "all" as CustomerFilter,
+    totalCustomers: 0,
+    newCustomers: 0,
+    frequentCustomers: 0,
+    inactiveCustomers: 0,
+    consentedCustomers: 0,
+    totalRevenueArs: 0,
+    customers: [] as CustomerRecord[],
+  });
+  const [customerLoading, setCustomerLoading] = useState(false);
 
 
 
@@ -1061,12 +1106,41 @@ const [cashSuccess, setCashSuccess] = useState<string | null>(null);
       console.error("[Load Cart Summary Error]", error);
     }
   };
-  
-  useEffect(() => {
-    void loadCartSummary();
-    void loadCashSummary();
-  }, []);
 
+  const loadCustomerSummary = async (filter: CustomerFilter) => {
+    setCustomerLoading(true);
+
+    try {
+      const response = await fetch(
+        `/api/restaurant-admin/customers/summary?filter=${filter}`,
+        {
+          cache: "no-store",
+        }
+      );
+
+      const rawResponse = await response.text();
+
+      let data: {
+        ok?: boolean;
+        summary?: typeof customerSummary;
+      } = {};
+
+      try {
+        data = rawResponse ? JSON.parse(rawResponse) : {};
+      } catch {
+        return;
+      }
+
+      if (response.ok && data.ok && data.summary) {
+        setCustomerSummary(data.summary);
+      }
+    } catch (error) {
+      console.error("[Load Customer Summary Error]", error);
+    } finally {
+      setCustomerLoading(false);
+    }
+  };
+  
   const saveOrderingStatus = async () => {
     setOrderingSaving(true);
     setOrderingError(null);
@@ -1400,6 +1474,31 @@ const [cashSuccess, setCashSuccess] = useState<string | null>(null);
       console.error("[Load Cash Summary Error]", error);
     }
   };
+
+  const loadDashboardData = useEffectEvent(() => {
+    void loadCartSummary();
+    void loadCashSummary();
+  });
+
+  const loadCustomersData = useEffectEvent((filter: CustomerFilter) => {
+    void loadCustomerSummary(filter);
+  });
+
+  useEffect(() => {
+    const timer = window.setTimeout(() => {
+      loadDashboardData();
+    }, 0);
+
+    return () => window.clearTimeout(timer);
+  }, []);
+
+  useEffect(() => {
+    const timer = window.setTimeout(() => {
+      loadCustomersData(customerFilter);
+    }, 0);
+
+    return () => window.clearTimeout(timer);
+  }, [customerFilter]);
   
   const closeCashDay = async () => {
     setCashSaving(true);
@@ -1909,6 +2008,140 @@ const [cashSuccess, setCashSuccess] = useState<string | null>(null);
             </section>
           </div>
         ) : null}
+
+{activeSection === "customers" ? (
+  <div className={styles.stack}>
+    <section className={styles.heroSummary}>
+      <div className={styles.heroSummaryPrimary}>
+        <span className={styles.eyebrow}>CRM liviano</span>
+        <h3>Clientes y seguimiento</h3>
+        <p>
+          Acá ves quién pidió, quién volvió, quién acepta promos y qué clientes
+          hace tiempo que no reaparecen.
+        </p>
+      </div>
+      <div className={styles.heroSummaryMeta}>
+        <div>
+          <strong>{customerSummary.totalCustomers}</strong>
+          <span>clientes registrados</span>
+        </div>
+        <div>
+          <strong>{money.format(customerSummary.totalRevenueArs)}</strong>
+          <span>total estimado generado</span>
+        </div>
+      </div>
+    </section>
+
+    <section className={`${styles.metricGrid} ${styles.metricGridSummary}`}>
+      <article className={styles.metricCard}>
+        <strong>{customerSummary.totalCustomers}</strong>
+        <span>clientes totales</span>
+      </article>
+      <article className={styles.metricCard}>
+        <strong>{customerSummary.newCustomers}</strong>
+        <span>nuevos en 30 dias</span>
+      </article>
+      <article className={styles.metricCard}>
+        <strong>{customerSummary.frequentCustomers}</strong>
+        <span>frecuentes</span>
+      </article>
+      <article className={styles.metricCard}>
+        <strong>{customerSummary.inactiveCustomers}</strong>
+        <span>sin volver hace 30 dias</span>
+      </article>
+      <article className={styles.metricCard}>
+        <strong>{customerSummary.consentedCustomers}</strong>
+        <span>aceptan promos</span>
+      </article>
+    </section>
+
+    <section className={styles.panel}>
+      <div className={styles.panelHeader}>
+        <div>
+          <span className={styles.eyebrow}>Segmentos</span>
+          <h3>Filtrar clientes</h3>
+          <p>
+            Nuevos: primer pedido en los ultimos 30 dias. Frecuentes: 3 o mas
+            pedidos. Sin volver: ultimo pedido hace 30 dias o mas.
+          </p>
+        </div>
+      </div>
+
+      <div className={styles.filterChips}>
+        {(Object.keys(customerFilterLabels) as CustomerFilter[]).map((filter) => (
+          <button
+            key={filter}
+            className={
+              customerFilter === filter ? styles.filterChipActive : styles.filterChip
+            }
+            onClick={() => setCustomerFilter(filter)}
+            type="button"
+          >
+            {customerFilterLabels[filter]}
+          </button>
+        ))}
+      </div>
+    </section>
+
+    <section className={styles.panel}>
+      <div className={styles.panelHeader}>
+        <div>
+          <span className={styles.eyebrow}>Base de clientes</span>
+          <h3>Listado del segmento</h3>
+        </div>
+      </div>
+
+      <div className={styles.overviewFeed}>
+        {customerLoading ? (
+          <p>Cargando clientes...</p>
+        ) : customerSummary.customers.length ? (
+          customerSummary.customers.map((customer) => (
+            <article
+              className={`${styles.publishCard} ${styles.customerCard}`}
+              key={customer.id}
+            >
+              <span>
+                Ultimo pedido {new Date(customer.lastOrderAt).toLocaleDateString("es-AR")}
+              </span>
+              <strong>{customer.name}</strong>
+              <p>{customer.whatsapp}</p>
+              <p>
+                {customer.orderCount} pedidos · {money.format(customer.totalSpentArs)} acumulado
+              </p>
+              <p>
+                Ticket mas reciente {money.format(customer.lastOrderTotalArs)} · Origen{" "}
+                {customer.source}
+              </p>
+              <p>
+                Primer pedido {new Date(customer.firstOrderAt).toLocaleDateString("es-AR")}
+              </p>
+              <div className={styles.customerCardFooter}>
+                <span>
+                  {customer.marketingConsent
+                    ? "Acepta promociones"
+                    : "Sin consentimiento promocional"}
+                </span>
+                <a
+                  className={styles.secondaryButton}
+                  href={`https://wa.me/${customer.whatsapp}`}
+                  rel="noreferrer"
+                  target="_blank"
+                >
+                  Abrir WhatsApp
+                </a>
+              </div>
+            </article>
+          ))
+        ) : (
+          <p>
+            Todavia no hay clientes en este segmento. Se cargan cuando alguien
+            envía un pedido con nombre y WhatsApp.
+          </p>
+        )}
+      </div>
+    </section>
+  </div>
+) : null}
 
 {activeSection === "identity" ? (
   <section className={styles.panel}>

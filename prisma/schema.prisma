@@ -140,6 +140,7 @@ model Restaurant {
   whatsappFooterMessage String @default("Por favor confirmar disponibilidad y tiempo estimado.")
 
   cartEvents CartEvent[]
+  customers  Customer[]
 
   isAcceptingOrders Boolean @default(true)
   closedMessage     String  @default("Estamos cerrados por ahora. Podés revisar el menú y consultarnos por WhatsApp.")
@@ -172,21 +173,55 @@ model Feedback {
 }
 
 model CartEvent {
-  id             String   @id @default(cuid())
-  restaurantId   String
-  restaurantSlug String
-  totalArs       Int
-  itemCount      Int
-  paymentMethod  String
-  deliveryAddress String?
-  customerNote    String?
-  itemsSnapshot  Json
-  createdAt      DateTime @default(now())
+  id               String   @id @default(cuid())
+  restaurantId     String
+  restaurantSlug   String
+  customerId       String?
+  customerName     String
+  customerWhatsapp String
+  marketingConsent Boolean  @default(false)
+  source           String   @default("menu")
+  totalArs         Int
+  itemCount        Int
+  paymentMethod    String
+  deliveryAddress  String?
+  customerNote     String?
+  itemsSnapshot    Json
+  createdAt        DateTime @default(now())
 
   restaurant Restaurant @relation(fields: [restaurantId], references: [id], onDelete: Cascade)
+  customer   Customer?  @relation(fields: [customerId], references: [id], onDelete: SetNull)
 
   @@index([restaurantId])
   @@index([restaurantSlug])
+  @@index([customerId])
+  @@index([customerWhatsapp])
+  @@index([createdAt])
+}
+
+model Customer {
+  id                 String   @id @default(cuid())
+  restaurantId       String
+  name               String
+  whatsapp           String
+  marketingConsent   Boolean  @default(false)
+  marketingConsentAt DateTime?
+  source             String   @default("menu")
+  firstOrderAt       DateTime @default(now())
+  lastOrderAt        DateTime @default(now())
+  lastOrderTotalArs  Int      @default(0)
+  orderCount         Int      @default(0)
+  totalSpentArs      Int      @default(0)
+  createdAt          DateTime @default(now())
+  updatedAt          DateTime @updatedAt
+
+  restaurant Restaurant @relation(fields: [restaurantId], references: [id], onDelete: Cascade)
+  cartEvents  CartEvent[]
+
+  @@unique([restaurantId, whatsapp])
+  @@index([restaurantId])
+  @@index([lastOrderAt])
+  @@index([orderCount])
   @@index([createdAt])
 }
 

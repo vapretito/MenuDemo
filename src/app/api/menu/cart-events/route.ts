@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
+import { isValidWhatsapp, normalizeWhatsapp } from "@/lib/whatsapp";
 
 type CartEventItemInput = {
   itemId: string;
@@ -11,6 +12,12 @@ export async function POST(request: Request) {
     const body = await request.json();
 
     const restaurantSlug = String(body.restaurantSlug ?? "").trim().toLowerCase();
+    const customerName = String(body.customerName ?? "").trim();
+    const customerWhatsapp = normalizeWhatsapp(
+      String(body.customerWhatsapp ?? "").trim()
+    );
+    const marketingConsent = Boolean(body.marketingConsent);
+    const source = String(body.source ?? "menu").trim().toLowerCase() || "menu";
     const paymentMethod = String(body.paymentMethod ?? "").trim() || "efectivo";
     const deliveryAddress = String(body.deliveryAddress ?? "").trim();
     const customerNote = String(body.customerNote ?? "").trim();
@@ -26,9 +33,16 @@ export async function POST(request: Request) {
       }))
       .filter((item) => item.itemId && item.quantity > 0);
 
-    if (!restaurantSlug || cleanItems.length === 0) {
+    if (!restaurantSlug || !customerName || !customerWhatsapp || cleanItems.length === 0) {
       return NextResponse.json(
-        { error: "Faltan datos del restaurante o del carrito." },
+        { error: "Faltan datos del restaurante, del cliente o del carrito." },
+        { status: 400 }
+      );
+    }
+
+    if (!isValidWhatsapp(customerWhatsapp)) {
+      return NextResponse.json(
+        { error: "El WhatsApp del cliente no es valido." },
         { status: 400 }
       );
     }
@@ -82,18 +96,66 @@ export async function POST(request: Request) {
 
     const totalArs = snapshot.reduce((sum, item) => sum + item.subtotalArs, 0);
     const itemCount = snapshot.reduce((sum, item) => sum + item.quantity, 0);
+    const now = new Date();
 
-    const event = await prisma.cartEvent.create({
-      data: {
-        restaurantId: restaurant.id,
-        restaurantSlug: restaurant.slug,
-        totalArs,
-        itemCount,
-        paymentMethod,
-        deliveryAddress: deliveryAddress || null,
-        customerNote: customerNote || null,
-        itemsSnapshot: snapshot,
-      },
+    const event = await prisma.$transaction(async (tx) => {
+      const customer = await tx.customer.upsert({
+        where: {
+          restaurantId_whatsapp: {
+            restaurantId: restaurant.id,
+            whatsapp: customerWhatsapp,
+          },
+        },
+        create: {
+          restaurantId: restaurant.id,
+          name: customerName,
+          whatsapp: customerWhatsapp,
+          marketingConsent,
+          marketingConsentAt: marketingConsent ? now : null,
+          source,
+          firstOrderAt: now,
+          lastOrderAt: now,
+          lastOrderTotalArs: totalArs,
+          orderCount: 1,
+          totalSpentArs: totalArs,
+        },
+        update: {
+          name: customerName,
+          source,
+          lastOrderAt: now,
+          lastOrderTotalArs: totalArs,
+          orderCount: {
+            increment: 1,
+          },
+          totalSpentArs: {
+            increment: totalArs,
+          },
+          ...(marketingConsent
+            ? {
+                marketingConsent: true,
+                marketingConsentAt: now,
+              }
+            : {}),
+        },
+      });
+
+      return tx.cartEvent.create({
+        data: {
+          restaurantId: restaurant.id,
+          restaurantSlug: restaurant.slug,
+          customerId: customer.id,
+          customerName,
+          customerWhatsapp,
+          marketingConsent,
+          source,
+          totalArs,
+          itemCount,
+          paymentMethod,
+          deliveryAddress: deliveryAddress || null,
+          customerNote: customerNote || null,
+          itemsSnapshot: snapshot,
+        },
+      });
     });
 
     return NextResponse.json({
