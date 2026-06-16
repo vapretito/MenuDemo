@@ -14,15 +14,47 @@ const displayFont = Sora({
 });
 
 const META_PIXEL_ID = process.env.NEXT_PUBLIC_META_PIXEL_ID;
+const SITE_URL = "https://www.menui.online";
+const LOGO_PATH = "/menui-logo.svg";
 
 export const metadata: Metadata = {
   title: "Menui | Menu mobile para restaurantes",
   description:
     "Plataforma SaaS para restaurantes con menu mobile-first, carrito por WhatsApp, panel admin y superadmin con suscripciones en Mercado Pago.",
+  metadataBase: new URL(SITE_URL),
   icons: {
-    icon: "/menui-logo.svg",
-    shortcut: "/menui-logo.svg",
-    apple: "/menui-logo.svg",
+    icon: [
+      {
+        url: LOGO_PATH,
+        type: "image/svg+xml",
+      },
+    ],
+    shortcut: [LOGO_PATH],
+    apple: [LOGO_PATH],
+  },
+  openGraph: {
+    title: "Menui | Menu mobile para restaurantes",
+    description:
+      "Plataforma SaaS para restaurantes con menu mobile-first, carrito por WhatsApp, panel admin y superadmin con suscripciones en Mercado Pago.",
+    url: SITE_URL,
+    siteName: "Menui",
+    locale: "es_AR",
+    type: "website",
+    images: [
+      {
+        url: LOGO_PATH,
+        width: 120,
+        height: 120,
+        alt: "Logo de Menui",
+      },
+    ],
+  },
+  twitter: {
+    card: "summary",
+    title: "Menui | Menu mobile para restaurantes",
+    description:
+      "Plataforma SaaS para restaurantes con menu mobile-first, carrito por WhatsApp, panel admin y superadmin con suscripciones en Mercado Pago.",
+    images: [LOGO_PATH],
   },
 };
 
@@ -31,9 +63,24 @@ export default function RootLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  const organizationSchema = {
+    "@context": "https://schema.org",
+    "@type": "Organization",
+    name: "Menui",
+    url: SITE_URL,
+    logo: `${SITE_URL}${LOGO_PATH}`,
+  };
+
   return (
     <html lang="es">
       <body className={`${bodyFont.variable} ${displayFont.variable}`}>
+        <Script
+          id="organization-schema"
+          type="application/ld+json"
+          strategy="beforeInteractive"
+        >
+          {JSON.stringify(organizationSchema)}
+        </Script>
         {META_PIXEL_ID ? (
           <>
             <Script id="meta-pixel" strategy="afterInteractive">
