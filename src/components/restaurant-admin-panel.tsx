@@ -602,7 +602,7 @@ const [cashSuccess, setCashSuccess] = useState<string | null>(null);
   const publicUrl = `https://${restaurant.subdomain}`;
   const adminWhatsappUrl = `https://wa.me/${restaurant.customerWhatsapp}`;
   const supportUrl =
-    "https://wa.me/543516641124?text=Hola%2C%20necesito%20ayuda%20con%20mi%20panel%20admin%20de%20Menui";
+    "https://wa.me/543518794501?text=Hola%2C%20necesito%20ayuda%20con%20mi%20panel%20admin%20de%20Menui";
   const activeMeta = sections.find((section) => section.id === activeSection) ?? sections[0];
   const currentRestaurantSlug = restaurantSlug ?? restaurant.slug;
   const selectedTemplate =
@@ -3671,7 +3671,7 @@ const [cashSuccess, setCashSuccess] = useState<string | null>(null);
 
       <div className={styles.publishCard}>
         <span>WhatsApp de soporte</span>
-        <strong>3516641124</strong>
+        <strong>3518794501</strong>
         <p>Disponible para consultas del panel admin y configuracion del menu.</p>
       </div>
     </section>

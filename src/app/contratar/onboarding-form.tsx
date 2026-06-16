@@ -29,6 +29,12 @@ const plans = [
     price: "$20.000 ARS / mes",
     description: "Plan comercial base para restaurantes.",
   },
+  // {
+  //   id: "test_real",
+  //   name: "Menui Test Real",
+  //   price: "$500 ARS / mes",
+  //   description: "Plan interno para probar Mercado Pago con dinero real.",
+  // },
 ];
 
 const slugify = (value: string) =>
@@ -309,7 +315,11 @@ export function OnboardingForm() {
               onClick={() => updateField("planId", plan.id)}
               type="button"
             >
-              <small>Plan comercial</small>
+              {plan.id === "test_real" ? (
+                <small>Prueba real</small>
+              ) : (
+                <small>Plan comercial</small>
+              )}
 
               <strong>{plan.name}</strong>
               <span>{plan.price}</span>
