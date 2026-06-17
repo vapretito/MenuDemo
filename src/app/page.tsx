@@ -490,7 +490,7 @@ export default async function Home() {
               <h4>Contacto</h4>
               <a href="mailto:hola@menui.oi">ox.originalz@gmail.com</a>
               <a href="https://wa.me/543518794501">WhatsApp</a>
-              <span>14 días gratis y luego {money.format(monthlyPrice)} / mes</span>
+              <span>7 días gratis y luego {money.format(monthlyPrice)} / mes</span>
             </div>
             <div>
               <h4>Legal</h4>
