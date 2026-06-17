@@ -15,22 +15,26 @@ const displayFont = Sora({
 
 const META_PIXEL_ID = process.env.NEXT_PUBLIC_META_PIXEL_ID;
 const SITE_URL = "https://www.menui.online";
-const LOGO_PATH = "/menui-logo.svg";
+const FAVICON_PATH = "/logos/menui-logo-purple.png";
+const SOCIAL_IMAGE_PATH = "/logos/menui-logo-purple.png";
 
 export const metadata: Metadata = {
   title: "Menui | Menu mobile para restaurantes",
   description:
     "Plataforma SaaS para restaurantes con menu mobile-first, carrito por WhatsApp, panel admin y superadmin con suscripciones en Mercado Pago.",
   metadataBase: new URL(SITE_URL),
+  alternates: {
+    canonical: SITE_URL,
+  },
   icons: {
     icon: [
       {
-        url: LOGO_PATH,
-        type: "image/svg+xml",
+        url: FAVICON_PATH,
+        type: "image/png",
       },
     ],
-    shortcut: [LOGO_PATH],
-    apple: [LOGO_PATH],
+    shortcut: [FAVICON_PATH],
+    apple: [FAVICON_PATH],
   },
   openGraph: {
     title: "Menui | Menu mobile para restaurantes",
@@ -42,9 +46,9 @@ export const metadata: Metadata = {
     type: "website",
     images: [
       {
-        url: LOGO_PATH,
-        width: 120,
-        height: 120,
+        url: SOCIAL_IMAGE_PATH,
+        width: 1254,
+        height: 1254,
         alt: "Logo de Menui",
       },
     ],
@@ -54,7 +58,7 @@ export const metadata: Metadata = {
     title: "Menui | Menu mobile para restaurantes",
     description:
       "Plataforma SaaS para restaurantes con menu mobile-first, carrito por WhatsApp, panel admin y superadmin con suscripciones en Mercado Pago.",
-    images: [LOGO_PATH],
+    images: [SOCIAL_IMAGE_PATH],
   },
 };
 
@@ -68,7 +72,7 @@ export default function RootLayout({
     "@type": "Organization",
     name: "Menui",
     url: SITE_URL,
-    logo: `${SITE_URL}${LOGO_PATH}`,
+    logo: `${SITE_URL}${FAVICON_PATH}`,
   };
 
   return (
