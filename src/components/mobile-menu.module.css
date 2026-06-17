@@ -480,8 +480,10 @@
   justify-content: center;
   min-height: 3rem;
   padding: 0.9rem 1rem;
+  border: 0;
   background: #25d366;
   color: #102415;
+  cursor: pointer;
   font-weight: 800;
 }
 

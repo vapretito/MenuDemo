@@ -1,0 +1,183 @@
+.shell {
+  min-height: 100vh;
+  padding: 2rem 1rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background:
+    radial-gradient(circle at top, rgba(37, 211, 102, 0.18), transparent 32%),
+    linear-gradient(180deg, #081114 0%, #0f1c20 100%);
+  color: #f4f7f6;
+}
+
+.card {
+  width: min(100%, 760px);
+  padding: 1.5rem;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 28px;
+  background: rgba(8, 14, 17, 0.88);
+  box-shadow: 0 30px 80px rgba(0, 0, 0, 0.32);
+}
+
+.eyebrow {
+  display: inline-flex;
+  margin-bottom: 0.75rem;
+  padding: 0.35rem 0.7rem;
+  border-radius: 999px;
+  background: rgba(37, 211, 102, 0.16);
+  color: #7bf2a8;
+  font-size: 0.78rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.card h1 {
+  margin: 0;
+  font-size: clamp(2rem, 4vw, 3rem);
+}
+
+.card > p {
+  margin: 0.9rem 0 0;
+  color: rgba(244, 247, 246, 0.78);
+  line-height: 1.6;
+}
+
+.summaryGrid {
+  display: grid;
+  gap: 1rem;
+  margin-top: 1.5rem;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.summaryBox,
+.orderBox,
+.noteBox {
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 22px;
+  background: rgba(255, 255, 255, 0.04);
+}
+
+.summaryBox {
+  padding: 1rem;
+}
+
+.summaryBox span,
+.orderHeader span,
+.noteBox span {
+  display: block;
+  color: rgba(244, 247, 246, 0.62);
+  font-size: 0.85rem;
+  margin-bottom: 0.35rem;
+}
+
+.summaryBox strong,
+.orderHeader strong,
+.orderRow strong {
+  display: block;
+}
+
+.summaryBox small,
+.orderRow small {
+  color: rgba(244, 247, 246, 0.6);
+}
+
+.orderBox {
+  margin-top: 1rem;
+  overflow: hidden;
+}
+
+.orderHeader {
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 1rem 1rem 0.85rem;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.orderList {
+  padding: 0.35rem 1rem 1rem;
+}
+
+.orderRow {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 0.85rem 0;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.orderRow:last-child {
+  border-bottom: 0;
+}
+
+.noteBox {
+  margin: 0 1rem 1rem;
+  padding: 1rem;
+}
+
+.noteBox p {
+  margin: 0;
+  color: rgba(244, 247, 246, 0.86);
+  line-height: 1.5;
+}
+
+.actions {
+  display: flex;
+  gap: 0.85rem;
+  margin-top: 1.5rem;
+}
+
+.primaryButton,
+.secondaryButton {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 3.25rem;
+  padding: 0.95rem 1.15rem;
+  border-radius: 18px;
+  font-weight: 800;
+  text-decoration: none;
+}
+
+.primaryButton {
+  border: 0;
+  background: #25d366;
+  color: #102415;
+  cursor: pointer;
+}
+
+.secondaryButton {
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  background: transparent;
+  color: #f4f7f6;
+}
+
+.footnote {
+  margin-top: 1rem;
+  color: rgba(244, 247, 246, 0.56);
+  font-size: 0.92rem;
+}
+
+@media (max-width: 720px) {
+  .shell {
+    padding: 1rem 0.75rem;
+  }
+
+  .card {
+    padding: 1.1rem;
+    border-radius: 24px;
+  }
+
+  .summaryGrid,
+  .actions {
+    grid-template-columns: 1fr;
+    flex-direction: column;
+  }
+
+  .orderHeader,
+  .orderRow {
+    flex-direction: column;
+  }
+}

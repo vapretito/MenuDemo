@@ -1,9 +1,14 @@
 "use client";
 
-import { CSSProperties, MouseEvent, useMemo, useState } from "react";
+import { CSSProperties, useMemo, useState } from "react";
+import { useRouter } from "next/navigation";
 import styles from "./mobile-menu.module.css";
 import { CartLine, RestaurantRecord } from "@/types/platform";
 import { getRestaurantOpeningStatus } from "@/lib/opening-hours";
+import {
+  buildOrderConfirmationStorageKey,
+  type ConfirmOrderPayload,
+} from "@/lib/order-confirmation";
 const money = new Intl.NumberFormat("es-AR", {
   style: "currency",
   currency: "ARS",
@@ -77,6 +82,7 @@ const message = [
 };
 
 export function MobileMenu({ restaurant }: MobileMenuProps) {
+  const router = useRouter();
   const [activeCategory, setActiveCategory] = useState(restaurant.categories[0]?.id ?? "");
   const [cart, setCart] = useState<CartLine[]>([]);
   const [query, setQuery] = useState("");
@@ -263,26 +269,49 @@ const closeProductModal = () => {
     setShowAllCategories(false);
   };
 
-  const handleSendOrderClick = (event: MouseEvent<HTMLAnchorElement>) => {
+  const handleSendOrderClick = () => {
     if (!cartItems.length || !canSendOrders) {
-      event.preventDefault();
       return;
     }
 
     if (!customerName.trim()) {
-      event.preventDefault();
       setCheckoutError("Escribí tu nombre para que el local pueda identificarte.");
       return;
     }
 
     if (!hasValidCustomerWhatsapp) {
-      event.preventDefault();
       setCheckoutError("Ingresá un WhatsApp válido para continuar con el pedido.");
       return;
     }
 
     setCheckoutError(null);
     void trackCartEvent();
+
+    const confirmationPayload: ConfirmOrderPayload = {
+      restaurantName: restaurant.name,
+      restaurantSlug: restaurant.slug,
+      restaurantWhatsapp: restaurant.customerWhatsapp,
+      customerName: customerName.trim(),
+      customerWhatsapp: customerWhatsapp.trim(),
+      deliveryAddress: deliveryAddress.trim(),
+      paymentMethodLabel: paymentLabels[paymentMethod],
+      customerNote: customerNote.trim(),
+      totalArs: total,
+      whatsappUrl,
+      items: cartItems.map((line) => ({
+        id: line.item.id,
+        name: line.item.name,
+        price: line.item.price,
+        quantity: line.quantity,
+      })),
+    };
+
+    sessionStorage.setItem(
+      buildOrderConfirmationStorageKey(restaurant.slug),
+      JSON.stringify(confirmationPayload)
+    );
+
+    router.push(`/menu/${restaurant.slug}/pedido-realizado`);
   };
 
 
@@ -821,16 +850,15 @@ const closeProductModal = () => {
               <span>Total estimado</span>
               <strong>{money.format(total)}</strong>
             </div>
-            <a
-  aria-disabled={!canSubmitCheckout}
-  className={!canSubmitCheckout ? styles.ctaDisabled : styles.cta}
-  href={canSubmitCheckout ? whatsappUrl : "#"}
-  rel="noreferrer"
-  target="_blank"
-  onClick={handleSendOrderClick}
->
-  Enviar pedido por WhatsApp
-</a>
+            <button
+              aria-disabled={!canSubmitCheckout}
+              className={!canSubmitCheckout ? styles.ctaDisabled : styles.cta}
+              disabled={!canSubmitCheckout}
+              onClick={handleSendOrderClick}
+              type="button"
+            >
+              Enviar pedido por WhatsApp
+            </button>
             <button className={styles.clearButton} onClick={() => setCart([])} type="button">
               Vaciar carrito
             </button>
