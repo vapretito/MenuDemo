@@ -13,6 +13,7 @@ import {
   mapPreapprovalStatusToRestaurantStatus,
   verifyMercadoPagoSignature,
 } from "@/lib/mercadopago-webhook";
+import { getPostHogClient } from "@/lib/posthog-server";
 
 export const runtime = "nodejs";
 
@@ -163,6 +164,20 @@ async function activateRestaurantByReference(input: {
     restaurantId: updatedRestaurant.id,
     slug: updatedRestaurant.slug,
     status: updatedRestaurant.status,
+  });
+
+  const posthog = getPostHogClient();
+  const distinctId = input.payerEmail ?? updatedRestaurant.id;
+  posthog.capture({
+    distinctId,
+    event: "subscription_payment_activated",
+    properties: {
+      restaurant_id: updatedRestaurant.id,
+      restaurant_slug: updatedRestaurant.slug,
+      restaurant_status: updatedRestaurant.status,
+      mercadopago_status: input.mercadopagoStatus,
+      payer_email: input.payerEmail,
+    },
   });
 
   return updatedRestaurant;

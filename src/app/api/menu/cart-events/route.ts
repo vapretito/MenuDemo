@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { isValidWhatsapp, normalizeWhatsapp } from "@/lib/whatsapp";
+import { getPostHogClient } from "@/lib/posthog-server";
 
 type CartEventItemInput = {
   itemId: string;
@@ -156,6 +157,22 @@ export async function POST(request: Request) {
           itemsSnapshot: snapshot,
         },
       });
+    });
+
+    const posthog = getPostHogClient();
+    posthog.capture({
+      distinctId: customerWhatsapp,
+      event: "cart_event_saved",
+      properties: {
+        restaurant_slug: restaurant.slug,
+        total_ars: totalArs,
+        item_count: itemCount,
+        payment_method: paymentMethod,
+        source,
+        has_delivery_address: Boolean(deliveryAddress),
+        marketing_consent: marketingConsent,
+        event_id: event.id,
+      },
     });
 
     return NextResponse.json({

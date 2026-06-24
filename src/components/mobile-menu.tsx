@@ -2,6 +2,7 @@
 
 import { CSSProperties, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
+import posthog from "posthog-js";
 import styles from "./mobile-menu.module.css";
 import { CartLine, RestaurantRecord } from "@/types/platform";
 import { getRestaurantOpeningStatus } from "@/lib/opening-hours";
@@ -192,6 +193,16 @@ const closeProductModal = () => {
   setSelectedProduct(null);
 };
 
+const openProductModal = (item: RestaurantRecord["items"][number]) => {
+  posthog.capture("product_detail_viewed", {
+    product_id: item.id,
+    product_name: item.name,
+    product_price_ars: item.price,
+    restaurant_slug: restaurant.slug,
+  });
+  setSelectedProduct(item);
+};
+
   const whatsappUrl = buildWhatsappUrl(
     restaurant,
     cart,
@@ -248,6 +259,13 @@ const closeProductModal = () => {
       const found = current.find((line) => line.itemId === itemId);
 
       if (!found && delta > 0) {
+        const item = restaurant.items.find((entry) => entry.id === itemId);
+        posthog.capture("product_added_to_cart", {
+          product_id: itemId,
+          product_name: item?.name,
+          product_price_ars: item?.price,
+          restaurant_slug: restaurant.slug,
+        });
         return [...current, { itemId, quantity: 1 }];
       }
 
@@ -285,6 +303,14 @@ const closeProductModal = () => {
     }
 
     setCheckoutError(null);
+    posthog.capture("order_submitted", {
+      restaurant_slug: restaurant.slug,
+      total_ars: total,
+      item_count: totalUnits,
+      payment_method: paymentMethod,
+      has_delivery_address: Boolean(deliveryAddress.trim()),
+      marketing_consent: marketingConsent,
+    });
     void trackCartEvent();
 
     const confirmationPayload: ConfirmOrderPayload = {
@@ -579,11 +605,11 @@ const closeProductModal = () => {
   key={item.id}
   role="button"
   tabIndex={0}
-  onClick={() => setSelectedProduct(item)}
+  onClick={() => openProductModal(item)}
   onKeyDown={(event) => {
     if (event.key === "Enter" || event.key === " ") {
       event.preventDefault();
-      setSelectedProduct(item);
+      openProductModal(item);
     }
   }}
 >
@@ -729,7 +755,18 @@ const closeProductModal = () => {
   </div>
 ) : null}
 
-      <button className={styles.fab} onClick={() => setIsDrawerOpen(true)} type="button">
+      <button
+        className={styles.fab}
+        onClick={() => {
+          posthog.capture("cart_opened", {
+            restaurant_slug: restaurant.slug,
+            item_count: totalUnits,
+            total_ars: total,
+          });
+          setIsDrawerOpen(true);
+        }}
+        type="button"
+      >
         <span className={styles.fabIcon}>Carrito</span>
         <span className={styles.fabBadge}>{totalUnits}</span>
       </button>

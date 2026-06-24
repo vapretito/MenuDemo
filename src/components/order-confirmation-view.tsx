@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { useEffect, useState } from "react";
+import posthog from "posthog-js";
 import styles from "./order-confirmation-view.module.css";
 import {
   buildOrderConfirmationStorageKey,
@@ -42,6 +43,14 @@ export function OrderConfirmationView({
 
   const openWhatsapp = () => {
     if (!payload) return;
+
+    posthog.capture("whatsapp_order_opened", {
+      restaurant_slug: slug,
+      restaurant_name: payload.restaurantName,
+      total_ars: payload.totalArs,
+      item_count: payload.items.reduce((sum, item) => sum + item.quantity, 0),
+      payment_method: payload.paymentMethodLabel,
+    });
 
     window.open(payload.whatsappUrl, "_blank", "noopener,noreferrer");
   };

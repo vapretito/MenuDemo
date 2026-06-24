@@ -11,6 +11,7 @@ import { createMercadoPagoPreapproval } from "@/lib/mercadopago";
 import { generateTemporaryPassword, hashPassword } from "@/lib/password";
 import { prisma } from "@/lib/prisma";
 import { normalizeWhatsapp } from "@/lib/whatsapp";
+import { getPostHogClient } from "@/lib/posthog-server";
 
 const planCatalog: Record<
   string,
@@ -287,6 +288,35 @@ export async function POST(request: Request) {
         mercadopagoPayerEmail: ownerEmail,
         status: SubscriptionStatus.SCHEDULED,
         renewsOn: trialEndsAt,
+      },
+    });
+
+    const posthog = getPostHogClient();
+    posthog.identify({
+      distinctId: ownerEmail,
+      properties: {
+        email: ownerEmail,
+        name: ownerName,
+        restaurant_id: restaurant.id,
+        restaurant_slug: restaurant.slug,
+        restaurant_name: restaurant.name,
+        city,
+        cuisine: cuisine || "Gastronomia",
+        plan_id: planId,
+      },
+    });
+    posthog.capture({
+      distinctId: ownerEmail,
+      event: "restaurant_created",
+      properties: {
+        restaurant_id: restaurant.id,
+        restaurant_slug: restaurant.slug,
+        restaurant_name: restaurant.name,
+        city,
+        cuisine: cuisine || "Gastronomia",
+        plan_id: planId,
+        plan_name: selectedPlan.name,
+        amount_ars: selectedPlan.amountArs,
       },
     });
 

@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { useMemo, useState } from "react";
+import posthog from "posthog-js";
 import styles from "./page.module.css";
 import { MENUI_TRIAL_DAYS, menuiLegalHighlights } from "@/data/legal";
 
@@ -95,6 +96,12 @@ export function OnboardingForm() {
       return;
     }
 
+    posthog.capture("onboarding_form_submitted", {
+      plan_id: form.planId,
+      city: form.city,
+      cuisine: form.cuisine,
+    });
+
     setIsLoading(true);
     setError("");
     setResult(null);
@@ -129,8 +136,20 @@ export function OnboardingForm() {
         throw new Error(data.error ?? "No se pudo iniciar el alta.");
       }
 
+      posthog.identify(data.credentials.email, {
+        email: data.credentials.email,
+        restaurant_name: data.restaurant.name,
+        restaurant_slug: data.restaurant.slug,
+      });
+      posthog.capture("onboarding_completed", {
+        restaurant_name: data.restaurant.name,
+        restaurant_slug: data.restaurant.slug,
+        restaurant_status: data.restaurant.status,
+      });
+
       setResult(data);
     } catch (nextError) {
+      posthog.captureException(nextError);
       setError(
         nextError instanceof Error
           ? nextError.message
@@ -167,7 +186,16 @@ export function OnboardingForm() {
             <strong>Contrasena: {result.credentials.temporaryPassword}</strong>
           </div>
 
-          <a className={styles.primaryButton} href={result.checkoutUrl || result.paymentUrl}>
+          <a
+            className={styles.primaryButton}
+            href={result.checkoutUrl || result.paymentUrl}
+            onClick={() =>
+              posthog.capture("checkout_to_mercadopago_clicked", {
+                restaurant_name: result.restaurant.name,
+                restaurant_slug: result.restaurant.slug,
+              })
+            }
+          >
             Continuar a Mercado Pago
           </a>
 

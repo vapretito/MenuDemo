@@ -7,6 +7,7 @@ import {
   createRestaurantSessionToken,
   setRestaurantSessionCookie,
 } from "@/lib/restaurant-session";
+import { getPostHogClient } from "@/lib/posthog-server";
 
 export async function POST(request: Request) {
   try {
@@ -95,6 +96,28 @@ export async function POST(request: Request) {
     });
 
     await setRestaurantSessionCookie(token);
+
+    const posthog = getPostHogClient();
+    posthog.identify({
+      distinctId: user.email,
+      properties: {
+        email: user.email,
+        restaurant_id: restaurant.id,
+        restaurant_slug: restaurant.slug,
+        restaurant_name: restaurant.name,
+        role: user.role,
+      },
+    });
+    posthog.capture({
+      distinctId: user.email,
+      event: "restaurant_admin_login",
+      properties: {
+        restaurant_id: restaurant.id,
+        restaurant_slug: restaurant.slug,
+        restaurant_name: restaurant.name,
+        restaurant_status: restaurant.status,
+      },
+    });
 
     return NextResponse.json({
       ok: true,
