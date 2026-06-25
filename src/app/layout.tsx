@@ -15,8 +15,8 @@ const displayFont = Sora({
 
 const META_PIXEL_ID = process.env.NEXT_PUBLIC_META_PIXEL_ID;
 const SITE_URL = "https://www.menui.online";
-const FAVICON_PATH = "/logos/menui-logo-purple.png";
-const SOCIAL_IMAGE_PATH = "/logos/menui-logo-purple.png";
+const FAVICON_PATH = "/logos/menui-logo.svg";
+const SOCIAL_IMAGE_PATH = "/logos/menui-logo.svg";
 
 export const metadata: Metadata = {
   title: "Menui | Menu mobile para restaurantes",
