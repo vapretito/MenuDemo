@@ -161,7 +161,7 @@ export default async function Home() {
             </div>
 
             <div className={styles.heroNotes} aria-label="Beneficios rápidos">
-              <span>14 días gratis</span>
+              <span>7 días gratis</span>
               <span>{money.format(monthlyPrice)} / mes</span>
               <span>Pago con Mercado Pago</span>
               <span>Sin comisiones por venta</span>
@@ -347,7 +347,7 @@ export default async function Home() {
             <strong>{money.format(monthlyPrice)}</strong>
             <p>por mes, por restaurante</p>
             <ul className={styles.pricingList}>
-              <li>14 días gratis para probar la plataforma</li>
+              <li>7 días gratis para probar la plataforma</li>
               <li>Menú digital mobile-first</li>
               <li>Carrito y pedido directo a WhatsApp</li>
               <li>Panel admin privado para el restaurante</li>
