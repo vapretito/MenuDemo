@@ -20,12 +20,12 @@
   --radius-md: 18px;
   --radius-sm: 14px;
 
-  display: grid;
-  grid-template-columns: 270px minmax(0, 1fr);
+  display: block;
   min-height: 100vh;
   position: relative;
   background: var(--bg);
   color: var(--text);
+  overflow-x: clip;
 }
 
 .shell[data-theme="dark"] {
@@ -63,11 +63,17 @@
   display: grid;
   grid-template-rows: auto auto 1fr auto;
   gap: 1rem;
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 270px;
+  height: 100vh;
   min-height: 100vh;
   padding: 1rem;
   border-right: 1px solid var(--border);
   background: linear-gradient(180deg, #ffffff 0%, #f6f9fb 100%);
   box-shadow: var(--card-shadow);
+  overflow: hidden;
 }
 
 .sidebarToggle {
@@ -116,6 +122,25 @@
   display: grid;
   align-content: start;
   gap: 0.45rem;
+  min-height: 0;
+  padding-right: 0.2rem;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  scrollbar-width: thin;
+  scrollbar-color: color-mix(in srgb, var(--accent) 38%, transparent) transparent;
+}
+
+.sidebarNav::-webkit-scrollbar {
+  width: 8px;
+}
+
+.sidebarNav::-webkit-scrollbar-thumb {
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--accent) 30%, transparent);
+}
+
+.sidebarNav::-webkit-scrollbar-track {
+  background: transparent;
 }
 
 .navItem,
@@ -160,8 +185,10 @@
   align-self: end;
   display: grid;
   gap: 0.25rem;
+  margin-top: 0.35rem;
   padding-top: 1rem;
   border-top: 1px solid var(--border);
+  background: linear-gradient(180deg, rgba(246, 249, 251, 0.2) 0%, #f6f9fb 28%);
 }
 
 .sidebarFoot span {
@@ -204,6 +231,8 @@
   align-content: start;
   gap: 1.1rem;
   min-width: 0;
+  margin-left: 270px;
+  width: calc(100% - 270px);
   padding: 1.4rem;
 }
 
@@ -843,10 +872,12 @@
 
 @media (max-width: 1180px) {
   .shell {
+    display: grid;
     grid-template-columns: 1fr;
   }
 
   .sidebar {
+    position: fixed;
     min-height: auto;
     border-right: 0;
     border-bottom: 1px solid var(--border);
@@ -854,6 +885,12 @@
 
   .sidebarNav {
     grid-template-columns: repeat(5, minmax(0, 1fr));
+    overflow: visible;
+  }
+
+  .workspace {
+    margin-left: 0;
+    width: 100%;
   }
 
   .heroSummary,
@@ -907,6 +944,7 @@
     inset: 0 auto 0 0;
     z-index: 50;
     width: min(86vw, 320px);
+    height: 100vh;
     min-height: 100vh;
     padding-top: 4.4rem;
     transform: translateX(-105%);
@@ -954,6 +992,10 @@
   .metricGrid,
   .publishGrid {
     grid-template-columns: 1fr;
+  }
+
+  .sidebarNav {
+    overflow-y: auto;
   }
 
   .primaryButton,
