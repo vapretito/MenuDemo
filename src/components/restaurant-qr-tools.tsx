@@ -17,6 +17,15 @@ type RestaurantQrToolsProps = {
 };
 
 const MENUI_LOGO_URL = "/logos/menui-logo.svg";
+const QR_SIZE = 512;
+
+const loadImage = (src: string) =>
+  new Promise<HTMLImageElement>((resolve, reject) => {
+    const image = new Image();
+    image.onload = () => resolve(image);
+    image.onerror = () => reject(new Error(`No se pudo cargar la imagen ${src}.`));
+    image.src = src;
+  });
 
 const escapeHtml = (value: string) =>
   value
@@ -45,14 +54,55 @@ export function RestaurantQrTools({
 
     async function buildQrCode() {
       try {
-        const nextQrDataUrl = await QRCode.toDataURL(qrMenuUrl, {
-          width: 512,
+        const canvas = document.createElement("canvas");
+
+        await QRCode.toCanvas(canvas, qrMenuUrl, {
+          width: QR_SIZE,
           margin: 1,
           color: {
             dark: "#102033",
             light: "#ffffff",
           },
         });
+
+        if (showMenuiBranding) {
+          const context = canvas.getContext("2d");
+
+          if (!context) {
+            throw new Error("No se pudo preparar el canvas del QR.");
+          }
+
+          const logo = await loadImage(MENUI_LOGO_URL);
+          const badgeSize = Math.round(QR_SIZE * 0.24);
+          const badgeRadius = Math.round(badgeSize * 0.28);
+          const badgeX = Math.round((QR_SIZE - badgeSize) / 2);
+          const badgeY = Math.round((QR_SIZE - badgeSize) / 2);
+          const logoPadding = Math.round(badgeSize * 0.18);
+          const logoSize = badgeSize - logoPadding * 2;
+
+          context.fillStyle = "#ffffff";
+          context.beginPath();
+          context.moveTo(badgeX + badgeRadius, badgeY);
+          context.lineTo(badgeX + badgeSize - badgeRadius, badgeY);
+          context.quadraticCurveTo(badgeX + badgeSize, badgeY, badgeX + badgeSize, badgeY + badgeRadius);
+          context.lineTo(badgeX + badgeSize, badgeY + badgeSize - badgeRadius);
+          context.quadraticCurveTo(
+            badgeX + badgeSize,
+            badgeY + badgeSize,
+            badgeX + badgeSize - badgeRadius,
+            badgeY + badgeSize
+          );
+          context.lineTo(badgeX + badgeRadius, badgeY + badgeSize);
+          context.quadraticCurveTo(badgeX, badgeY + badgeSize, badgeX, badgeY + badgeSize - badgeRadius);
+          context.lineTo(badgeX, badgeY + badgeRadius);
+          context.quadraticCurveTo(badgeX, badgeY, badgeX + badgeRadius, badgeY);
+          context.closePath();
+          context.fill();
+
+          context.drawImage(logo, badgeX + logoPadding, badgeY + logoPadding, logoSize, logoSize);
+        }
+
+        const nextQrDataUrl = canvas.toDataURL("image/png");
 
         if (!cancelled) {
           setQrDataUrl(nextQrDataUrl);
@@ -71,7 +121,7 @@ export function RestaurantQrTools({
     return () => {
       cancelled = true;
     };
-  }, [qrMenuUrl]);
+  }, [qrMenuUrl, showMenuiBranding]);
 
   const handleCopyUrl = async () => {
     try {
@@ -104,10 +154,6 @@ export function RestaurantQrTools({
 
     const title = escapeHtml(restaurantName);
     const url = escapeHtml(qrMenuUrl);
-    const brandMarkup = showMenuiBranding
-      ? `<img src="${MENUI_LOGO_URL}" alt="Menui" style="width:140px;height:auto;margin-top:20px;" />`
-      : "";
-
     printWindow.document.write(`<!doctype html>
 <html lang="es">
   <head>
@@ -183,7 +229,6 @@ export function RestaurantQrTools({
         <p>Escanea este codigo para ver el menu visual del restaurante.</p>
         <img class="qr" src="${qrDataUrl}" alt="QR del menu de ${title}" />
         <div class="url">${url}</div>
-        ${brandMarkup}
       </section>
     </main>
     <script>
@@ -221,8 +266,8 @@ export function RestaurantQrTools({
 
           <div className={styles.toggleRow}>
             <div className={styles.toggleCopy}>
-              <strong>Branding Menui en el cartel</strong>
-              <p>Activalo si queres imprimir el QR con el logo de Menui al pie.</p>
+              <strong>Logo Menui dentro del QR</strong>
+              <p>Activalo si queres incrustar el logo de Menui en el centro del codigo.</p>
             </div>
 
             <label className={styles.toggle}>
@@ -271,9 +316,6 @@ export function RestaurantQrTools({
             </div>
 
             <div className={styles.url}>{qrMenuUrl}</div>
-            {showMenuiBranding ? (
-              <img className={styles.brandMark} src={MENUI_LOGO_URL} alt="Menui" />
-            ) : null}
           </div>
 
           <div className={styles.actions}>
@@ -296,7 +338,7 @@ export function RestaurantQrTools({
           </div>
 
           <p className={styles.hint}>
-            La impresion abre una hoja limpia con nombre del restaurante, QR y logo Menui opcional.
+            La impresion y la descarga usan exactamente el mismo QR, con el logo centrado si esta activado.
           </p>
         </aside>
       </div>
