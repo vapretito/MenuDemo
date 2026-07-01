@@ -115,6 +115,7 @@ model Restaurant {
   menuTemplate  String  @default("classic-delivery")
   logoUrl       String?
   coverImageUrl String?
+  qrShowMenuiBranding Boolean @default(true)
 
   accent       String @default("#f0c400")
   accentSoft   String @default("#fff1ac")

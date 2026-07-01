@@ -10,6 +10,7 @@ import {
   useState,
 } from "react";
 import styles from "./restaurant-admin-panel.module.css";
+import { RestaurantQrTools } from "./restaurant-qr-tools";
 import { demoRestaurant } from "@/data/platform";
 import { MenuCategory, MenuItem, OpeningHour, RestaurantRecord } from "@/types/platform";
 import { menuTemplates, type MenuTemplatePreset } from "@/data/menu-templates";
@@ -216,6 +217,12 @@ export function RestaurantAdminPanel({
   const [appearanceSuccess, setAppearanceSuccess] = useState<string | null>(null);
   const [templateFilter, setTemplateFilter] =
     useState<(typeof templateFilterOptions)[number]>("Todos");
+  const [qrSettingsDraft, setQrSettingsDraft] = useState({
+    qrShowMenuiBranding: restaurant.qrShowMenuiBranding ?? true,
+  });
+  const [qrSaving, setQrSaving] = useState(false);
+  const [qrError, setQrError] = useState<string | null>(null);
+  const [qrSuccess, setQrSuccess] = useState<string | null>(null);
 
   const [newCategoryName, setNewCategoryName] = useState("");
   const [activeSection, setActiveSection] = useState<AdminSection>("overview");
@@ -645,6 +652,7 @@ const [cashSuccess, setCashSuccess] = useState<string | null>(null);
     : -1;
 
   const publicUrl = `https://${restaurant.subdomain}`;
+  const qrMenuUrl = `${publicUrl}/qr`;
   const adminWhatsappUrl = `https://wa.me/${restaurant.customerWhatsapp}`;
   const supportUrl =
     "https://wa.me/543518794501?text=Hola%2C%20necesito%20ayuda%20con%20mi%20panel%20admin%20de%20Menui";
@@ -766,6 +774,55 @@ const [cashSuccess, setCashSuccess] = useState<string | null>(null);
       );
     } finally {
       setAppearanceSaving(false);
+    }
+  };
+
+  const saveQrSettings = async () => {
+    setQrSaving(true);
+    setQrError(null);
+    setQrSuccess(null);
+
+    try {
+      const response = await fetch("/api/restaurant-admin/qr-settings", {
+        method: "PATCH",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(qrSettingsDraft),
+      });
+
+      const rawResponse = await response.text();
+
+      let data: {
+        ok?: boolean;
+        error?: string;
+        restaurant?: {
+          qrShowMenuiBranding?: boolean;
+        };
+      } = {};
+
+      try {
+        data = rawResponse ? JSON.parse(rawResponse) : {};
+      } catch {
+        throw new Error(`La API no devolvio JSON. Status: ${response.status}.`);
+      }
+
+      if (!response.ok || !data.ok) {
+        throw new Error(data.error ?? "No se pudo guardar la configuracion QR.");
+      }
+
+      setRestaurant((current) => ({
+        ...current,
+        qrShowMenuiBranding: data.restaurant?.qrShowMenuiBranding ?? current.qrShowMenuiBranding,
+      }));
+
+      setQrSuccess("Configuracion QR guardada correctamente.");
+    } catch (error) {
+      setQrError(
+        error instanceof Error ? error.message : "No se pudo guardar la configuracion QR."
+      );
+    } finally {
+      setQrSaving(false);
     }
   };
 
@@ -3937,6 +3994,25 @@ const [cashSuccess, setCashSuccess] = useState<string | null>(null);
                   <strong>Delivery y take away desde menu web</strong>
                 </div>
               </div>
+            </section>
+
+            <section className={`${styles.panel} ${styles.publishingEditorPanel}`}>
+              <RestaurantQrTools
+                restaurantName={restaurant.name}
+                qrMenuUrl={qrMenuUrl}
+                publicMenuUrl={publicUrl}
+                showMenuiBranding={qrSettingsDraft.qrShowMenuiBranding}
+                isSaving={qrSaving}
+                error={qrError}
+                success={qrSuccess}
+                onBrandingChange={(value) =>
+                  setQrSettingsDraft((current) => ({
+                    ...current,
+                    qrShowMenuiBranding: value,
+                  }))
+                }
+                onSave={saveQrSettings}
+              />
             </section>
             
             <section className={`${styles.panel} ${styles.publishingEditorPanel}`}>

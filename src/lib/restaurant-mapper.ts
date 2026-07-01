@@ -118,6 +118,7 @@ export function mapRestaurantToRecord(
     menuTemplate: restaurant.menuTemplate as RestaurantRecord["menuTemplate"],
     logoUrl: restaurant.logoUrl,
     coverImageUrl: restaurant.coverImageUrl,
+    qrShowMenuiBranding: restaurant.qrShowMenuiBranding,
 
     whatsappIntroMessage: restaurant.whatsappIntroMessage,
 whatsappFooterMessage: restaurant.whatsappFooterMessage,

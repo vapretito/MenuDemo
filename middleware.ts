@@ -67,6 +67,11 @@ export function middleware(request: NextRequest) {
     return NextResponse.rewrite(url);
   }
 
+  if (pathname === "/qr") {
+    url.pathname = `/qr/${restaurantSlug}`;
+    return NextResponse.rewrite(url);
+  }
+
   // Si alguien entra directo a /menu/nicolasito, no redirigimos.
   // Lo dejamos pasar para evitar loops.
   if (pathname.startsWith("/menu/")) {

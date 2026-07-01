@@ -76,6 +76,7 @@ const subwayDemo: RestaurantRecord = {
     muted: "#58705c",
     heroGradient: "linear-gradient(180deg, #2f7f3a 0%, #1f4723 100%)",
   },
+  qrShowMenuiBranding: true,
   categories: [
     { id: "combos", name: "Combos", description: "Opciones completas para resolver rapido." },
     { id: "subs", name: "Subs", description: "Sandwiches calientes y frios." },
@@ -190,6 +191,7 @@ const sushiDemo: RestaurantRecord = {
     muted: "#7a655d",
     heroGradient: "linear-gradient(180deg, #2b1710 0%, #5c2416 100%)",
   },
+  qrShowMenuiBranding: true,
   categories: [
     { id: "boxes", name: "Boxes", description: "Combinados para compartir." },
     { id: "nigiris", name: "Nigiris", description: "Piezas premium a pedido." },

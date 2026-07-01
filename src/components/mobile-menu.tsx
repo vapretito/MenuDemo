@@ -18,6 +18,7 @@ const money = new Intl.NumberFormat("es-AR", {
 
 type MobileMenuProps = {
   restaurant: RestaurantRecord;
+  mode?: "interactive" | "visual";
 };
 
 type SortMode = "featured" | "price_asc" | "price_desc";
@@ -82,8 +83,12 @@ const message = [
   return `https://wa.me/${restaurant.customerWhatsapp}?text=${encodeURIComponent(message)}`;
 };
 
-export function MobileMenu({ restaurant }: MobileMenuProps) {
+export function MobileMenu({
+  restaurant,
+  mode = "interactive",
+}: MobileMenuProps) {
   const router = useRouter();
+  const isVisualOnly = mode === "visual";
   const [activeCategory, setActiveCategory] = useState(restaurant.categories[0]?.id ?? "");
   const [cart, setCart] = useState<CartLine[]>([]);
   const [query, setQuery] = useState("");
@@ -112,7 +117,7 @@ const openingStatus = getRestaurantOpeningStatus({
   timeZone: restaurant.timeZone,
 });
 
-const canSendOrders = manualOrdersEnabled && openingStatus.isOpen;
+const canSendOrders = !isVisualOnly && manualOrdersEnabled && openingStatus.isOpen;
 
 const closedMessage =
   restaurant.closedMessage ??
@@ -631,7 +636,7 @@ const openProductModal = (item: RestaurantRecord["items"][number]) => {
   onClick={(event) => event.stopPropagation()}
 >
                           <strong>{money.format(item.price)}</strong>
-                          {quantity ? (
+                          {isVisualOnly ? null : quantity ? (
                             <div className={styles.quantityBox}>
                               <button onClick={() => changeQuantity(item.id, -1)} type="button">
                                 -
@@ -722,7 +727,7 @@ const openProductModal = (item: RestaurantRecord["items"][number]) => {
         <div className={styles.productModalFooter}>
           <strong>{money.format(selectedProduct.price)}</strong>
 
-          {selectedProductQuantity ? (
+          {isVisualOnly ? null : selectedProductQuantity ? (
             <div className={styles.quantityBox}>
               <button
                 onClick={() => changeQuantity(selectedProduct.id, -1)}
@@ -755,25 +760,31 @@ const openProductModal = (item: RestaurantRecord["items"][number]) => {
   </div>
 ) : null}
 
-      <button
-        className={styles.fab}
-        onClick={() => {
-          posthog.capture("cart_opened", {
-            restaurant_slug: restaurant.slug,
-            item_count: totalUnits,
-            total_ars: total,
-          });
-          setIsDrawerOpen(true);
-        }}
-        type="button"
-      >
-        <span className={styles.fabIcon}>Carrito</span>
-        <span className={styles.fabBadge}>{totalUnits}</span>
-      </button>
+      {isVisualOnly ? null : (
+        <>
+          <button
+            className={styles.fab}
+            onClick={() => {
+              posthog.capture("cart_opened", {
+                restaurant_slug: restaurant.slug,
+                item_count: totalUnits,
+                total_ars: total,
+              });
+              setIsDrawerOpen(true);
+            }}
+            type="button"
+          >
+            <span className={styles.fabIcon}>Carrito</span>
+            <span className={styles.fabBadge}>{totalUnits}</span>
+          </button>
 
-      <div className={`${styles.drawer} ${isDrawerOpen ? styles.drawerOpen : ""}`}>
-        <button className={styles.backdrop} onClick={() => setIsDrawerOpen(false)} type="button" />
-        <aside className={styles.drawerPanel}>
+          <div className={`${styles.drawer} ${isDrawerOpen ? styles.drawerOpen : ""}`}>
+            <button
+              className={styles.backdrop}
+              onClick={() => setIsDrawerOpen(false)}
+              type="button"
+            />
+            <aside className={styles.drawerPanel}>
           <header className={styles.drawerHeader}>
             <div>
               <span className={styles.sectionEyebrow}>Tu pedido</span>
@@ -882,26 +893,28 @@ const openProductModal = (item: RestaurantRecord["items"][number]) => {
             </div>
           </div>
 
-          <footer className={styles.drawerFooter}>
-            <div className={styles.cartSummary}>
-              <span>Total estimado</span>
-              <strong>{money.format(total)}</strong>
-            </div>
-            <button
-              aria-disabled={!canSubmitCheckout}
-              className={!canSubmitCheckout ? styles.ctaDisabled : styles.cta}
-              disabled={!canSubmitCheckout}
-              onClick={handleSendOrderClick}
-              type="button"
-            >
-              Enviar pedido por WhatsApp
-            </button>
-            <button className={styles.clearButton} onClick={() => setCart([])} type="button">
-              Vaciar carrito
-            </button>
-          </footer>
-        </aside>
-      </div>
+              <footer className={styles.drawerFooter}>
+                <div className={styles.cartSummary}>
+                  <span>Total estimado</span>
+                  <strong>{money.format(total)}</strong>
+                </div>
+                <button
+                  aria-disabled={!canSubmitCheckout}
+                  className={!canSubmitCheckout ? styles.ctaDisabled : styles.cta}
+                  disabled={!canSubmitCheckout}
+                  onClick={handleSendOrderClick}
+                  type="button"
+                >
+                  Enviar pedido por WhatsApp
+                </button>
+                <button className={styles.clearButton} onClick={() => setCart([])} type="button">
+                  Vaciar carrito
+                </button>
+              </footer>
+            </aside>
+          </div>
+        </>
+      )}
     </div>
   );
 }

@@ -112,6 +112,7 @@ export type RestaurantRecord = {
   menuTemplate?: MenuTemplateId;
   logoUrl?: string | null;
   coverImageUrl?: string | null;
+  qrShowMenuiBranding?: boolean;
   whatsappIntroMessage?: string;
 whatsappFooterMessage?: string;
 isAcceptingOrders?: boolean;
