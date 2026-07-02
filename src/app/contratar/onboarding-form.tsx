@@ -72,6 +72,7 @@ export function OnboardingForm() {
   const [result, setResult] = useState<OnboardingResult | null>(null);
   const [acceptedLegal, setAcceptedLegal] = useState(false);
   const [isInfoOpen, setIsInfoOpen] = useState(false);
+  const [isSupportBubbleVisible, setIsSupportBubbleVisible] = useState(true);
 
   const suggestedSlug = useMemo(
     () => slugify(form.slug || form.restaurantName),
@@ -92,6 +93,16 @@ export function OnboardingForm() {
       document.body.style.overflow = "";
     };
   }, [isInfoOpen]);
+
+  useEffect(() => {
+    const intervalId = window.setInterval(() => {
+      setIsSupportBubbleVisible((current) => !current);
+    }, 2000);
+
+    return () => {
+      window.clearInterval(intervalId);
+    };
+  }, []);
 
   const updateField = (name: keyof typeof form, value: string) => {
     setForm((current) => ({
@@ -464,22 +475,6 @@ export function OnboardingForm() {
           </label>
         </section>
 
-        <section className={styles.supportCard} aria-label="Soporte por WhatsApp">
-          <strong>Te ayudamos antes de contratar</strong>
-          <p>
-            Si queres mas informacion o tenes alguna duda, escribinos y te
-            respondemos por WhatsApp.
-          </p>
-          <a
-            className={styles.supportButton}
-            href={SUPPORT_WHATSAPP_URL}
-            target="_blank"
-            rel="noreferrer"
-          >
-            Contactar soporte por WhatsApp
-          </a>
-        </section>
-
         {error ? <p className={styles.errorBox}>{error}</p> : null}
 
         <button
@@ -491,6 +486,26 @@ export function OnboardingForm() {
           {isLoading ? "Creando alta..." : "Crear y continuar"}
         </button>
       </section>
+
+      <aside className={styles.floatingSupport} aria-label="Ayuda por WhatsApp">
+        <div
+          className={`${styles.floatingSupportBubble} ${
+            isSupportBubbleVisible ? styles.floatingSupportBubbleVisible : ""
+          }`}
+        >
+          <strong>Te ayudamos antes de contratar</strong>
+          <p>Dudas o mas info? Te respondemos por WhatsApp.</p>
+        </div>
+
+        <a
+          className={styles.floatingWhatsappButton}
+          href={SUPPORT_WHATSAPP_URL}
+          target="_blank"
+          rel="noreferrer"
+        >
+          WhatsApp
+        </a>
+      </aside>
     </main>
   );
 }
