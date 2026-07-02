@@ -125,8 +125,8 @@ export default async function Home() {
           </nav>
 
           <div className={styles.topbarActions}>
-            <Link className={styles.primaryButton} href="/contratar">
-              Contratar
+            <Link className={styles.primaryButton} href="/registrar">
+              Registrar
             </Link>
             <Link className={styles.secondaryButton} href={`/menu/${featuredRestaurant.slug}`}>
               Ver demo
@@ -149,8 +149,8 @@ export default async function Home() {
             </p>
 
             <div className={styles.heroActions}>
-              <Link className={styles.primaryButton} href="/contratar">
-                Contratar ahora
+              <Link className={styles.primaryButton} href="/registrar">
+                Registrar ahora
               </Link>
               <Link className={styles.primaryButton} href={`/menu/${featuredRestaurant.slug}`}>
                 Probar menú demo
@@ -506,8 +506,8 @@ export default async function Home() {
         <Link className={styles.secondaryButton} href={`/menu/${featuredRestaurant.slug}`}>
           Ver menú
         </Link>
-        <Link className={styles.primaryButton} href="/contratar">
-          Contratar
+        <Link className={styles.primaryButton} href="/registrar">
+          Registrar
         </Link>
       </div>
 

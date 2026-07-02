@@ -39,6 +39,7 @@ const reservedSlugs = new Set([
   "superadmin",
   "activar",
   "contratar",
+  "registrar",
   "demo",
 ]);
 

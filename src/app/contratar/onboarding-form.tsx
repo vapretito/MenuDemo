@@ -23,6 +23,8 @@ type OnboardingResult = {
   };
 };
 
+type MetaPixelParams = Record<string, string | number | boolean | null | undefined>;
+
 const plans = [
   {
     id: "basic",
@@ -54,6 +56,22 @@ const SUPPORT_WHATSAPP =
 const SUPPORT_WHATSAPP_URL = `https://wa.me/${SUPPORT_WHATSAPP}?text=${encodeURIComponent(
   "Hola, quiero mas informacion o tengo una duda sobre Menui."
 )}`;
+
+const trackMetaPixel = (eventName: string, params?: MetaPixelParams) => {
+  if (typeof window === "undefined") {
+    return;
+  }
+
+  const fbq = (window as Window & {
+    fbq?: (action: "track", name: string, parameters?: MetaPixelParams) => void;
+  }).fbq;
+
+  if (typeof fbq !== "function") {
+    return;
+  }
+
+  fbq("track", eventName, params);
+};
 
 export function OnboardingForm() {
   const [form, setForm] = useState({
@@ -176,6 +194,11 @@ export function OnboardingForm() {
         restaurant_slug: data.restaurant.slug,
         restaurant_status: data.restaurant.status,
       });
+      trackMetaPixel("CompleteRegistration", {
+        content_name: "menui_onboarding_completed",
+        status: data.restaurant.status,
+        restaurant_slug: data.restaurant.slug,
+      });
 
       setResult(data);
     } catch (nextError) {
@@ -219,12 +242,19 @@ export function OnboardingForm() {
           <a
             className={styles.primaryButton}
             href={result.checkoutUrl || result.paymentUrl}
-            onClick={() =>
+            onClick={() => {
+              trackMetaPixel("InitiateCheckout", {
+                content_name: "menui_subscription_checkout",
+                content_category: "subscription",
+                currency: "ARS",
+                value: 20000,
+                restaurant_slug: result.restaurant.slug,
+              });
               posthog.capture("checkout_to_mercadopago_clicked", {
                 restaurant_name: result.restaurant.name,
                 restaurant_slug: result.restaurant.slug,
-              })
-            }
+              });
+            }}
           >
             Continuar a Mercado Pago
           </a>

@@ -1,5 +1,5 @@
-import { OnboardingForm } from "./onboarding-form";
+import { redirect } from "next/navigation";
 
 export default function ContratarPage() {
-  return <OnboardingForm />;
+  redirect("/registrar");
 }
