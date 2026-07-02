@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import posthog from "posthog-js";
 import styles from "./page.module.css";
 import { MENUI_TRIAL_DAYS, menuiLegalHighlights } from "@/data/legal";
@@ -49,6 +49,11 @@ const slugify = (value: string) =>
 const normalizeWhatsapp = (value: string) => value.replace(/\D/g, "").slice(0, 15);
 const ARGENTINA_PREFIX = "54";
 const LOCAL_WHATSAPP_MAX_LENGTH = 13;
+const SUPPORT_WHATSAPP =
+  process.env.NEXT_PUBLIC_MENUI_SUPPORT_WHATSAPP ?? "543518794501";
+const SUPPORT_WHATSAPP_URL = `https://wa.me/${SUPPORT_WHATSAPP}?text=${encodeURIComponent(
+  "Hola, quiero mas informacion o tengo una duda sobre Menui."
+)}`;
 
 export function OnboardingForm() {
   const [form, setForm] = useState({
@@ -66,6 +71,7 @@ export function OnboardingForm() {
   const [error, setError] = useState("");
   const [result, setResult] = useState<OnboardingResult | null>(null);
   const [acceptedLegal, setAcceptedLegal] = useState(false);
+  const [isInfoOpen, setIsInfoOpen] = useState(false);
 
   const suggestedSlug = useMemo(
     () => slugify(form.slug || form.restaurantName),
@@ -73,6 +79,19 @@ export function OnboardingForm() {
   );
   const generatedSubdomain = suggestedSlug ? `${suggestedSlug}.menui.online` : "";
   const fullWhatsapp = `${ARGENTINA_PREFIX}${form.whatsapp}`;
+
+  useEffect(() => {
+    if (!isInfoOpen) {
+      document.body.style.overflow = "";
+      return;
+    }
+
+    document.body.style.overflow = "hidden";
+
+    return () => {
+      document.body.style.overflow = "";
+    };
+  }, [isInfoOpen]);
 
   const updateField = (name: keyof typeof form, value: string) => {
     setForm((current) => ({
@@ -199,6 +218,15 @@ export function OnboardingForm() {
             Continuar a Mercado Pago
           </a>
 
+          <a
+            className={styles.supportButton}
+            href={SUPPORT_WHATSAPP_URL}
+            target="_blank"
+            rel="noreferrer"
+          >
+            Contactar soporte por WhatsApp
+          </a>
+
           <Link className={styles.secondaryLink} href="/">
             Volver a Menui
           </Link>
@@ -218,6 +246,17 @@ export function OnboardingForm() {
             inicial. El menu se activa cuando se confirma el pago.
           </p>
 
+          <button
+            className={styles.mobileInfoButton}
+            onClick={() => setIsInfoOpen(true)}
+            type="button"
+          >
+            <span className={styles.mobileInfoBadge}>i</span>
+            <span>
+              Ver condiciones y ayuda
+            </span>
+          </button>
+
           <div className={styles.summaryCard}>
             <strong>Condiciones basicas antes de activar</strong>
             <ul>
@@ -228,6 +267,53 @@ export function OnboardingForm() {
           </div>
         </div>
       </section>
+
+      <div
+        aria-hidden={!isInfoOpen}
+        className={`${styles.modalOverlay} ${
+          isInfoOpen ? styles.modalOverlayOpen : ""
+        }`}
+        onClick={() => setIsInfoOpen(false)}
+        role="presentation"
+      >
+        <section
+          aria-labelledby="mobile-info-title"
+          aria-modal="true"
+          className={`${styles.infoModal} ${isInfoOpen ? styles.infoModalOpen : ""}`}
+          role="dialog"
+          onClick={(event) => event.stopPropagation()}
+        >
+          <div className={styles.modalHeader}>
+            <span className={styles.eyebrow}>Info</span>
+            <button
+              aria-label="Cerrar informacion"
+              className={styles.modalClose}
+              onClick={() => setIsInfoOpen(false)}
+              type="button"
+            >
+              Cerrar
+            </button>
+          </div>
+
+          <div className={styles.summaryCard}>
+            <strong id="mobile-info-title">Condiciones basicas antes de activar</strong>
+            <ul>
+              {menuiLegalHighlights.map((item) => (
+                <li key={`mobile-${item}`}>{item}</li>
+              ))}
+            </ul>
+          </div>
+
+          <a
+            className={styles.supportButton}
+            href={SUPPORT_WHATSAPP_URL}
+            rel="noreferrer"
+            target="_blank"
+          >
+            Contactar soporte por WhatsApp
+          </a>
+        </section>
+      </div>
 
       <section className={styles.formCard}>
         <div>
@@ -376,6 +462,22 @@ export function OnboardingForm() {
               trial de {MENUI_TRIAL_DAYS} dias y la renovacion mensual.
             </span>
           </label>
+        </section>
+
+        <section className={styles.supportCard} aria-label="Soporte por WhatsApp">
+          <strong>Te ayudamos antes de contratar</strong>
+          <p>
+            Si queres mas informacion o tenes alguna duda, escribinos y te
+            respondemos por WhatsApp.
+          </p>
+          <a
+            className={styles.supportButton}
+            href={SUPPORT_WHATSAPP_URL}
+            target="_blank"
+            rel="noreferrer"
+          >
+            Contactar soporte por WhatsApp
+          </a>
         </section>
 
         {error ? <p className={styles.errorBox}>{error}</p> : null}

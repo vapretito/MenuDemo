@@ -54,24 +54,64 @@
     line-height: 1.65;
   }
 
-  .summaryCard,
-  .legalCard {
-    display: grid;
-    gap: 0.75rem;
-    padding: 1rem;
-    border: 1px solid var(--border);
-    background: var(--surface-soft);
+.summaryCard,
+.legalCard,
+.supportCard {
+  display: grid;
+  gap: 0.75rem;
+  padding: 1rem;
+  border: 1px solid var(--border);
+  background: var(--surface-soft);
   }
 
   .summaryCard {
     margin-top: 1.25rem;
   }
 
-  .summaryCard strong,
-  .legalCard strong {
-    color: var(--text);
-    font-size: 0.98rem;
+  .mobileInfoButton {
+    display: none;
+    align-items: center;
+    justify-content: center;
+    gap: 0.75rem;
+    width: 100%;
+    min-height: 3.5rem;
+    margin-top: 1rem;
+    padding: 0.85rem 1rem;
+    border: 1px solid #1d4ed8;
+    background: linear-gradient(135deg, #1d4ed8 0%, #2563eb 52%, #60a5fa 100%);
+    color: #ffffff;
+    font: inherit;
+    font-weight: 800;
+    text-align: left;
+    box-shadow: 0 18px 44px rgba(37, 99, 235, 0.22);
+    cursor: pointer;
   }
+
+  .mobileInfoButton span:last-child {
+    line-height: 1.2;
+  }
+
+  .mobileInfoBadge {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 2rem;
+    height: 2rem;
+    border-radius: 999px;
+    background: rgba(255, 255, 255, 0.18);
+    border: 1px solid rgba(255, 255, 255, 0.4);
+    color: #ffffff;
+    font-size: 1rem;
+    font-weight: 900;
+    flex-shrink: 0;
+  }
+
+.summaryCard strong,
+.legalCard strong,
+.supportCard strong {
+  color: var(--text);
+  font-size: 0.98rem;
+}
 
   .summaryCard ul,
   .legalList {
@@ -226,10 +266,10 @@
     font-size: 1rem;
   }
   
-  .primaryButton {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
+.primaryButton {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
     min-height: 3rem;
     padding: 0.85rem 1rem;
     border: 1px solid var(--accent);
@@ -238,8 +278,27 @@
     font: inherit;
     font-weight: 800;
     text-decoration: none;
-    cursor: pointer;
-  }
+  cursor: pointer;
+}
+
+.supportButton {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 3rem;
+  padding: 0.85rem 1rem;
+  border: 1px solid #16a34a;
+  background: #16a34a;
+  color: #ffffff;
+  font: inherit;
+  font-weight: 800;
+  text-decoration: none;
+  cursor: pointer;
+}
+
+.supportButton:hover {
+  background: #15803d;
+}
   
   .primaryButton:hover {
     background: #1e40af;
@@ -289,11 +348,70 @@
     margin: 0;
   }
   
-  .secondaryLink {
-    color: var(--text);
-    font-weight: 800;
-    text-decoration: none;
-  }
+.secondaryLink {
+  color: var(--text);
+  font-weight: 800;
+  text-decoration: none;
+}
+
+.supportCard p {
+  margin: 0;
+  color: var(--muted);
+  line-height: 1.6;
+}
+
+.modalOverlay {
+  position: fixed;
+  inset: 0;
+  z-index: 2000;
+  display: flex;
+  align-items: end;
+  padding: 1rem;
+  background: rgba(17, 24, 39, 0.56);
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+  transition: opacity 180ms ease, visibility 180ms ease;
+}
+
+.modalOverlayOpen {
+  opacity: 1;
+  visibility: visible;
+  pointer-events: auto;
+}
+
+.infoModal {
+  display: grid;
+  gap: 1rem;
+  width: min(100%, 32rem);
+  margin: 0 auto;
+  padding: 1rem;
+  border: 1px solid var(--border);
+  background: var(--surface);
+  box-shadow: 0 24px 80px rgba(15, 23, 42, 0.28);
+  transform: translateY(1.25rem);
+  transition: transform 220ms ease;
+}
+
+.infoModalOpen {
+  transform: translateY(0);
+}
+
+.modalHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+}
+
+.modalClose {
+  border: 0;
+  background: transparent;
+  color: var(--muted);
+  font: inherit;
+  font-weight: 800;
+  cursor: pointer;
+}
 
   .checkboxRow {
     display: grid;
@@ -329,6 +447,16 @@
     }
   }
   
+  @media (max-width: 960px) {
+    .mobileInfoButton {
+      display: inline-flex;
+    }
+
+    .brandPanel .summaryCard {
+      display: none;
+    }
+  }
+
   @media (max-width: 680px) {
     .shell {
       padding: 0.75rem;
