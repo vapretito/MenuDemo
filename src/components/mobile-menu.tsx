@@ -676,6 +676,23 @@ const openProductModal = (item: RestaurantRecord["items"][number]) => {
         )}
       </main>
 
+      <footer className={styles.miniFooter}>
+        <a
+          className={styles.miniFooterLink}
+          href="https://menui.online"
+          rel="noreferrer"
+          target="_blank"
+          aria-label="Realizado por Menui"
+        >
+          <span>realizado por</span>
+          <img
+            className={styles.miniFooterLogo}
+            src="/logos/menui-logo.svg"
+            alt="Menui"
+          />
+        </a>
+      </footer>
+
 
       {selectedProduct ? (
   <div
