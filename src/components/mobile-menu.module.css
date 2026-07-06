@@ -191,7 +191,7 @@
 
 .miniFooter {
   width: min(100% - 1rem, 1260px);
-  margin: 1.5rem auto 0;
+  margin: 0.9rem auto 0;
   padding: 0 0 1.35rem;
   display: flex;
   justify-content: center;
@@ -203,18 +203,18 @@
   align-items: center;
   justify-content: center;
   flex-wrap: wrap;
-  gap: 0.6rem;
-  min-width: min(100%, 18rem);
-  padding: 0.9rem 1.2rem;
-  border: 1px solid var(--border);
+  gap: 0.45rem;
+  min-width: min(100%, 13.5rem);
+  padding: 0.65rem 0.9rem;
+  border: 1px solid color-mix(in srgb, var(--border) 72%, transparent);
   background:
-    linear-gradient(135deg, rgba(255, 255, 255, 0.08), rgba(255, 255, 255, 0.02)),
-    var(--surface-alt);
+    linear-gradient(135deg, rgba(255, 255, 255, 0.09), rgba(255, 255, 255, 0.025)),
+    color-mix(in srgb, var(--surface-alt) 78%, transparent);
   color: var(--text);
   text-decoration: none;
   text-transform: lowercase;
-  letter-spacing: 0.1em;
-  font-size: 0.76rem;
+  letter-spacing: 0.08em;
+  font-size: 0.68rem;
   font-weight: 700;
   box-shadow:
     inset 0 1px 0 rgba(255, 255, 255, 0.08),
@@ -230,8 +230,8 @@
   transform: translateY(-1px);
   border-color: var(--accent);
   background:
-    linear-gradient(135deg, rgba(255, 255, 255, 0.12), rgba(255, 255, 255, 0.03)),
-    var(--surface-alt);
+    linear-gradient(135deg, rgba(255, 255, 255, 0.13), rgba(255, 255, 255, 0.035)),
+    color-mix(in srgb, var(--surface-alt) 86%, transparent);
   box-shadow:
     inset 0 1px 0 rgba(255, 255, 255, 0.12),
     0 14px 30px rgba(0, 0, 0, 0.18);
@@ -244,7 +244,7 @@
 
 .miniFooterLogo {
   width: auto;
-  height: 1.2rem;
+  height: 0.95rem;
   display: block;
   filter:
     drop-shadow(0 0 10px rgba(255, 255, 255, 0.18))
