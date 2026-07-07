@@ -49,6 +49,16 @@ export default async function MenuPage({ params }: MenuPageProps) {
   }
 
   const record = mapRestaurantToRecord(restaurant);
+  const visibleCategoryIds = new Set(
+    record.categories
+      .filter((category) => !category.hidden)
+      .map((category) => category.id)
+  );
+  const publicRecord = {
+    ...record,
+    categories: record.categories.filter((category) => visibleCategoryIds.has(category.id)),
+    items: record.items.filter((item) => visibleCategoryIds.has(item.categoryId)),
+  };
   const isDemoMenu = record.slug === "demo" || record.connectedToDemo;
 
   return (
@@ -59,7 +69,7 @@ export default async function MenuPage({ params }: MenuPageProps) {
         </a>
       ) : null}
 
-      <MobileMenu restaurant={record} />
+      <MobileMenu restaurant={publicRecord} />
     </main>
   );
 }

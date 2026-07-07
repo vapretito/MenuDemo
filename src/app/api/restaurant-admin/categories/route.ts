@@ -6,11 +6,13 @@ function mapCategory(category: {
   id: string;
   name: string;
   description: string;
+  hidden: boolean;
 }) {
   return {
     id: category.id,
     name: category.name,
     description: category.description,
+    hidden: category.hidden,
   };
 }
 
@@ -27,11 +29,11 @@ export async function POST(request: Request) {
     const name = String(body.name ?? "").trim();
     const description =
       String(body.description ?? "").trim() ||
-      "Nueva categoría lista para ordenar productos.";
+      "Nueva categoria lista para ordenar productos.";
 
     if (!name) {
       return NextResponse.json(
-        { error: "El nombre de la categoría es obligatorio." },
+        { error: "El nombre de la categoria es obligatorio." },
         { status: 400 }
       );
     }
@@ -53,6 +55,7 @@ export async function POST(request: Request) {
         restaurantId: session.restaurantId,
         name,
         description,
+        hidden: Boolean(body.hidden),
         sortOrder: (lastCategory?.sortOrder ?? 0) + 1,
       },
     });
@@ -68,7 +71,7 @@ export async function POST(request: Request) {
         error:
           error instanceof Error
             ? error.message
-            : "No se pudo crear la categoría.",
+            : "No se pudo crear la categoria.",
       },
       { status: 500 }
     );

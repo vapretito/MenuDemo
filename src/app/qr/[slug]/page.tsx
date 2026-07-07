@@ -38,9 +38,21 @@ export default async function QrMenuPage({ params }: QrMenuPageProps) {
     redirect(`/activar/${restaurant.slug}`);
   }
 
+  const record = mapRestaurantToRecord(restaurant);
+  const visibleCategoryIds = new Set(
+    record.categories
+      .filter((category) => !category.hidden)
+      .map((category) => category.id)
+  );
+  const publicRecord = {
+    ...record,
+    categories: record.categories.filter((category) => visibleCategoryIds.has(category.id)),
+    items: record.items.filter((item) => visibleCategoryIds.has(item.categoryId)),
+  };
+
   return (
     <main className="menuPage">
-      <MobileMenu restaurant={mapRestaurantToRecord(restaurant)} mode="visual" />
+      <MobileMenu restaurant={publicRecord} mode="visual" />
     </main>
   );
 }

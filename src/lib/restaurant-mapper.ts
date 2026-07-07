@@ -196,6 +196,7 @@ timeZone: restaurant.timeZone,
       id: category.id,
       name: category.name,
       description: category.description,
+      hidden: category.hidden,
     })),
 
     items: restaurant.products.map((product) => ({

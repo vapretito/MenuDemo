@@ -31,6 +31,8 @@ export async function GET() {
 
     const lastEvents = events.slice(0, 8).map((event) => ({
       id: event.id,
+      customerName: event.customerName,
+      customerWhatsapp: event.customerWhatsapp,
       totalArs: event.totalArs,
       itemCount: event.itemCount,
       paymentMethod: event.paymentMethod,

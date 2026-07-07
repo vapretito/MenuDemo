@@ -12,11 +12,13 @@ function mapCategory(category: {
   id: string;
   name: string;
   description: string;
+  hidden: boolean;
 }) {
   return {
     id: category.id,
     name: category.name,
     description: category.description,
+    hidden: category.hidden,
   };
 }
 
@@ -36,7 +38,7 @@ export async function PATCH(request: Request, { params }: RouteProps) {
 
     if (!name) {
       return NextResponse.json(
-        { error: "El nombre de la categoría es obligatorio." },
+        { error: "El nombre de la categoria es obligatorio." },
         { status: 400 }
       );
     }
@@ -53,7 +55,7 @@ export async function PATCH(request: Request, { params }: RouteProps) {
 
     if (!existingCategory) {
       return NextResponse.json(
-        { error: "Categoría no encontrada." },
+        { error: "Categoria no encontrada." },
         { status: 404 }
       );
     }
@@ -64,8 +66,8 @@ export async function PATCH(request: Request, { params }: RouteProps) {
       },
       data: {
         name,
-        description:
-          description || "Nueva categoría lista para ordenar productos.",
+        description: description || "Nueva categoria lista para ordenar productos.",
+        hidden: Boolean(body.hidden),
       },
     });
 
@@ -80,7 +82,7 @@ export async function PATCH(request: Request, { params }: RouteProps) {
         error:
           error instanceof Error
             ? error.message
-            : "No se pudo guardar la categoría.",
+            : "No se pudo guardar la categoria.",
       },
       { status: 500 }
     );
@@ -105,7 +107,7 @@ export async function DELETE(_request: Request, { params }: RouteProps) {
 
     if (categoriesCount <= 1) {
       return NextResponse.json(
-        { error: "No podés eliminar la única categoría del menú." },
+        { error: "No podes eliminar la unica categoria del menu." },
         { status: 400 }
       );
     }
@@ -122,7 +124,7 @@ export async function DELETE(_request: Request, { params }: RouteProps) {
 
     if (!existingCategory) {
       return NextResponse.json(
-        { error: "Categoría no encontrada." },
+        { error: "Categoria no encontrada." },
         { status: 404 }
       );
     }
@@ -152,7 +154,7 @@ export async function DELETE(_request: Request, { params }: RouteProps) {
         error:
           error instanceof Error
             ? error.message
-            : "No se pudo borrar la categoría.",
+            : "No se pudo borrar la categoria.",
       },
       { status: 500 }
     );

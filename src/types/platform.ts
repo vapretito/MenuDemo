@@ -2,6 +2,7 @@ export type MenuCategory = {
   id: string;
   name: string;
   description: string;
+  hidden?: boolean;
 };
 
 export type MenuItem = {

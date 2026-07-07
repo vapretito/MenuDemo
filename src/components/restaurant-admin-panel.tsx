@@ -141,6 +141,7 @@ const createCategory = (name: string): MenuCategory => ({
   id: `${slugify(name)}-${Date.now()}`,
   name,
   description: "Nueva categoria lista para ordenar productos.",
+  hidden: false,
 });
 
 const createItem = (categoryId: string): MenuItem => ({
@@ -175,6 +176,8 @@ export function RestaurantAdminPanel({
     averageTicketArs: 0,
     lastEvents: [] as Array<{
       id: string;
+      customerName: string;
+      customerWhatsapp: string;
       totalArs: number;
       itemCount: number;
       paymentMethod: string;
@@ -194,6 +197,8 @@ export function RestaurantAdminPanel({
     customers: [] as CustomerRecord[],
   });
   const [customerLoading, setCustomerLoading] = useState(false);
+  const [customerDeletingId, setCustomerDeletingId] = useState<string | null>(null);
+  const [cartDeletingId, setCartDeletingId] = useState<string | null>(null);
 
 
 
@@ -340,7 +345,11 @@ const [cashSuccess, setCashSuccess] = useState<string | null>(null);
     setRestaurant((current) => ({ ...current, [field]: value }));
   };
 
-  const updateCategory = (categoryId: string, field: keyof MenuCategory, value: string) => {
+  const updateCategory = <K extends keyof MenuCategory>(
+    categoryId: string,
+    field: K,
+    value: MenuCategory[K]
+  ) => {
     setRestaurant((current) => ({
       ...current,
       categories: current.categories.map((category) =>
@@ -497,6 +506,95 @@ const [cashSuccess, setCashSuccess] = useState<string | null>(null);
       );
     } finally {
       setCategorySavingId(null);
+    }
+  };
+
+  const deleteCustomer = async (customerId: string) => {
+    const confirmed = window.confirm(
+      "Este cliente se borrara del CRM. Los pedidos historicos quedaran sin vinculo directo. Queres continuar?"
+    );
+
+    if (!confirmed) return;
+
+    setCustomerDeletingId(customerId);
+
+    try {
+      const response = await fetch(`/api/restaurant-admin/customers/${customerId}`, {
+        method: "DELETE",
+      });
+
+      const rawResponse = await response.text();
+
+      let data: {
+        deleted?: boolean;
+        error?: string;
+      } = {};
+
+      try {
+        data = rawResponse ? JSON.parse(rawResponse) : {};
+      } catch {
+        throw new Error(`La API no devolvio JSON. Status: ${response.status}.`);
+      }
+
+      if (!response.ok || !data.deleted) {
+        throw new Error(data.error ?? "No se pudo borrar el cliente.");
+      }
+
+      await loadCustomerSummary(customerFilter);
+    } catch (error) {
+      setCategoryError(null);
+      setProductError(null);
+      setFeedbackError(null);
+      window.alert(
+        error instanceof Error ? error.message : "No se pudo borrar el cliente."
+      );
+    } finally {
+      setCustomerDeletingId(null);
+    }
+  };
+
+  const deleteCartEvent = async (eventId: string) => {
+    const confirmed = window.confirm(
+      "Este pedido se borrara del historial y se recalcularan los datos del cliente asociado. Queres continuar?"
+    );
+
+    if (!confirmed) return;
+
+    setCartDeletingId(eventId);
+
+    try {
+      const response = await fetch(`/api/restaurant-admin/cart-events/${eventId}`, {
+        method: "DELETE",
+      });
+
+      const rawResponse = await response.text();
+
+      let data: {
+        deleted?: boolean;
+        error?: string;
+      } = {};
+
+      try {
+        data = rawResponse ? JSON.parse(rawResponse) : {};
+      } catch {
+        throw new Error(`La API no devolvio JSON. Status: ${response.status}.`);
+      }
+
+      if (!response.ok || !data.deleted) {
+        throw new Error(data.error ?? "No se pudo borrar el pedido.");
+      }
+
+      await Promise.all([
+        loadCartSummary(),
+        loadCashSummary(),
+        loadCustomerSummary(customerFilter),
+      ]);
+    } catch (error) {
+      window.alert(
+        error instanceof Error ? error.message : "No se pudo borrar el pedido."
+      );
+    } finally {
+      setCartDeletingId(null);
     }
   };
 
@@ -2040,8 +2138,21 @@ const [cashSuccess, setCashSuccess] = useState<string | null>(null);
           <span>{new Date(event.createdAt).toLocaleString("es-AR")}</span>
           <strong>{money.format(event.totalArs)}</strong>
           <p>
-            {event.itemCount} productos · Pago: {event.paymentMethod}
+            {event.itemCount} productos - Pago: {event.paymentMethod}
           </p>
+          <p>
+            {event.customerName} - {event.customerWhatsapp}
+          </p>
+          <div className={styles.feedCardActions}>
+            <button
+              className={styles.ghostDanger}
+              disabled={cartDeletingId === event.id}
+              onClick={() => void deleteCartEvent(event.id)}
+              type="button"
+            >
+              {cartDeletingId === event.id ? "Borrando..." : "Borrar pedido"}
+            </button>
+          </div>
         </article>
       ))
     ) : (
@@ -2178,14 +2289,24 @@ const [cashSuccess, setCashSuccess] = useState<string | null>(null);
                     ? "Acepta promociones"
                     : "Sin consentimiento promocional"}
                 </span>
-                <a
-                  className={styles.secondaryButton}
-                  href={`https://wa.me/${customer.whatsapp}`}
-                  rel="noreferrer"
-                  target="_blank"
-                >
-                  Abrir WhatsApp
-                </a>
+                <div className={styles.customerCardActions}>
+                  <a
+                    className={styles.secondaryButton}
+                    href={`https://wa.me/${customer.whatsapp}`}
+                    rel="noreferrer"
+                    target="_blank"
+                  >
+                    Abrir WhatsApp
+                  </a>
+                  <button
+                    className={styles.ghostDanger}
+                    disabled={customerDeletingId === customer.id}
+                    onClick={() => void deleteCustomer(customer.id)}
+                    type="button"
+                  >
+                    {customerDeletingId === customer.id ? "Borrando..." : "Borrar cliente"}
+                  </button>
+                </div>
               </div>
             </article>
           ))
@@ -2338,7 +2459,7 @@ const [cashSuccess, setCashSuccess] = useState<string | null>(null);
   </section>
 ) : null}
 
-        {activeSection === "categories" ? (
+                {activeSection === "categories" ? (
           <section className={styles.panel}>
             <div className={styles.panelHeader}>
               <div>
@@ -2349,32 +2470,32 @@ const [cashSuccess, setCashSuccess] = useState<string | null>(null);
             </div>
 
             <div className={styles.inlineCreate}>
-  <input
-    placeholder="Nueva categoria"
-    value={newCategoryName}
-    onChange={(event) => setNewCategoryName(event.target.value)}
-    onKeyDown={handleCategoryKeyDown}
-  />
-  <button
-    className={styles.primaryButton}
-    disabled={categorySavingId === "new"}
-    onClick={() => void addCategory()}
-    type="button"
-  >
-    {categorySavingId === "new" ? "Creando..." : "Agregar categoria"}
-  </button>
-</div>
+              <input
+                placeholder="Nueva categoria"
+                value={newCategoryName}
+                onChange={(event) => setNewCategoryName(event.target.value)}
+                onKeyDown={handleCategoryKeyDown}
+              />
+              <button
+                className={styles.primaryButton}
+                disabled={categorySavingId === "new"}
+                onClick={() => void addCategory()}
+                type="button"
+              >
+                {categorySavingId === "new" ? "Creando..." : "Agregar categoria"}
+              </button>
+            </div>
 
-{categoryError ? (
-  <div className={styles.errorBox}>{categoryError}</div>
-) : null}
+            {categoryError ? (
+              <div className={styles.errorBox}>{categoryError}</div>
+            ) : null}
 
-{categorySuccess ? (
-  <div className={styles.successBox}>{categorySuccess}</div>
-) : null}
+            {categorySuccess ? (
+              <div className={styles.successBox}>{categorySuccess}</div>
+            ) : null}
 
             <div className={styles.stack}>
-            {restaurant.categories.map((category, categoryIndex) => (
+              {restaurant.categories.map((category, categoryIndex) => (
                 <article className={styles.categoryCard} key={category.id}>
                   <div className={styles.formGrid}>
                     <label>
@@ -2386,56 +2507,69 @@ const [cashSuccess, setCashSuccess] = useState<string | null>(null);
                       <textarea value={category.description} onChange={(event) => updateCategory(category.id, "description", event.target.value)} />
                     </label>
                   </div>
+
+                  <div className={styles.toggleRow}>
+                    <label className={styles.toggle}>
+                      <input
+                        checked={!category.hidden}
+                        type="checkbox"
+                        onChange={(event) =>
+                          updateCategory(category.id, "hidden", !event.target.checked)
+                        }
+                      />
+                      <span>{category.hidden ? "Categoria oculta en el menu" : "Categoria visible en el menu"}</span>
+                    </label>
+                  </div>
+
                   <div className={styles.rowActions}>
-  <span>
-    {restaurant.items.filter((item) => item.categoryId === category.id).length} productos asignados
-  </span>
+                    <span>
+                      {restaurant.items.filter((item) => item.categoryId === category.id).length} productos asignados{category.hidden ? " - Oculta" : ""}
+                    </span>
 
-  <button
-  className={styles.secondaryButton}
-  disabled={categoryIndex === 0 || categorySavingId === category.id}
-  onClick={() => void moveCategory(category.id, "up")}
-  type="button"
->
-  Subir
-</button>
+                    <button
+                      className={styles.secondaryButton}
+                      disabled={categoryIndex === 0 || categorySavingId === category.id}
+                      onClick={() => void moveCategory(category.id, "up")}
+                      type="button"
+                    >
+                      Subir
+                    </button>
 
-<button
-  className={styles.secondaryButton}
-  disabled={
-    categoryIndex === restaurant.categories.length - 1 ||
-    categorySavingId === category.id
-  }
-  onClick={() => void moveCategory(category.id, "down")}
-  type="button"
->
-  Bajar
-</button>
+                    <button
+                      className={styles.secondaryButton}
+                      disabled={
+                        categoryIndex === restaurant.categories.length - 1 ||
+                        categorySavingId === category.id
+                      }
+                      onClick={() => void moveCategory(category.id, "down")}
+                      type="button"
+                    >
+                      Bajar
+                    </button>
 
-  <button
-    className={styles.primaryButton}
-    disabled={categorySavingId === category.id}
-    onClick={() => void saveCategory(category.id)}
-    type="button"
-  >
-    {categorySavingId === category.id ? "Guardando..." : "Guardar categoria"}
-  </button>
+                    <button
+                      className={styles.primaryButton}
+                      disabled={categorySavingId === category.id}
+                      onClick={() => void saveCategory(category.id)}
+                      type="button"
+                    >
+                      {categorySavingId === category.id ? "Guardando..." : "Guardar categoria"}
+                    </button>
 
-  <button
-    className={styles.ghostDanger}
-    disabled={restaurant.categories.length === 1 || categorySavingId === category.id}
-    onClick={() => void deleteCategory(category.id)}
-    type="button"
-  >
-    Eliminar categoria
-  </button>
-</div>
+                    <button
+                      className={styles.ghostDanger}
+                      disabled={restaurant.categories.length === 1 || categorySavingId === category.id}
+                      onClick={() => void deleteCategory(category.id)}
+                      type="button"
+                    >
+                      Eliminar categoria
+                    </button>
+                  </div>
                 </article>
               ))}
             </div>
           </section>
         ) : null}
-
         {false ? (
           <section className={styles.panel}>
             <div className={styles.panelHeader}>
@@ -4316,3 +4450,5 @@ const [cashSuccess, setCashSuccess] = useState<string | null>(null);
     </div>
   );
 }
+
+
