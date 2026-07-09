@@ -23,9 +23,9 @@ const defaultForm: RestaurantCreationInput = {
   cuisine: "",
   adminName: "",
   customerWhatsapp: "",
-  planId: "basic",
-  status: "trial",
-  billingMode: "mercado_pago_subscription",
+  planId: "demo",
+  status: "manual",
+  billingMode: "manual",
 };
 
 type PasswordResetCredentials = {
@@ -115,6 +115,8 @@ export function SuperAdminPanel() {
   const [passwordResetRestaurantId, setPasswordResetRestaurantId] = useState<string | null>(null);
   const [passwordResetError, setPasswordResetError] = useState<string | null>(null);
   const [passwordResetCredentials, setPasswordResetCredentials] =
+    useState<PasswordResetCredentials | null>(null);
+  const [createdCredentials, setCreatedCredentials] =
     useState<PasswordResetCredentials | null>(null);
   const [passwordResetLoading, setPasswordResetLoading] = useState(false);
   const [passwordResetCopied, setPasswordResetCopied] = useState(false);
@@ -391,6 +393,7 @@ export function SuperAdminPanel() {
     }
 
     setBackofficeError(null);
+    setCreatedCredentials(null);
 
     try {
       const response = await fetch("/api/backoffice/restaurants", {
@@ -409,6 +412,7 @@ export function SuperAdminPanel() {
 
       let data: {
         restaurant?: RestaurantRecord;
+        credentials?: PasswordResetCredentials;
         error?: string;
       } = {};
 
@@ -426,6 +430,7 @@ export function SuperAdminPanel() {
 
       setRestaurants((current) => [data.restaurant as RestaurantRecord, ...current]);
       setSelectedSlug(data.restaurant.slug);
+      setCreatedCredentials(data.credentials ?? null);
       setForm(defaultForm);
       setIsCreateOpen(false);
       setActiveView("restaurants");
@@ -436,6 +441,16 @@ export function SuperAdminPanel() {
           : "Error creando restaurante."
       );
     }
+  };
+
+  const prepareDemoRestaurant = () => {
+    setForm((current) => ({
+      ...current,
+      planId: "demo",
+      status: "manual",
+      billingMode: "manual",
+    }));
+    setBackofficeError(null);
   };
 
   const deleteRestaurant = async (slug: string) => {
@@ -1079,7 +1094,15 @@ export function SuperAdminPanel() {
                   <div>
                     <span className={styles.eyebrow}>Alta comercial</span>
                     <h3>Agregar restaurante</h3>
+                    <p>Para demos de cliente podés dejarlo en modo manual y sin cobro.</p>
                   </div>
+                  <button
+                    className={styles.secondaryAction}
+                    onClick={prepareDemoRestaurant}
+                    type="button"
+                  >
+                    Demo sin cobro
+                  </button>
                 </div>
   
                 <div className={styles.createGrid}>
@@ -1256,6 +1279,32 @@ export function SuperAdminPanel() {
                       Cancelar
                     </button>
                   </div>
+                </div>
+              </section>
+            ) : null}
+
+            {createdCredentials ? (
+              <section className={styles.panelSection}>
+                <div className={styles.panelHeader}>
+                  <div>
+                    <span className={styles.eyebrow}>Acceso generado</span>
+                    <h3>Credenciales del admin</h3>
+                  </div>
+                </div>
+
+                <div className={styles.credentialsBox}>
+                  <span>Restaurante</span>
+                  <strong>{createdCredentials.restaurantName}</strong>
+                  <span>Email del admin</span>
+                  <strong>{createdCredentials.email}</strong>
+                  <span>Contrasena temporal</span>
+                  <strong>{createdCredentials.temporaryPassword}</strong>
+                  <span>Login</span>
+                  <strong>{createdCredentials.loginUrl}</strong>
+                  <p>
+                    Ya podés abrir el subdominio, entrar al login y mostrarle el
+                    admin al cliente sin activar cobro.
+                  </p>
                 </div>
               </section>
             ) : null}

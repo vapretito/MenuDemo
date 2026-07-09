@@ -5,8 +5,13 @@ import {
   DnsStatus,
   RestaurantStatus,
   SubscriptionStatus,
+  UserRole,
 } from "../../../../generated/prisma/client";
 import { isBackofficeAuthenticated } from "../../../../lib/backoffice-auth";
+import {
+  generateTemporaryPassword,
+  hashPassword,
+} from "../../../../lib/password";
 import { prisma } from "../../../../lib/prisma";
 import { mapRestaurantToRecord } from "../../../../lib/restaurant-mapper";
 
@@ -19,6 +24,9 @@ const slugify = (value: string) =>
     .replace(/(^-|-$)/g, "");
 
 const getRootDomain = () => process.env.MENUI_ROOT_DOMAIN ?? "menui.online";
+
+const getTrialEndsAt = (days = 7) =>
+  new Date(Date.now() + days * 24 * 60 * 60 * 1000);
 
 const statusMap: Record<string, RestaurantStatus> = {
   trial: RestaurantStatus.TRIAL,
@@ -124,6 +132,11 @@ export async function POST(request: Request) {
     const billingMode = billingModeMap[rawBillingMode] ?? BillingMode.MERCADO_PAGO_SUBSCRIPTION;
     const status = statusMap[rawStatus] ?? RestaurantStatus.TRIAL;
     const isManual = billingMode === BillingMode.MANUAL;
+    const adminEmail = `demo+${slug}@${getRootDomain()}`.toLowerCase();
+    const adminDisplayName = adminName || `Admin ${name}`;
+    const temporaryPassword = generateTemporaryPassword();
+    const passwordHash = hashPassword(temporaryPassword);
+    const trialEndsAt = status === RestaurantStatus.TRIAL ? getTrialEndsAt() : null;
 
     const exists = await prisma.restaurant.findFirst({
       where: {
@@ -153,15 +166,24 @@ export async function POST(request: Request) {
         description:
           "Restaurante creado desde Menui Backoffice. Listo para configurar productos, categorías y WhatsApp.",
         status,
+        trialEndsAt,
         dnsStatus: DnsStatus.CONFIGURED,
         billingMode,
         connectedToDemo: slug === "demo",
-        adminName,
+        adminName: adminDisplayName,
         adminWhatsapp: customerWhatsapp,
         customerWhatsapp,
         onboardingNote: isManual
           ? "Cliente creado con modalidad de cobro manual."
           : "Cliente creado desde backoffice. Pendiente de completar configuración comercial.",
+        users: {
+          create: {
+            name: adminDisplayName,
+            email: adminEmail,
+            passwordHash,
+            role: UserRole.RESTAURANT_ADMIN,
+          },
+        },
         subscription: {
           create: {
             planId,
@@ -173,7 +195,8 @@ export async function POST(request: Request) {
               ? CollectionMethod.MANUAL
               : CollectionMethod.AUTOMATIC,
             status:
-              status === RestaurantStatus.ACTIVE
+              status === RestaurantStatus.ACTIVE ||
+              status === RestaurantStatus.MANUAL
                 ? SubscriptionStatus.ACTIVE
                 : SubscriptionStatus.SCHEDULED,
             renewsOn: null,
@@ -206,6 +229,12 @@ export async function POST(request: Request) {
 
     return NextResponse.json({
       restaurant: mapRestaurantToRecord(restaurant),
+      credentials: {
+        restaurantName: restaurant.name,
+        email: adminEmail,
+        temporaryPassword,
+        loginUrl: `https://${restaurant.subdomain}/login`,
+      },
     });
   } catch (error) {
     console.error("[Backoffice Create Restaurant Error]", error);

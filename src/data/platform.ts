@@ -2,6 +2,18 @@ import { PlanRecord, PlatformSnapshot, RestaurantRecord } from "@/types/platform
 
 export const planCatalog: PlanRecord[] = [
   {
+    id: "demo",
+    name: "Menui Demo",
+    price: 0,
+    productLimit: 40,
+    features: [
+      "Alta interna para demos comerciales",
+      "Sin cobro ni checkout",
+      "Admin listo para mostrar al cliente",
+      "Uso exclusivo de backoffice",
+    ],
+  },
+  {
     id: "basic",
     name: "Menui Basic",
     price: 20000,
@@ -15,6 +27,30 @@ export const planCatalog: PlanRecord[] = [
       "Horarios automáticos",
       "Métricas aproximadas",
       "Cierre de caja estimado",
+    ],
+  },
+  {
+    id: "pro",
+    name: "Menui Growth",
+    price: 39900,
+    productLimit: 120,
+    features: [
+      "Catalogo ampliado",
+      "Mas volumen operativo",
+      "Pensado para locales con menu grande",
+      "Seguimiento comercial",
+    ],
+  },
+  {
+    id: "premium",
+    name: "Menui Premium",
+    price: 69900,
+    productLimit: 250,
+    features: [
+      "Plan para cartas extensas",
+      "Mas capacidad para sucursales exigentes",
+      "Acompanamiento comercial",
+      "Configuracion avanzada",
     ],
   },
   {

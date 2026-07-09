@@ -47,6 +47,10 @@ const normalizeBillingMode = (mode: string): FrontBillingMode => {
 };
 
 const normalizePlanId = (planId?: string | null): FrontPlanId => {
+  if (planId === "demo") {
+    return "demo" as FrontPlanId;
+  }
+
   if (planId === "basic") {
     return "basic" as FrontPlanId;
   }
@@ -57,6 +61,10 @@ const normalizePlanId = (planId?: string | null): FrontPlanId => {
 
   if (planId === "premium") {
     return "premium" as FrontPlanId;
+  }
+
+  if (planId === "test_real") {
+    return "test_real" as FrontPlanId;
   }
 
   return "basic" as FrontPlanId;

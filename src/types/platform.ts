@@ -37,7 +37,7 @@ export type RestaurantStatus =
   | "cancelled"
   | "manual";
 export type DnsSetupStatus = "pending" | "configured";
-export type PlanId = "basic" | "test_real";
+export type PlanId = "basic" | "pro" | "premium" | "demo" | "test_real";
 export type BillingMode = "mercado_pago_subscription" | "manual";
 export type PaymentStatus =
   | "pending"
