@@ -190,7 +190,7 @@ export async function POST(request: Request) {
             planName: selectedPlan.name,
             amountArs: selectedPlan.price,
             cycle: "monthly",
-            mercadopagoPreapprovalId: isManual ? "manual" : null,
+            mercadopagoPreapprovalId: null,
             collectionMethod: isManual
               ? CollectionMethod.MANUAL
               : CollectionMethod.AUTOMATIC,

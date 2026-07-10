@@ -172,7 +172,8 @@ timeZone: restaurant.timeZone,
       amountArs: subscription?.amountArs ?? 0,
       cycle: normalizeCycle(),
       mercadopagoPreapprovalId:
-        subscription?.mercadopagoPreapprovalId ?? "pendiente",
+        subscription?.mercadopagoPreapprovalId ??
+        (restaurant.billingMode === "MANUAL" ? "manual" : "pendiente"),
       collectionMethod: normalizeCollectionMethod(
         subscription?.collectionMethod
       ),
