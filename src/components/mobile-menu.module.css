@@ -12,10 +12,7 @@
   min-height: 78vh;
   display: grid;
   place-items: center;
-  background:
-    linear-gradient(180deg, rgba(0, 0, 0, 0.26), rgba(0, 0, 0, 0.58)),
-    var(--hero-image) center/cover no-repeat,
-    var(--hero-gradient);
+  background: var(--hero-gradient);
   border-bottom: 4px solid var(--accent);
   overflow: hidden;
 }
@@ -24,8 +21,17 @@
   position: absolute;
   inset: 0;
   background:
-    radial-gradient(circle at top, rgba(255, 255, 255, 0.08), transparent 32%),
-    linear-gradient(180deg, rgba(7, 10, 10, 0.12), rgba(7, 10, 10, 0.68));
+    radial-gradient(
+      circle at top,
+      color-mix(in srgb, var(--accent-soft) 22%, transparent),
+      transparent 32%
+    ),
+    linear-gradient(
+      180deg,
+      color-mix(in srgb, var(--surface) 10%, transparent) 0%,
+      color-mix(in srgb, var(--surface) 38%, transparent) 52%,
+      color-mix(in srgb, var(--surface) 62%, transparent) 100%
+    );
 }
 
 .heroContent {
@@ -619,6 +625,8 @@
   width: 100%;
   height: 100%;
   object-fit: cover;
+  opacity: 0.44;
+  mix-blend-mode: multiply;
 }
 
 .heroOverlay {
@@ -626,11 +634,16 @@
   inset: 0;
   z-index: 1;
   background:
+    radial-gradient(
+      circle at top,
+      color-mix(in srgb, var(--accent-soft) 22%, transparent),
+      transparent 32%
+    ),
     linear-gradient(
       180deg,
-      rgba(0, 0, 0, 0.28) 0%,
-      rgba(0, 0, 0, 0.68) 48%,
-      rgba(0, 0, 0, 0.9) 100%
+      color-mix(in srgb, var(--surface) 10%, transparent) 0%,
+      color-mix(in srgb, var(--surface) 38%, transparent) 52%,
+      color-mix(in srgb, var(--surface) 62%, transparent) 100%
     );
 }
 
@@ -675,6 +688,8 @@
   width: 100%;
   height: 100%;
   object-fit: cover;
+  opacity: 0.44;
+  mix-blend-mode: multiply;
 }
 
 .heroOverlay {
@@ -682,11 +697,16 @@
   inset: 0;
   z-index: 1;
   background:
+    radial-gradient(
+      circle at top,
+      color-mix(in srgb, var(--accent-soft) 22%, transparent),
+      transparent 32%
+    ),
     linear-gradient(
       180deg,
-      rgba(0, 0, 0, 0.24) 0%,
-      rgba(0, 0, 0, 0.68) 52%,
-      rgba(0, 0, 0, 0.92) 100%
+      color-mix(in srgb, var(--surface) 10%, transparent) 0%,
+      color-mix(in srgb, var(--surface) 38%, transparent) 52%,
+      color-mix(in srgb, var(--surface) 62%, transparent) 100%
     );
 }
 
@@ -1081,12 +1101,6 @@
   border-bottom: 5px solid var(--accent);
 }
 
-.shell[data-template="parrilla-criolla"] .heroOverlay {
-  background:
-    radial-gradient(circle at top, rgba(255, 191, 87, 0.1), transparent 28%),
-    linear-gradient(180deg, rgba(25, 11, 7, 0.2), rgba(8, 5, 4, 0.76));
-}
-
 .shell[data-template="parrilla-criolla"] .restaurantLogo {
   border-radius: 16px;
   border: 2px solid rgba(255, 244, 230, 0.4);
@@ -1133,12 +1147,6 @@
   min-height: 34rem;
   border-bottom: 0;
   border-radius: 0 0 38px 38px;
-}
-
-.shell[data-template="brunch-pastel"] .heroOverlay {
-  background:
-    radial-gradient(circle at top, rgba(255, 255, 255, 0.3), transparent 32%),
-    linear-gradient(180deg, rgba(255, 255, 255, 0.06), rgba(111, 78, 67, 0.3));
 }
 
 .shell[data-template="brunch-pastel"] .restaurantLogo {
@@ -1219,12 +1227,6 @@
   border-bottom: 2px solid var(--accent);
 }
 
-.shell[data-template="asian-neon"] .heroOverlay {
-  background:
-    radial-gradient(circle at top, rgba(163, 255, 18, 0.12), transparent 24%),
-    linear-gradient(180deg, rgba(4, 7, 12, 0.18), rgba(3, 6, 10, 0.82));
-}
-
 .shell[data-template="asian-neon"] .restaurantLogo {
   border-radius: 16px;
   transform: rotate(-4deg);
@@ -1280,12 +1282,6 @@
   min-height: 35rem;
   border-bottom: 0;
   border-radius: 0 0 44px 44px;
-}
-
-.shell[data-template="mediterranean-light"] .heroOverlay {
-  background:
-    radial-gradient(circle at top, rgba(255, 255, 255, 0.26), transparent 32%),
-    linear-gradient(180deg, rgba(23, 48, 66, 0.08), rgba(23, 48, 66, 0.34));
 }
 
 .shell[data-template="mediterranean-light"] .badge,
