@@ -36,16 +36,62 @@ const templateFilterOptions = [
 ] as const;
 
 const extractGradientStops = (gradient: string) => {
-  const colors = gradient.match(/#(?:[0-9a-fA-F]{3,8})/g) ?? [];
+  const alphaMatches = [...gradient.matchAll(/rgba?\(([^)]+)\)/g)];
+  const alphaCandidate = alphaMatches
+    .map((match) => match[1]?.split(",").map((part) => part.trim()) ?? [])
+    .find((parts) => parts.length === 4);
+  const alpha = alphaCandidate ? Number(alphaCandidate[3]) : 0.58;
+  const intensity = Number.isFinite(alpha)
+    ? Math.min(100, Math.max(0, Math.round(alpha * 100)))
+    : 58;
+  const hexColors = gradient.match(/#(?:[0-9a-fA-F]{3,8})/g) ?? [];
+  const rgbaColors = alphaMatches
+    .map((match) => match[1]?.split(",").map((part) => part.trim()) ?? [])
+    .filter((parts) => parts.length >= 3)
+    .slice(0, 2)
+    .map(([r, g, b]) => {
+      const toHex = (value: string) =>
+        Math.min(255, Math.max(0, Number.parseInt(value, 10) || 0))
+          .toString(16)
+          .padStart(2, "0");
+
+      return `#${toHex(r)}${toHex(g)}${toHex(b)}`;
+    });
+  const colors = hexColors.length > 0 ? hexColors : rgbaColors;
 
   return {
     start: colors[0] ?? "#1f2937",
     end: colors[1] ?? colors[0] ?? "#111827",
+    intensity,
   };
 };
 
-const buildHeroGradient = (start: string, end: string) =>
-  `linear-gradient(180deg, ${start} 0%, ${end} 100%)`;
+const hexToRgb = (hex: string) => {
+  const normalized = hex.replace("#", "").trim();
+  const expanded =
+    normalized.length === 3
+      ? normalized
+          .split("")
+          .map((char) => `${char}${char}`)
+          .join("")
+      : normalized.slice(0, 6);
+
+  const value = Number.parseInt(expanded, 16);
+
+  return {
+    r: (value >> 16) & 255,
+    g: (value >> 8) & 255,
+    b: value & 255,
+  };
+};
+
+const buildHeroGradient = (start: string, end: string, intensity = 58) => {
+  const startRgb = hexToRgb(start);
+  const endRgb = hexToRgb(end);
+  const alpha = Math.min(1, Math.max(0, intensity / 100));
+
+  return `linear-gradient(180deg, rgba(${startRgb.r}, ${startRgb.g}, ${startRgb.b}, ${alpha}) 0%, rgba(${endRgb.r}, ${endRgb.g}, ${endRgb.b}, ${alpha}) 100%)`;
+};
 
 const buildPageBackground = (
   surface: string,
@@ -53,6 +99,13 @@ const buildPageBackground = (
   accentSoft: string
 ) =>
   `radial-gradient(circle at top, ${accentSoft}22, transparent 24%), linear-gradient(180deg, ${surface} 0%, ${surfaceAlt} 100%)`;
+
+const getHeroImageOpacity = (intensity: number) => {
+  const normalized = Math.min(100, Math.max(0, intensity));
+  const opacity = 0.96 - normalized * 0.0056;
+
+  return Math.min(0.96, Math.max(0.38, opacity));
+};
 
 
 
@@ -790,7 +843,20 @@ const [cashSuccess, setCashSuccess] = useState<string | null>(null);
 
     setAppearanceDraft((current) => ({
       ...current,
-      heroGradient: buildHeroGradient(start, end),
+      heroGradient: buildHeroGradient(start, end, currentStops.intensity),
+    }));
+  };
+
+  const updateGradientIntensity = (intensity: number) => {
+    const currentStops = extractGradientStops(appearanceDraft.heroGradient);
+
+    setAppearanceDraft((current) => ({
+      ...current,
+      heroGradient: buildHeroGradient(
+        currentStops.start,
+        currentStops.end,
+        intensity
+      ),
     }));
   };
 
@@ -3623,6 +3689,9 @@ const [cashSuccess, setCashSuccess] = useState<string | null>(null);
       <div className={styles.colorGrid}>
         <label>
           <span>Color principal</span>
+          <small className={styles.colorHelp}>
+            Botones de accion, chips activos y acentos destacados.
+          </small>
           <input
             type="color"
             value={appearanceDraft.accent}
@@ -3640,6 +3709,9 @@ const [cashSuccess, setCashSuccess] = useState<string | null>(null);
 
         <label>
           <span>Color suave</span>
+          <small className={styles.colorHelp}>
+            Refuerzos suaves del fondo, categorias activas y brillos del tema.
+          </small>
           <input
             type="color"
             value={appearanceDraft.accentSoft}
@@ -3657,6 +3729,9 @@ const [cashSuccess, setCashSuccess] = useState<string | null>(null);
 
         <label>
           <span>Fondo</span>
+          <small className={styles.colorHelp}>
+            Base de cards, filtros, carrito y bloques principales del menu.
+          </small>
           <input
             type="color"
             value={appearanceDraft.surface}
@@ -3674,6 +3749,9 @@ const [cashSuccess, setCashSuccess] = useState<string | null>(null);
 
         <label>
           <span>Fondo alternativo</span>
+          <small className={styles.colorHelp}>
+            Segunda capa del fondo: cajas secundarias, chips y degradado general.
+          </small>
           <input
             type="color"
             value={appearanceDraft.surfaceAlt}
@@ -3691,6 +3769,9 @@ const [cashSuccess, setCashSuccess] = useState<string | null>(null);
 
         <label>
           <span>Borde</span>
+          <small className={styles.colorHelp}>
+            Contornos de botones, cards, categorias y lineas divisorias.
+          </small>
           <input
             type="color"
             value={appearanceDraft.border}
@@ -3708,6 +3789,9 @@ const [cashSuccess, setCashSuccess] = useState<string | null>(null);
 
         <label>
           <span>Texto principal</span>
+          <small className={styles.colorHelp}>
+            Titulos, precios y textos fuertes dentro del menu.
+          </small>
           <input
             type="color"
             value={appearanceDraft.text}
@@ -3725,6 +3809,9 @@ const [cashSuccess, setCashSuccess] = useState<string | null>(null);
 
         <label>
           <span>Titulo del restaurante</span>
+          <small className={styles.colorHelp}>
+            Nombre grande del restaurante dentro de la portada principal.
+          </small>
           <input
             type="color"
             value={appearanceDraft.titleColor}
@@ -3742,6 +3829,9 @@ const [cashSuccess, setCashSuccess] = useState<string | null>(null);
 
         <label>
           <span>Texto secundario</span>
+          <small className={styles.colorHelp}>
+            Descripciones, contadores y textos de apoyo menos protagonistas.
+          </small>
           <input
             type="color"
             value={appearanceDraft.muted}
@@ -3759,6 +3849,9 @@ const [cashSuccess, setCashSuccess] = useState<string | null>(null);
 
         <label>
           <span>Gradiente inicio</span>
+          <small className={styles.colorHelp}>
+            Color superior del gradiente que se aplica sobre la portada.
+          </small>
           <input
             type="color"
             value={gradientStops.start}
@@ -3772,6 +3865,9 @@ const [cashSuccess, setCashSuccess] = useState<string | null>(null);
 
         <label>
           <span>Gradiente final</span>
+          <small className={styles.colorHelp}>
+            Color inferior del gradiente sobre la portada.
+          </small>
           <input
             type="color"
             value={gradientStops.end}
@@ -3782,6 +3878,49 @@ const [cashSuccess, setCashSuccess] = useState<string | null>(null);
             onChange={(event) => updateGradientStop("end", event.target.value)}
           />
         </label>
+
+        <label>
+          <span>Intensidad del gradiente</span>
+          <small className={styles.colorHelp}>
+            Define cuanto color del gradiente se ve sobre la foto de portada.
+          </small>
+          <input
+            type="range"
+            min="0"
+            max="100"
+            value={gradientStops.intensity}
+            onChange={(event) =>
+              updateGradientIntensity(Number(event.target.value))
+            }
+          />
+          <input
+            value={`${gradientStops.intensity}%`}
+            onChange={(event) => {
+              const nextValue = Number.parseInt(
+                event.target.value.replace("%", "").trim(),
+                10
+              );
+
+              if (Number.isFinite(nextValue)) {
+                updateGradientIntensity(nextValue);
+              }
+            }}
+          />
+        </label>
+      </div>
+
+      <div className={styles.colorExplanation}>
+        <strong>Como funciona Fondo + Fondo alternativo</strong>
+        <p>
+          Fondo es el color base de las superficies principales. Fondo alternativo
+          es la segunda capa que usa el sistema para generar contraste en cajas,
+          chips y tambien en el degradado general de la pagina.
+        </p>
+        <p>
+          Si cambias Fondo alternativo, no solo cambian cajas secundarias: tambien
+          cambia la mezcla del fondo general. Si quieres un cambio sutil, usa un
+          tono cercano a Fondo. Si quieres mas contraste, separalos mas.
+        </p>
       </div>
     </section>
 
@@ -3825,13 +3964,27 @@ const [cashSuccess, setCashSuccess] = useState<string | null>(null);
         <div
           className={styles.menuPreviewHero}
           style={{
-            background: appearanceDraft.coverImageUrl
-              ? `${appearanceDraft.heroGradient}, url(${appearanceDraft.coverImageUrl}) center/cover`
-              : appearanceDraft.heroGradient,
+            background: appearanceDraft.heroGradient,
           }}
         >
+          {appearanceDraft.coverImageUrl ? (
+            <img
+              className={styles.previewHeroImage}
+              src={appearanceDraft.coverImageUrl}
+              alt=""
+              aria-hidden="true"
+              style={{
+                opacity: getHeroImageOpacity(gradientStops.intensity),
+              }}
+            />
+          ) : null}
+
           {appearanceDraft.logoUrl ? (
-            <img src={appearanceDraft.logoUrl} alt="Logo del restaurante" />
+            <img
+              className={styles.menuPreviewHeroLogo}
+              src={appearanceDraft.logoUrl}
+              alt="Logo del restaurante"
+            />
           ) : (
             <div className={styles.previewLogoFallback}>
               {restaurant.name.slice(0, 1)}

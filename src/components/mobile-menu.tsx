@@ -37,6 +37,25 @@ const buildPageBackground = (
 ) =>
   `radial-gradient(circle at top, ${accentSoft}22, transparent 24%), linear-gradient(180deg, ${surface} 0%, ${surfaceAlt} 100%)`;
 
+const extractGradientIntensity = (gradient: string) => {
+  const alphaMatches = [...gradient.matchAll(/rgba?\(([^)]+)\)/g)];
+  const alphaCandidate = alphaMatches
+    .map((match) => match[1]?.split(",").map((part) => part.trim()) ?? [])
+    .find((parts) => parts.length === 4);
+  const alpha = alphaCandidate ? Number(alphaCandidate[3]) : 0.58;
+
+  return Number.isFinite(alpha)
+    ? Math.min(100, Math.max(0, Math.round(alpha * 100)))
+    : 58;
+};
+
+const getHeroImageOpacity = (intensity: number) => {
+  const normalized = Math.min(100, Math.max(0, intensity));
+  const opacity = 0.96 - normalized * 0.0056;
+
+  return Math.min(0.96, Math.max(0.38, opacity));
+};
+
 const buildWhatsappUrl = (
   restaurant: RestaurantRecord,
   cart: CartLine[],
@@ -123,6 +142,8 @@ const openingStatus = getRestaurantOpeningStatus({
   openingHours: restaurant.openingHours,
   timeZone: restaurant.timeZone,
 });
+
+const heroGradientIntensity = extractGradientIntensity(restaurant.theme.heroGradient);
 
 const canSendOrders = !isVisualOnly && manualOrdersEnabled && openingStatus.isOpen;
 
@@ -406,6 +427,7 @@ const openProductModal = (item: RestaurantRecord["items"][number]) => {
       src={heroVisualImage}
       alt=""
       aria-hidden="true"
+      style={{ opacity: getHeroImageOpacity(heroGradientIntensity) }}
     />
   ) : null}
 
