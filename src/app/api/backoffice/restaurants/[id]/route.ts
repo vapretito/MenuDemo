@@ -145,10 +145,19 @@ export async function DELETE(_request: Request, { params }: RouteProps) {
     );
   }
 
-  await prisma.restaurant.delete({
-    where: {
-      id,
-    },
+  await prisma.$transaction(async (tx) => {
+    await tx.user.deleteMany({
+      where: {
+        restaurantId: id,
+        role: "RESTAURANT_ADMIN",
+      },
+    });
+
+    await tx.restaurant.delete({
+      where: {
+        id,
+      },
+    });
   });
 
   return NextResponse.json({

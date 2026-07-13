@@ -156,7 +156,28 @@ export async function POST(request: Request) {
       );
     }
 
-    const restaurant = await prisma.restaurant.create({
+    const existingAdminUser = await prisma.user.findUnique({
+      where: {
+        email: adminEmail,
+      },
+      select: {
+        id: true,
+        restaurantId: true,
+      },
+    });
+
+    if (existingAdminUser?.restaurantId) {
+      return NextResponse.json(
+        {
+          error:
+            "Ya existe un usuario administrador activo con ese slug. Elige otro slug o libera ese acceso primero.",
+        },
+        { status: 409 }
+      );
+    }
+
+    const restaurant = await prisma.$transaction(async (tx) => {
+      const createdRestaurant = await tx.restaurant.create({
       data: {
         name,
         slug,
@@ -176,14 +197,6 @@ export async function POST(request: Request) {
         onboardingNote: isManual
           ? "Cliente creado con modalidad de cobro manual."
           : "Cliente creado desde backoffice. Pendiente de completar configuración comercial.",
-        users: {
-          create: {
-            name: adminDisplayName,
-            email: adminEmail,
-            passwordHash,
-            role: UserRole.RESTAURANT_ADMIN,
-          },
-        },
         subscription: {
           create: {
             planId,
@@ -212,7 +225,7 @@ export async function POST(request: Request) {
           ],
         },
       },
-      include: {
+        include: {
         categories: {
           orderBy: {
             sortOrder: "asc",
@@ -225,6 +238,33 @@ export async function POST(request: Request) {
         },
         subscription: true,
       },
+      });
+
+      if (existingAdminUser) {
+        await tx.user.update({
+          where: {
+            id: existingAdminUser.id,
+          },
+          data: {
+            name: adminDisplayName,
+            passwordHash,
+            role: UserRole.RESTAURANT_ADMIN,
+            restaurantId: createdRestaurant.id,
+          },
+        });
+      } else {
+        await tx.user.create({
+          data: {
+            name: adminDisplayName,
+            email: adminEmail,
+            passwordHash,
+            role: UserRole.RESTAURANT_ADMIN,
+            restaurantId: createdRestaurant.id,
+          },
+        });
+      }
+
+      return createdRestaurant;
     });
 
     return NextResponse.json({
