@@ -3185,8 +3185,8 @@ const [cashSuccess, setCashSuccess] = useState<string | null>(null);
                     </div>
                   ) : (
                     <div className={styles.emptyProductState}>
-                      <strong>Sin productos en esta categorÃ­a</strong>
-                      <p>UsÃ¡ el botÃ³n de arriba para cargar el primero.</p>
+                      <strong>Sin productos en esta categoría</strong>
+                      <p>Usá el botón de arriba para cargar el primero.</p>
                     </div>
                   )}
 
