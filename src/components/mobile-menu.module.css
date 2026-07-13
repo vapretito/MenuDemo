@@ -12,9 +12,19 @@
   min-height: 78vh;
   display: grid;
   place-items: center;
-  background: var(--hero-background, var(--hero-gradient));
+  background: var(--hero-gradient);
   border-bottom: 4px solid var(--accent);
   overflow: hidden;
+}
+
+.heroCoverImage {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  opacity: 0.78;
 }
 
 .heroOverlay {
@@ -615,7 +625,17 @@
 .hero {
   position: relative;
   overflow: hidden;
-  background: var(--hero-background, var(--hero-gradient));
+  background: var(--hero-gradient);
+}
+
+.heroCoverImage {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  opacity: 0.78;
 }
 
 .heroOverlay {
@@ -667,7 +687,17 @@
 .hero {
   position: relative;
   overflow: hidden;
-  background: var(--hero-background, var(--hero-gradient));
+  background: var(--hero-gradient);
+}
+
+.heroCoverImage {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  opacity: 0.78;
 }
 
 .heroOverlay {

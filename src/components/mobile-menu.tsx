@@ -391,9 +391,6 @@ const openProductModal = (item: RestaurantRecord["items"][number]) => {
       ["--hero-title" as string]: restaurant.theme.titleColor,
       ["--muted" as string]: restaurant.theme.muted,
       ["--hero-gradient" as string]: restaurant.theme.heroGradient,
-      ["--hero-background" as string]: heroVisualImage
-        ? `${restaurant.theme.heroGradient}, url(${heroVisualImage}) center/cover`
-        : restaurant.theme.heroGradient,
       ["--page-background" as string]: buildPageBackground(
         restaurant.theme.surface,
         restaurant.theme.surfaceAlt,
@@ -403,6 +400,15 @@ const openProductModal = (item: RestaurantRecord["items"][number]) => {
   }
 >
 <header className={styles.hero}>
+  {heroVisualImage ? (
+    <img
+      className={styles.heroCoverImage}
+      src={heroVisualImage}
+      alt=""
+      aria-hidden="true"
+    />
+  ) : null}
+
   <div className={styles.heroOverlay} />
 
   {restaurantLogo ? (
