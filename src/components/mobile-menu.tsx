@@ -30,6 +30,13 @@ const paymentLabels: Record<PaymentMethod, string> = {
   tarjeta: "Tarjeta al recibir",
 };
 
+const buildPageBackground = (
+  surface: string,
+  surfaceAlt: string,
+  accentSoft: string
+) =>
+  `radial-gradient(circle at top, ${accentSoft}22, transparent 24%), linear-gradient(180deg, ${surface} 0%, ${surfaceAlt} 100%)`;
+
 const buildWhatsappUrl = (
   restaurant: RestaurantRecord,
   cart: CartLine[],
@@ -384,6 +391,11 @@ const openProductModal = (item: RestaurantRecord["items"][number]) => {
       ["--hero-title" as string]: restaurant.theme.titleColor,
       ["--muted" as string]: restaurant.theme.muted,
       ["--hero-gradient" as string]: restaurant.theme.heroGradient,
+      ["--page-background" as string]: buildPageBackground(
+        restaurant.theme.surface,
+        restaurant.theme.surfaceAlt,
+        restaurant.theme.accentSoft
+      ),
       ["--hero-image" as string]: heroVisualImage
         ? `url(${heroVisualImage})`
         : "none",

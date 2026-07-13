@@ -47,6 +47,13 @@ const extractGradientStops = (gradient: string) => {
 const buildHeroGradient = (start: string, end: string) =>
   `linear-gradient(180deg, ${start} 0%, ${end} 100%)`;
 
+const buildPageBackground = (
+  surface: string,
+  surfaceAlt: string,
+  accentSoft: string
+) =>
+  `radial-gradient(circle at top, ${accentSoft}22, transparent 24%), linear-gradient(180deg, ${surface} 0%, ${surfaceAlt} 100%)`;
+
 
 
 
@@ -3799,7 +3806,11 @@ const [cashSuccess, setCashSuccess] = useState<string | null>(null);
         className={styles.menuPreview}
         data-template={appearanceDraft.menuTemplate}
         style={{
-          background: appearanceDraft.surface,
+          background: buildPageBackground(
+            appearanceDraft.surface,
+            appearanceDraft.surfaceAlt,
+            appearanceDraft.accentSoft
+          ),
           color: appearanceDraft.text,
           borderColor: appearanceDraft.border,
           ["--preview-accent" as string]: appearanceDraft.accent,
