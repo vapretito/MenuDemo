@@ -121,6 +121,21 @@ type AdminSection =
   | "security"
   | "help";
 
+type AppearanceDraft = {
+  menuTemplate: string;
+  logoUrl: string;
+  coverImageUrl: string;
+  accent: string;
+  accentSoft: string;
+  surface: string;
+  surfaceAlt: string;
+  border: string;
+  text: string;
+  titleColor: string;
+  muted: string;
+  heroGradient: string;
+};
+
 
   type PaymentBreakdownItem = {
     label: string;
@@ -216,6 +231,9 @@ const createItem = (categoryId: string): MenuItem => ({
   prepTime: "15 min",
 });
 
+const buildAppearancePresetStorageKey = (restaurantId: string) =>
+  `menui-appearance-preset:${restaurantId}`;
+
 type RestaurantAdminPanelProps = {
   restaurantSlug?: string;
   initialRestaurant?: RestaurantRecord;
@@ -262,7 +280,7 @@ export function RestaurantAdminPanel({
 
 
 
-  const [appearanceDraft, setAppearanceDraft] = useState({
+  const [appearanceDraft, setAppearanceDraft] = useState<AppearanceDraft>({
     menuTemplate: restaurant.menuTemplate ?? "classic-delivery",
     logoUrl: restaurant.logoUrl ?? "",
     coverImageUrl: restaurant.coverImageUrl ?? "",
@@ -280,6 +298,7 @@ export function RestaurantAdminPanel({
   const [appearanceSaving, setAppearanceSaving] = useState(false);
   const [appearanceError, setAppearanceError] = useState<string | null>(null);
   const [appearanceSuccess, setAppearanceSuccess] = useState<string | null>(null);
+  const [hasSavedAppearancePreset, setHasSavedAppearancePreset] = useState(false);
   const [templateFilter, setTemplateFilter] =
     useState<(typeof templateFilterOptions)[number]>("Todos");
   const [qrSettingsDraft, setQrSettingsDraft] = useState({
@@ -820,6 +839,7 @@ const [cashSuccess, setCashSuccess] = useState<string | null>(null);
     menuTemplates.find((template) => template.id === appearanceDraft.menuTemplate) ??
     menuTemplates[0];
   const gradientStops = extractGradientStops(appearanceDraft.heroGradient);
+  const appearancePresetStorageKey = buildAppearancePresetStorageKey(restaurant.id);
   const visibleTemplates = menuTemplates.filter((template) => {
     if (templateFilter === "Todos") return true;
 
@@ -835,6 +855,13 @@ const [cashSuccess, setCashSuccess] = useState<string | null>(null);
       [field]: value,
     }));
   };
+
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+
+    const savedPreset = window.localStorage.getItem(appearancePresetStorageKey);
+    setHasSavedAppearancePreset(Boolean(savedPreset));
+  }, [appearancePresetStorageKey]);
 
   const updateGradientStop = (field: "start" | "end", value: string) => {
     const currentStops = extractGradientStops(appearanceDraft.heroGradient);
@@ -945,6 +972,41 @@ const [cashSuccess, setCashSuccess] = useState<string | null>(null);
       );
     } finally {
       setAppearanceSaving(false);
+    }
+  };
+
+  const saveAppearancePreset = () => {
+    if (typeof window === "undefined") return;
+
+    window.localStorage.setItem(
+      appearancePresetStorageKey,
+      JSON.stringify(appearanceDraft)
+    );
+    setHasSavedAppearancePreset(true);
+    setAppearanceSuccess("Tu estilo quedo guardado como predeterminado.");
+    setAppearanceError(null);
+  };
+
+  const restoreAppearancePreset = () => {
+    if (typeof window === "undefined") return;
+
+    const savedPreset = window.localStorage.getItem(appearancePresetStorageKey);
+
+    if (!savedPreset) {
+      setHasSavedAppearancePreset(false);
+      setAppearanceError("No hay un estilo guardado todavia para este restaurante.");
+      setAppearanceSuccess(null);
+      return;
+    }
+
+    try {
+      const parsedPreset = JSON.parse(savedPreset) as AppearanceDraft;
+      setAppearanceDraft(parsedPreset);
+      setAppearanceSuccess("Recuperaste tu estilo guardado. Ahora puedes volver a guardarlo si quieres publicarlo.");
+      setAppearanceError(null);
+    } catch {
+      setAppearanceError("El estilo guardado no se pudo leer. Guarda uno nuevo para reemplazarlo.");
+      setAppearanceSuccess(null);
     }
   };
 
@@ -3475,6 +3537,29 @@ const [cashSuccess, setCashSuccess] = useState<string | null>(null);
           {appearanceSaving ? "Guardando..." : "Guardar estetica"}
         </button>
       </div>
+
+      <div className={styles.inlineActions}>
+        <button
+          className={styles.secondaryButton}
+          onClick={saveAppearancePreset}
+          type="button"
+        >
+          Guardar mi estilo
+        </button>
+
+        <button
+          className={styles.secondaryButton}
+          disabled={!hasSavedAppearancePreset}
+          onClick={restoreAppearancePreset}
+          type="button"
+        >
+          Restaurar mi estilo
+        </button>
+      </div>
+
+      <p className={styles.inlineHelper}>
+        Guarda tu estilo antes de probar otras plantillas o colores. Queda asociado a este restaurante en este navegador.
+      </p>
 
       {appearanceError ? (
         <div className={styles.errorBox}>{appearanceError}</div>
