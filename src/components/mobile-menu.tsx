@@ -4,7 +4,12 @@ import { CSSProperties, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import posthog from "posthog-js";
 import styles from "./mobile-menu.module.css";
-import { CartLine, RestaurantRecord } from "@/types/platform";
+import {
+  CartLine,
+  RestaurantLogoPosition,
+  RestaurantLogoSize,
+  RestaurantRecord,
+} from "@/types/platform";
 import { getRestaurantOpeningStatus } from "@/lib/opening-hours";
 import {
   buildOrderConfirmationStorageKey,
@@ -54,6 +59,24 @@ const getHeroImageOpacity = (intensity: number) => {
   const opacity = 0.96 - normalized * 0.0056;
 
   return Math.min(0.96, Math.max(0.38, opacity));
+};
+
+const normalizeLogoSize = (value?: string | null): RestaurantLogoSize => {
+  if (value === "small" || value === "medium" || value === "large") {
+    return value;
+  }
+
+  return "medium";
+};
+
+const normalizeLogoPosition = (
+  value?: string | null
+): RestaurantLogoPosition => {
+  if (value === "left" || value === "center" || value === "right") {
+    return value;
+  }
+
+  return "left";
 };
 
 const buildWhatsappUrl = (
@@ -164,6 +187,8 @@ const showOpeningHours = restaurant.showOpeningHours ?? true;
 
   const heroVisualImage = restaurant.coverImageUrl || heroItem?.image || "";
   const restaurantLogo = restaurant.logoUrl || "";
+  const restaurantLogoSize = normalizeLogoSize(restaurant.logoSize);
+  const restaurantLogoPosition = normalizeLogoPosition(restaurant.logoPosition);
 
   const templateId = restaurant.menuTemplate ?? "classic-delivery";
 
@@ -435,7 +460,7 @@ const openProductModal = (item: RestaurantRecord["items"][number]) => {
 
   {restaurantLogo ? (
     <img
-      className={styles.restaurantLogoFixed}
+      className={`${styles.restaurantLogoFixed} ${styles[`restaurantLogoFixedSize${restaurantLogoSize}`]} ${styles[`restaurantLogoFixedPosition${restaurantLogoPosition}`]}`}
       src={restaurantLogo}
       alt={`Logo de ${restaurant.name}`}
     />

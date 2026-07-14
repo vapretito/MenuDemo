@@ -114,6 +114,8 @@ model Restaurant {
 
   menuTemplate  String  @default("classic-delivery")
   logoUrl       String?
+  logoSize      String  @default("medium")
+  logoPosition  String  @default("left")
   coverImageUrl String?
   qrShowMenuiBranding Boolean @default(true)
 

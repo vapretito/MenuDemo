@@ -112,6 +112,8 @@ const subwayDemo: RestaurantRecord = {
     muted: "#58705c",
     heroGradient: "linear-gradient(180deg, #2f7f3a 0%, #1f4723 100%)",
   },
+  logoSize: "medium",
+  logoPosition: "left",
   qrShowMenuiBranding: true,
   categories: [
     { id: "combos", name: "Combos", description: "Opciones completas para resolver rapido." },
@@ -227,6 +229,8 @@ const sushiDemo: RestaurantRecord = {
     muted: "#7a655d",
     heroGradient: "linear-gradient(180deg, #2b1710 0%, #5c2416 100%)",
   },
+  logoSize: "medium",
+  logoPosition: "left",
   qrShowMenuiBranding: true,
   categories: [
     { id: "boxes", name: "Boxes", description: "Combinados para compartir." },

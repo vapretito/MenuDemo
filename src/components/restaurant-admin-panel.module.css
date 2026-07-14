@@ -1387,11 +1387,45 @@
 
 .menuPreviewHeroLogo,
 .previewLogoFallback {
-  width: 4rem;
-  height: 4rem;
+  position: absolute;
+  top: 1rem;
   object-fit: cover;
   border: 1px solid rgba(255, 255, 255, 0.45);
   background: rgba(255, 255, 255, 0.2);
+}
+
+.menuPreviewHeroLogoSizeSmall,
+.previewLogoFallback.menuPreviewHeroLogoSizeSmall {
+  width: 3rem;
+  height: 3rem;
+}
+
+.menuPreviewHeroLogoSizeMedium,
+.previewLogoFallback.menuPreviewHeroLogoSizeMedium {
+  width: 4rem;
+  height: 4rem;
+}
+
+.menuPreviewHeroLogoSizeLarge,
+.previewLogoFallback.menuPreviewHeroLogoSizeLarge {
+  width: 5rem;
+  height: 5rem;
+}
+
+.menuPreviewHeroLogoPositionLeft,
+.previewLogoFallback.menuPreviewHeroLogoPositionLeft {
+  left: 1rem;
+}
+
+.menuPreviewHeroLogoPositionCenter,
+.previewLogoFallback.menuPreviewHeroLogoPositionCenter {
+  left: 50%;
+  transform: translateX(-50%);
+}
+
+.menuPreviewHeroLogoPositionRight,
+.previewLogoFallback.menuPreviewHeroLogoPositionRight {
+  right: 1rem;
 }
 
 .previewLogoFallback {
@@ -1800,6 +1834,55 @@
   background: var(--surface-alt);
 }
 
+.logoLayoutSection {
+  display: grid;
+  gap: 1rem;
+}
+
+.logoLayoutGroup {
+  display: grid;
+  gap: 0.6rem;
+}
+
+.logoLayoutGroup > span {
+  color: var(--text) !important;
+  font-size: 0.84rem;
+  font-weight: 800;
+}
+
+.choiceGrid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0.6rem;
+}
+
+.choiceCard {
+  display: grid;
+  gap: 0.25rem;
+  padding: 0.85rem;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  background: var(--surface);
+  color: var(--text);
+  text-align: left;
+}
+
+.choiceCard strong {
+  color: var(--text);
+  font-size: 0.9rem;
+}
+
+.choiceCard small {
+  color: var(--muted);
+  line-height: 1.45;
+}
+
+.choiceCardActive {
+  border-color: var(--accent);
+  background: color-mix(in srgb, var(--accent-soft) 45%, white);
+  box-shadow: 0 0 0 1px color-mix(in srgb, var(--accent) 28%, transparent);
+}
+
 .coverUploadPreview {
   width: 100%;
   height: 12rem;
@@ -1822,6 +1905,10 @@
 
 @media (max-width: 760px) {
   .imageUploadGrid {
+    grid-template-columns: 1fr;
+  }
+
+  .choiceGrid {
     grid-template-columns: 1fr;
   }
 }

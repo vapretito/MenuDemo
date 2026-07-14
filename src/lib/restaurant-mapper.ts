@@ -125,6 +125,9 @@ export function mapRestaurantToRecord(
   
     menuTemplate: restaurant.menuTemplate as RestaurantRecord["menuTemplate"],
     logoUrl: restaurant.logoUrl,
+    logoSize: (restaurant.logoSize as RestaurantRecord["logoSize"]) ?? "medium",
+    logoPosition:
+      (restaurant.logoPosition as RestaurantRecord["logoPosition"]) ?? "left",
     coverImageUrl: restaurant.coverImageUrl,
     qrShowMenuiBranding: restaurant.qrShowMenuiBranding,
 

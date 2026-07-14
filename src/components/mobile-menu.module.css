@@ -1590,14 +1590,39 @@
 .restaurantLogoFixed {
   position: absolute;
   top: 1rem;
-  left: 1rem;
   z-index: 5;
-  width: 5.4rem;
-  height: 5.4rem;
   object-fit: cover;
   border: 1px solid rgba(255, 255, 255, 0);
   background: rgba(255, 255, 255, 0);
   box-shadow: 0 14px 34px rgba(0, 0, 0, 0);
+}
+
+.restaurantLogoFixedSizeSmall {
+  width: 4rem;
+  height: 4rem;
+}
+
+.restaurantLogoFixedSizeMedium {
+  width: 5.4rem;
+  height: 5.4rem;
+}
+
+.restaurantLogoFixedSizeLarge {
+  width: 6.8rem;
+  height: 6.8rem;
+}
+
+.restaurantLogoFixedPositionLeft {
+  left: 1rem;
+}
+
+.restaurantLogoFixedPositionCenter {
+  left: 50%;
+  transform: translateX(-50%);
+}
+
+.restaurantLogoFixedPositionRight {
+  right: 1rem;
 }
 
 /* .heroContent {
@@ -1607,11 +1632,33 @@
 } */
 
 @media (max-width: 760px) {
-  .restaurantLogoFixed {
+  .restaurantLogoFixedPositionLeft {
     top: 0.9rem;
     left: 0.9rem;
+  }
+
+  .restaurantLogoFixedPositionCenter {
+    top: 0.9rem;
+  }
+
+  .restaurantLogoFixedPositionRight {
+    top: 0.9rem;
+    right: 0.9rem;
+  }
+
+  .restaurantLogoFixedSizeSmall {
+    width: 3.5rem;
+    height: 3.5rem;
+  }
+
+  .restaurantLogoFixedSizeMedium {
     width: 4.8rem;
     height: 4.8rem;
+  }
+
+  .restaurantLogoFixedSizeLarge {
+    width: 5.8rem;
+    height: 5.8rem;
   }
 }
 

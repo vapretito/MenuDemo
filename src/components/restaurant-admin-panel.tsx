@@ -12,7 +12,14 @@ import {
 import styles from "./restaurant-admin-panel.module.css";
 import { RestaurantQrTools } from "./restaurant-qr-tools";
 import { demoRestaurant } from "@/data/platform";
-import { MenuCategory, MenuItem, OpeningHour, RestaurantRecord } from "@/types/platform";
+import {
+  MenuCategory,
+  MenuItem,
+  OpeningHour,
+  RestaurantLogoPosition,
+  RestaurantLogoSize,
+  RestaurantRecord,
+} from "@/types/platform";
 import { menuTemplates, type MenuTemplatePreset } from "@/data/menu-templates";
 
 const money = new Intl.NumberFormat("es-AR", {
@@ -34,6 +41,26 @@ const templateFilterOptions = [
   "Asian",
   "Mediterraneo",
 ] as const;
+
+const logoSizeOptions: Array<{
+  value: RestaurantLogoSize;
+  label: string;
+  hint: string;
+}> = [
+  { value: "small", label: "Chico", hint: "Mas discreto en la cabecera." },
+  { value: "medium", label: "Mediano", hint: "Equilibrado para la mayoria." },
+  { value: "large", label: "Grande", hint: "Mas protagonista y visible." },
+];
+
+const logoPositionOptions: Array<{
+  value: RestaurantLogoPosition;
+  label: string;
+  hint: string;
+}> = [
+  { value: "left", label: "Izquierda arriba", hint: "Alineado al borde izquierdo." },
+  { value: "center", label: "Centro arriba", hint: "Centrado en la cabecera." },
+  { value: "right", label: "Derecha arriba", hint: "Alineado al borde derecho." },
+];
 
 const extractGradientStops = (gradient: string) => {
   const alphaMatches = [...gradient.matchAll(/rgba?\(([^)]+)\)/g)];
@@ -124,6 +151,8 @@ type AdminSection =
 type AppearanceDraft = {
   menuTemplate: string;
   logoUrl: string;
+  logoSize: RestaurantLogoSize;
+  logoPosition: RestaurantLogoPosition;
   coverImageUrl: string;
   accent: string;
   accentSoft: string;
@@ -283,6 +312,8 @@ export function RestaurantAdminPanel({
   const [appearanceDraft, setAppearanceDraft] = useState<AppearanceDraft>({
     menuTemplate: restaurant.menuTemplate ?? "classic-delivery",
     logoUrl: restaurant.logoUrl ?? "",
+    logoSize: restaurant.logoSize ?? "medium",
+    logoPosition: restaurant.logoPosition ?? "left",
     coverImageUrl: restaurant.coverImageUrl ?? "",
     accent: restaurant.theme.accent,
     accentSoft: restaurant.theme.accentSoft,
@@ -298,7 +329,13 @@ export function RestaurantAdminPanel({
   const [appearanceSaving, setAppearanceSaving] = useState(false);
   const [appearanceError, setAppearanceError] = useState<string | null>(null);
   const [appearanceSuccess, setAppearanceSuccess] = useState<string | null>(null);
-  const [hasSavedAppearancePreset, setHasSavedAppearancePreset] = useState(false);
+  const [hasSavedAppearancePreset, setHasSavedAppearancePreset] = useState(() => {
+    if (typeof window === "undefined") return false;
+
+    return Boolean(
+      window.localStorage.getItem(buildAppearancePresetStorageKey(restaurant.id))
+    );
+  });
   const [templateFilter, setTemplateFilter] =
     useState<(typeof templateFilterOptions)[number]>("Todos");
   const [qrSettingsDraft, setQrSettingsDraft] = useState({
@@ -856,13 +893,6 @@ const [cashSuccess, setCashSuccess] = useState<string | null>(null);
     }));
   };
 
-  useEffect(() => {
-    if (typeof window === "undefined") return;
-
-    const savedPreset = window.localStorage.getItem(appearancePresetStorageKey);
-    setHasSavedAppearancePreset(Boolean(savedPreset));
-  }, [appearancePresetStorageKey]);
-
   const updateGradientStop = (field: "start" | "end", value: string) => {
     const currentStops = extractGradientStops(appearanceDraft.heroGradient);
     const start = field === "start" ? value : currentStops.start;
@@ -942,6 +972,8 @@ const [cashSuccess, setCashSuccess] = useState<string | null>(null);
         restaurant?: {
           menuTemplate?: string;
           logoUrl?: string | null;
+          logoSize?: RestaurantLogoSize;
+          logoPosition?: RestaurantLogoPosition;
           coverImageUrl?: string | null;
           theme?: RestaurantRecord["theme"];
         };
@@ -961,6 +993,8 @@ const [cashSuccess, setCashSuccess] = useState<string | null>(null);
         ...current,
         menuTemplate: data.restaurant?.menuTemplate as RestaurantRecord["menuTemplate"],
         logoUrl: data.restaurant?.logoUrl ?? "",
+        logoSize: data.restaurant?.logoSize ?? current.logoSize ?? "medium",
+        logoPosition: data.restaurant?.logoPosition ?? current.logoPosition ?? "left",
         coverImageUrl: data.restaurant?.coverImageUrl ?? "",
         theme: data.restaurant?.theme ?? current.theme,
       }));
@@ -1001,7 +1035,11 @@ const [cashSuccess, setCashSuccess] = useState<string | null>(null);
 
     try {
       const parsedPreset = JSON.parse(savedPreset) as AppearanceDraft;
-      setAppearanceDraft(parsedPreset);
+      setAppearanceDraft({
+        ...parsedPreset,
+        logoSize: parsedPreset.logoSize ?? "medium",
+        logoPosition: parsedPreset.logoPosition ?? "left",
+      });
       setAppearanceSuccess("Recuperaste tu estilo guardado. Ahora puedes volver a guardarlo si quieres publicarlo.");
       setAppearanceError(null);
     } catch {
@@ -3721,6 +3759,52 @@ const [cashSuccess, setCashSuccess] = useState<string | null>(null);
               Quitar logo
             </button>
           ) : null}
+
+          <div className={styles.logoLayoutSection}>
+            <div className={styles.logoLayoutGroup}>
+              <span>Tamano del logo</span>
+              <div className={styles.choiceGrid}>
+                {logoSizeOptions.map((option) => {
+                  const isActive = appearanceDraft.logoSize === option.value;
+
+                  return (
+                    <button
+                      key={option.value}
+                      className={`${styles.choiceCard} ${isActive ? styles.choiceCardActive : ""}`}
+                      onClick={() => updateAppearanceDraft("logoSize", option.value)}
+                      type="button"
+                    >
+                      <strong>{option.label}</strong>
+                      <small>{option.hint}</small>
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+
+            <div className={styles.logoLayoutGroup}>
+              <span>Posicion del logo</span>
+              <div className={styles.choiceGrid}>
+                {logoPositionOptions.map((option) => {
+                  const isActive = appearanceDraft.logoPosition === option.value;
+
+                  return (
+                    <button
+                      key={option.value}
+                      className={`${styles.choiceCard} ${isActive ? styles.choiceCardActive : ""}`}
+                      onClick={() =>
+                        updateAppearanceDraft("logoPosition", option.value)
+                      }
+                      type="button"
+                    >
+                      <strong>{option.label}</strong>
+                      <small>{option.hint}</small>
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+          </div>
         </label>
 
         <label className={styles.uploadBox}>
@@ -4066,12 +4150,14 @@ const [cashSuccess, setCashSuccess] = useState<string | null>(null);
 
           {appearanceDraft.logoUrl ? (
             <img
-              className={styles.menuPreviewHeroLogo}
+              className={`${styles.menuPreviewHeroLogo} ${styles[`menuPreviewHeroLogoSize${appearanceDraft.logoSize}`]} ${styles[`menuPreviewHeroLogoPosition${appearanceDraft.logoPosition}`]}`}
               src={appearanceDraft.logoUrl}
               alt="Logo del restaurante"
             />
           ) : (
-            <div className={styles.previewLogoFallback}>
+            <div
+              className={`${styles.previewLogoFallback} ${styles[`menuPreviewHeroLogoSize${appearanceDraft.logoSize}`]} ${styles[`menuPreviewHeroLogoPosition${appearanceDraft.logoPosition}`]}`}
+            >
               {restaurant.name.slice(0, 1)}
             </div>
           )}

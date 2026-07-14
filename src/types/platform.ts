@@ -29,6 +29,9 @@ export type RestaurantTheme = {
   heroGradient: string;
 };
 
+export type RestaurantLogoSize = "small" | "medium" | "large";
+export type RestaurantLogoPosition = "left" | "center" | "right";
+
 export type RestaurantStatus =
   | "trial"
   | "active"
@@ -112,6 +115,8 @@ export type RestaurantRecord = {
   items: MenuItem[];
   menuTemplate?: MenuTemplateId;
   logoUrl?: string | null;
+  logoSize?: RestaurantLogoSize;
+  logoPosition?: RestaurantLogoPosition;
   coverImageUrl?: string | null;
   qrShowMenuiBranding?: boolean;
   whatsappIntroMessage?: string;

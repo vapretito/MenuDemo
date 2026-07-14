@@ -3,6 +3,9 @@ import { getRestaurantSession } from "@/lib/restaurant-session";
 import { prisma } from "@/lib/prisma";
 import { menuTemplates } from "@/data/menu-templates";
 
+const LOGO_SIZES = new Set(["small", "medium", "large"]);
+const LOGO_POSITIONS = new Set(["left", "center", "right"]);
+
 export async function PATCH(request: Request) {
   const session = await getRestaurantSession();
 
@@ -29,6 +32,12 @@ export async function PATCH(request: Request) {
     }
 
     const logoUrl = String(body.logoUrl ?? "").trim() || null;
+    const logoSize = LOGO_SIZES.has(String(body.logoSize ?? ""))
+      ? String(body.logoSize)
+      : "medium";
+    const logoPosition = LOGO_POSITIONS.has(String(body.logoPosition ?? ""))
+      ? String(body.logoPosition)
+      : "left";
     const coverImageUrl = String(body.coverImageUrl ?? "").trim() || null;
 
     const accent = String(body.accent ?? selectedTemplate.accent).trim();
@@ -50,6 +59,8 @@ export async function PATCH(request: Request) {
       data: {
         menuTemplate,
         logoUrl,
+        logoSize,
+        logoPosition,
         coverImageUrl,
         accent,
         accentSoft,
@@ -69,6 +80,8 @@ export async function PATCH(request: Request) {
         id: restaurant.id,
         menuTemplate: restaurant.menuTemplate,
         logoUrl: restaurant.logoUrl,
+        logoSize: restaurant.logoSize,
+        logoPosition: restaurant.logoPosition,
         coverImageUrl: restaurant.coverImageUrl,
         theme: {
           accent: restaurant.accent,
