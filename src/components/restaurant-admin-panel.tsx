@@ -3188,7 +3188,7 @@ const [cashSuccess, setCashSuccess] = useState<string | null>(null);
                       }
                     />
                   </label>
-
+ 
                   <label>
                     <span>Tiempo estimado</span>
                     <input
