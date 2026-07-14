@@ -62,6 +62,18 @@ const logoPositionOptions: Array<{
   { value: "right", label: "Derecha arriba", hint: "Alineado al borde derecho." },
 ];
 
+const previewLogoSizeClassNames: Record<RestaurantLogoSize, string> = {
+  small: "menuPreviewHeroLogoSizeSmall",
+  medium: "menuPreviewHeroLogoSizeMedium",
+  large: "menuPreviewHeroLogoSizeLarge",
+};
+
+const previewLogoPositionClassNames: Record<RestaurantLogoPosition, string> = {
+  left: "menuPreviewHeroLogoPositionLeft",
+  center: "menuPreviewHeroLogoPositionCenter",
+  right: "menuPreviewHeroLogoPositionRight",
+};
+
 const extractGradientStops = (gradient: string) => {
   const alphaMatches = [...gradient.matchAll(/rgba?\(([^)]+)\)/g)];
   const alphaCandidate = alphaMatches
@@ -4150,13 +4162,13 @@ const [cashSuccess, setCashSuccess] = useState<string | null>(null);
 
           {appearanceDraft.logoUrl ? (
             <img
-              className={`${styles.menuPreviewHeroLogo} ${styles[`menuPreviewHeroLogoSize${appearanceDraft.logoSize}`]} ${styles[`menuPreviewHeroLogoPosition${appearanceDraft.logoPosition}`]}`}
+              className={`${styles.menuPreviewHeroLogo} ${styles[previewLogoSizeClassNames[appearanceDraft.logoSize]]} ${styles[previewLogoPositionClassNames[appearanceDraft.logoPosition]]}`}
               src={appearanceDraft.logoUrl}
               alt="Logo del restaurante"
             />
           ) : (
             <div
-              className={`${styles.previewLogoFallback} ${styles[`menuPreviewHeroLogoSize${appearanceDraft.logoSize}`]} ${styles[`menuPreviewHeroLogoPosition${appearanceDraft.logoPosition}`]}`}
+              className={`${styles.previewLogoFallback} ${styles[previewLogoSizeClassNames[appearanceDraft.logoSize]]} ${styles[previewLogoPositionClassNames[appearanceDraft.logoPosition]]}`}
             >
               {restaurant.name.slice(0, 1)}
             </div>

@@ -35,6 +35,18 @@ const paymentLabels: Record<PaymentMethod, string> = {
   tarjeta: "Tarjeta al recibir",
 };
 
+const logoSizeClassNames: Record<RestaurantLogoSize, string> = {
+  small: "restaurantLogoFixedSizeSmall",
+  medium: "restaurantLogoFixedSizeMedium",
+  large: "restaurantLogoFixedSizeLarge",
+};
+
+const logoPositionClassNames: Record<RestaurantLogoPosition, string> = {
+  left: "restaurantLogoFixedPositionLeft",
+  center: "restaurantLogoFixedPositionCenter",
+  right: "restaurantLogoFixedPositionRight",
+};
+
 const buildPageBackground = (
   surface: string,
   surfaceAlt: string,
@@ -460,7 +472,7 @@ const openProductModal = (item: RestaurantRecord["items"][number]) => {
 
   {restaurantLogo ? (
     <img
-      className={`${styles.restaurantLogoFixed} ${styles[`restaurantLogoFixedSize${restaurantLogoSize}`]} ${styles[`restaurantLogoFixedPosition${restaurantLogoPosition}`]}`}
+      className={`${styles.restaurantLogoFixed} ${styles[logoSizeClassNames[restaurantLogoSize]]} ${styles[logoPositionClassNames[restaurantLogoPosition]]}`}
       src={restaurantLogo}
       alt={`Logo de ${restaurant.name}`}
     />
