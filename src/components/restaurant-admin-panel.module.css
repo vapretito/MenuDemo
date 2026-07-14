@@ -1389,24 +1389,43 @@
 .previewLogoFallback {
   position: absolute;
   top: 1rem;
-  object-fit: cover;
   border: 1px solid rgba(255, 255, 255, 0.45);
   background: rgba(255, 255, 255, 0.2);
 }
 
+.menuPreviewHeroLogo {
+  display: block;
+  width: auto;
+  height: auto;
+  max-width: 45%;
+  object-fit: contain;
+}
+
 .menuPreviewHeroLogoSizeSmall,
+.previewLogoFallback.menuPreviewHeroLogoSizeSmall {
+  max-height: 2.5rem;
+}
+
+.menuPreviewHeroLogoSizeMedium,
+.previewLogoFallback.menuPreviewHeroLogoSizeMedium {
+  max-height: 3.4rem;
+}
+
+.menuPreviewHeroLogoSizeLarge,
+.previewLogoFallback.menuPreviewHeroLogoSizeLarge {
+  max-height: 4.4rem;
+}
+
 .previewLogoFallback.menuPreviewHeroLogoSizeSmall {
   width: 3rem;
   height: 3rem;
 }
 
-.menuPreviewHeroLogoSizeMedium,
 .previewLogoFallback.menuPreviewHeroLogoSizeMedium {
   width: 4rem;
   height: 4rem;
 }
 
-.menuPreviewHeroLogoSizeLarge,
 .previewLogoFallback.menuPreviewHeroLogoSizeLarge {
   width: 5rem;
   height: 5rem;
@@ -1828,7 +1847,7 @@
 .logoUploadPreview {
   width: 6rem;
   height: 6rem;
-  object-fit: cover;
+  object-fit: contain;
   border: 1px solid var(--border);
   border-radius: var(--radius-md);
   background: var(--surface-alt);
