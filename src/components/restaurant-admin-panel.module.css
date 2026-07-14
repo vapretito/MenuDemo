@@ -1413,7 +1413,8 @@
 
 .menuPreviewHeroLogoSizeLarge,
 .previewLogoFallback.menuPreviewHeroLogoSizeLarge {
-  max-height: 4.4rem;
+  max-height: 17rem;
+  max-width: 80%;
 }
 
 .previewLogoFallback.menuPreviewHeroLogoSizeSmall {

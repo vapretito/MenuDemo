@@ -1610,7 +1610,8 @@
 }
 
 .restaurantLogoFixedSizeLarge {
-  max-height: 6rem;
+  max-height: 22.5rem;
+  max-width: min(82vw, 42rem);
 }
 
 .restaurantLogoFixedPositionLeft {
@@ -1656,7 +1657,8 @@
   }
 
   .restaurantLogoFixedSizeLarge {
-    max-height: 4.8rem;
+    max-height: 19rem;
+    max-width: 88vw;
   }
 }
 
