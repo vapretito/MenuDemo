@@ -3137,9 +3137,9 @@ const [cashSuccess, setCashSuccess] = useState<string | null>(null);
                 <div className={styles.panelHeader}>
                   <div>
                     <span className={styles.eyebrow}>Nuevo producto</span>
-                    <h3>Cargar producto al menÃº</h3>
+                    <h3>Cargar producto al menú</h3>
                     <p>
-                      CompletÃ¡ los datos principales y despuÃ©s, si querÃ©s, lo seguÃ­s
+                      Completá los datos principales y después, si querés, lo seguís
                       editando desde su card.
                     </p>
                   </div>
@@ -3157,7 +3157,7 @@ const [cashSuccess, setCashSuccess] = useState<string | null>(null);
                   <label>
                     <span>Nombre del producto</span>
                     <input
-                      placeholder="Ej: Burger clÃ¡sica"
+                      placeholder="Ej: Burger clásica"
                       value={productDraft.name}
                       onChange={(event) =>
                         setProductDraft((current) => ({
@@ -3169,7 +3169,7 @@ const [cashSuccess, setCashSuccess] = useState<string | null>(null);
                   </label>
 
                   <label>
-                    <span>CategorÃ­a</span>
+                    <span>Categorí­a</span>
                     <select
                       value={productDraft.categoryId}
                       onChange={(event) =>
@@ -3216,9 +3216,9 @@ const [cashSuccess, setCashSuccess] = useState<string | null>(null);
                   </label>
 
                   <label className={styles.full}>
-                    <span>DescripciÃ³n</span>
+                    <span>Descripción</span>
                     <textarea
-                      placeholder="DescripciÃ³n breve del producto..."
+                      placeholder="Descripción breve del producto..."
                       value={productDraft.description}
                       onChange={(event) =>
                         setProductDraft((current) => ({
@@ -3247,7 +3247,7 @@ const [cashSuccess, setCashSuccess] = useState<string | null>(null);
                         style={{ backgroundImage: `url(${productDraft.image})` }}
                       />
                     ) : (
-                      <div className={styles.emptyUploadPreview}>TodavÃ­a sin imagen</div>
+                      <div className={styles.emptyUploadPreview}>Todavía sin imagen</div>
                     )}
                   </label>
                 </div>
@@ -3379,7 +3379,7 @@ const [cashSuccess, setCashSuccess] = useState<string | null>(null);
                     <article className={`${styles.productCard} ${styles.productEditorCard}`}>
                       <div className={styles.productCardHead}>
                         <div>
-                          <span className={styles.eyebrow}>Producto en ediciÃ³n</span>
+                          <span className={styles.eyebrow}>Producto en edición</span>
                           <strong>{activeProduct.name}</strong>
                           <span>
                             {money.format(activeProduct.price)} Â· {activeProductCategory?.name}
