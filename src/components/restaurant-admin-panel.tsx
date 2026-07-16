@@ -3495,33 +3495,35 @@ const [cashSuccess, setCashSuccess] = useState<string | null>(null);
                           </div>
                         </div>
 
-                        <label className={styles.switchRow}>
-                          <input
-                            checked={productDraft.available}
-                            onChange={(event) =>
-                              setProductDraft((current) => ({
-                                ...current,
-                                available: event.target.checked,
-                              }))
-                            }
-                            type="checkbox"
-                          />
-                          <span>{productDraft.available ? "Disponible" : "No disponible"}</span>
-                        </label>
+                        <div className={`${styles.full} ${styles.toggleRow}`}>
+                          <label className={styles.toggle}>
+                            <input
+                              checked={productDraft.available}
+                              onChange={(event) =>
+                                setProductDraft((current) => ({
+                                  ...current,
+                                  available: event.target.checked,
+                                }))
+                              }
+                              type="checkbox"
+                            />
+                            <span>{productDraft.available ? "Disponible" : "No disponible"}</span>
+                          </label>
 
-                        <label className={styles.switchRow}>
-                          <input
-                            checked={productDraft.featured}
-                            onChange={(event) =>
-                              setProductDraft((current) => ({
-                                ...current,
-                                featured: event.target.checked,
-                              }))
-                            }
-                            type="checkbox"
-                          />
-                          <span>{productDraft.featured ? "Destacado" : "Normal"}</span>
-                        </label>
+                          <label className={styles.toggle}>
+                            <input
+                              checked={productDraft.featured}
+                              onChange={(event) =>
+                                setProductDraft((current) => ({
+                                  ...current,
+                                  featured: event.target.checked,
+                                }))
+                              }
+                              type="checkbox"
+                            />
+                            <span>{productDraft.featured ? "Destacado" : "Normal"}</span>
+                          </label>
+                        </div>
                       </div>
 
                       <div className={styles.productActions}>
