@@ -366,7 +366,7 @@ export function RestaurantAdminPanel({
   const [productError, setProductError] = useState<string | null>(null);
   const [productSuccess, setProductSuccess] = useState<string | null>(null);
 
-  const [isProductCreateOpen, setIsProductCreateOpen] = useState(false);
+  const [createProductCategoryId, setCreateProductCategoryId] = useState<string | null>(null);
   const [activeProductId, setActiveProductId] = useState<string | null>(null);
 
 const [productDraft, setProductDraft] = useState({
@@ -379,6 +379,13 @@ const [productDraft, setProductDraft] = useState({
   featured: false,
   available: true,
 });
+
+  const isProductCreateOpen = createProductCategoryId !== null;
+  const setIsProductCreateOpen = (open: boolean) => {
+    setCreateProductCategoryId(
+      open ? productDraft.categoryId || restaurant.categories[0]?.id || null : null
+    );
+  };
 
 
   const [categorySavingId, setCategorySavingId] = useState<string | null>(null);
@@ -1172,7 +1179,7 @@ const [cashSuccess, setCashSuccess] = useState<string | null>(null);
       available: true,
     });
 
-    setIsProductCreateOpen(false);
+    setCreateProductCategoryId(null);
     setProductSuccess("Producto creado correctamente.");
   } catch (error) {
     setProductError(
@@ -3119,7 +3126,7 @@ const [cashSuccess, setCashSuccess] = useState<string | null>(null);
                     categoryId: restaurant.categories[0]?.id ?? "",
                   }));
                   setActiveProductId(null);
-                  setIsProductCreateOpen(true);
+                  setCreateProductCategoryId(restaurant.categories[0]?.id ?? null);
                 }}
                 type="button"
               >
@@ -3132,7 +3139,7 @@ const [cashSuccess, setCashSuccess] = useState<string | null>(null);
               <div className={styles.successBox}>{productSuccess}</div>
             ) : null}
 
-            {isProductCreateOpen ? (
+            {false ? (
               <section className={`${styles.createProductPanel} ${styles.productCreatePanel}`}>
                 <div className={styles.panelHeader}>
                   <div>
@@ -3320,7 +3327,7 @@ const [cashSuccess, setCashSuccess] = useState<string | null>(null);
                           categoryId: category.id,
                         }));
                         setActiveProductId(null);
-                        setIsProductCreateOpen(true);
+                        setCreateProductCategoryId(category.id);
                       }}
                       type="button"
                     >
@@ -3340,7 +3347,7 @@ const [cashSuccess, setCashSuccess] = useState<string | null>(null);
                           }
                           key={item.id}
                           onClick={() => {
-                            setIsProductCreateOpen(false);
+                        setCreateProductCategoryId(null);
                             setActiveProductId(item.id);
                           }}
                           type="button"
@@ -3374,6 +3381,168 @@ const [cashSuccess, setCashSuccess] = useState<string | null>(null);
                       <p>Usá el botón de arriba para cargar el primero.</p>
                     </div>
                   )}
+
+                  {createProductCategoryId === category.id ? (
+                    <section className={styles.createProductPanel}>
+                      <div className={styles.panelHeader}>
+                        <div>
+                          <span className={styles.eyebrow}>Nuevo producto</span>
+                          <h3>Cargar producto al menu</h3>
+                          <p>
+                            Completa los datos base y despues podras seguir editando fotos,
+                            descripcion y disponibilidad.
+                          </p>
+                        </div>
+                      </div>
+
+                      <div className={styles.formGrid}>
+                        <label>
+                          <span>Nombre del producto</span>
+                          <input
+                            placeholder="Ej: Burger clasica"
+                            value={productDraft.name}
+                            onChange={(event) =>
+                              setProductDraft((current) => ({
+                                ...current,
+                                name: event.target.value,
+                              }))
+                            }
+                          />
+                        </label>
+
+                        <label>
+                          <span>Categoria</span>
+                          <select
+                            value={productDraft.categoryId}
+                            onChange={(event) =>
+                              setProductDraft((current) => ({
+                                ...current,
+                                categoryId: event.target.value,
+                              }))
+                            }
+                          >
+                            {restaurant.categories.map((option) => (
+                              <option key={option.id} value={option.id}>
+                                {option.name}
+                              </option>
+                            ))}
+                          </select>
+                        </label>
+
+                        <label>
+                          <span>Precio</span>
+                          <input
+                            type="number"
+                            value={productDraft.price}
+                            onChange={(event) =>
+                              setProductDraft((current) => ({
+                                ...current,
+                                price: Number(event.target.value),
+                              }))
+                            }
+                          />
+                        </label>
+
+                        <label>
+                          <span>Tiempo estimado</span>
+                          <input
+                            placeholder="15 min"
+                            value={productDraft.prepTime}
+                            onChange={(event) =>
+                              setProductDraft((current) => ({
+                                ...current,
+                                prepTime: event.target.value,
+                              }))
+                            }
+                          />
+                        </label>
+
+                        <label className={styles.full}>
+                          <span>Descripcion</span>
+                          <textarea
+                            placeholder="Descripcion breve del producto..."
+                            value={productDraft.description}
+                            onChange={(event) =>
+                              setProductDraft((current) => ({
+                                ...current,
+                                description: event.target.value,
+                              }))
+                            }
+                          />
+                        </label>
+
+                        <div className={styles.full}>
+                          <span className={styles.labelCaption}>Imagen</span>
+                          <div className={styles.productImageUpload}>
+                            <label className={styles.imageUploadCard}>
+                              <input
+                                accept="image/*"
+                                hidden
+                                onChange={(event) => void handleProductDraftImageUpload(event)}
+                                type="file"
+                              />
+                              {productDraft.image ? (
+                                <div
+                                  className={styles.imagePreview}
+                                  style={{ backgroundImage: `url(${productDraft.image})` }}
+                                />
+                              ) : (
+                                <div className={styles.imagePlaceholder}>
+                                  <span>Subir foto del producto</span>
+                                </div>
+                              )}
+                            </label>
+                          </div>
+                        </div>
+
+                        <label className={styles.switchRow}>
+                          <input
+                            checked={productDraft.available}
+                            onChange={(event) =>
+                              setProductDraft((current) => ({
+                                ...current,
+                                available: event.target.checked,
+                              }))
+                            }
+                            type="checkbox"
+                          />
+                          <span>{productDraft.available ? "Disponible" : "No disponible"}</span>
+                        </label>
+
+                        <label className={styles.switchRow}>
+                          <input
+                            checked={productDraft.featured}
+                            onChange={(event) =>
+                              setProductDraft((current) => ({
+                                ...current,
+                                featured: event.target.checked,
+                              }))
+                            }
+                            type="checkbox"
+                          />
+                          <span>{productDraft.featured ? "Destacado" : "Normal"}</span>
+                        </label>
+                      </div>
+
+                      <div className={styles.productActions}>
+                        <button
+                          className={styles.primaryButton}
+                          disabled={productSavingId === "new"}
+                          onClick={() => void createProduct(category.id)}
+                          type="button"
+                        >
+                          {productSavingId === "new" ? "Creando..." : "Crear producto"}
+                        </button>
+                        <button
+                          className={styles.secondaryButton}
+                          onClick={() => setCreateProductCategoryId(null)}
+                          type="button"
+                        >
+                          Cancelar
+                        </button>
+                      </div>
+                    </section>
+                  ) : null}
 
                   {activeProduct && activeProduct.categoryId === category.id ? (
                     <article className={`${styles.productCard} ${styles.productEditorCard}`}>
