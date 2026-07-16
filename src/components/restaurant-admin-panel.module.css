@@ -1955,6 +1955,27 @@
   min-height: 8rem;
 }
 
+.inlineImageField {
+  display: grid;
+  gap: 0.45rem;
+}
+
+.fileInput {
+  width: 100%;
+  min-height: 2.9rem;
+  padding: 0.65rem 0.75rem;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  background: linear-gradient(180deg, #ffffff 0%, var(--surface-soft) 100%);
+  color: var(--text);
+  font: inherit;
+}
+
+.createProductImagePreview {
+  min-height: 11rem;
+  border-radius: var(--radius-lg);
+}
+
 .createProductPanel .toggleRow {
   display: flex;
   align-items: center;

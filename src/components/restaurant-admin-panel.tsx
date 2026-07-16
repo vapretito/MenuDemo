@@ -3471,28 +3471,26 @@ const [cashSuccess, setCashSuccess] = useState<string | null>(null);
                           />
                         </label>
 
-                        <div className={styles.full}>
-                          <span className={styles.labelCaption}>Imagen</span>
-                          <div className={styles.productImageUpload}>
-                            <label className={styles.imageUploadCard}>
-                              <input
-                                accept="image/*"
-                                hidden
-                                onChange={(event) => void handleProductDraftImageUpload(event)}
-                                type="file"
-                              />
-                              {productDraft.image ? (
-                                <div
-                                  className={styles.imagePreview}
-                                  style={{ backgroundImage: `url(${productDraft.image})` }}
-                                />
-                              ) : (
-                                <div className={styles.imagePlaceholder}>
-                                  <span>Subir foto del producto</span>
-                                </div>
-                              )}
-                            </label>
-                          </div>
+                        <div className={`${styles.full} ${styles.inlineImageField}`}>
+                          <span className={styles.labelCaption}>Foto del producto</span>
+                          <input
+                            accept="image/*"
+                            className={styles.fileInput}
+                            onChange={(event) => void handleProductDraftImageUpload(event)}
+                            type="file"
+                          />
+                          {productDraft.image ? (
+                            <div
+                              className={`${styles.imagePreview} ${styles.createProductImagePreview}`}
+                              style={{ backgroundImage: `url(${productDraft.image})` }}
+                            />
+                          ) : (
+                            <div
+                              className={`${styles.emptyUploadPreview} ${styles.createProductImagePreview}`}
+                            >
+                              Todavia sin imagen
+                            </div>
+                          )}
                         </div>
 
                         <div className={`${styles.full} ${styles.toggleRow}`}>
