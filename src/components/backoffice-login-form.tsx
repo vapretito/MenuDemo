@@ -18,7 +18,7 @@ export function BackofficeLoginForm() {
       </label>
       <label>
         <span>Password</span>
-        <input defaultValue="Menui2026!" name="password" type="password" />
+        <input name="password" type="password" />
       </label>
       {state.error ? <p className="authError">{state.error}</p> : null}
       <button className="primaryButton" disabled={isPending} type="submit">
