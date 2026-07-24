@@ -51,7 +51,7 @@ export default async function RestaurantAdminPage({
       session.restaurantId !== restaurant.id ||
       session.restaurantSlug !== restaurant.slug)
   ) {
-    redirect("/login");
+    redirect(`/restaurant/${restaurant.slug}/login`);
   }
 
   return (

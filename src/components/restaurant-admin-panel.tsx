@@ -1624,7 +1624,10 @@ const [cashSuccess, setCashSuccess] = useState<string | null>(null);
     } catch (error) {
       console.error("[Restaurant Logout Error]", error);
     } finally {
-      window.location.href = "/login";
+      window.location.href =
+        currentRestaurantSlug === "demo"
+          ? "/"
+          : `/restaurant/${currentRestaurantSlug}/login`;
     }
   };
 
