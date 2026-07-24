@@ -16,9 +16,8 @@ export default async function BackofficeLoginPage() {
         <span className={styles.kicker}>Acceso restringido</span>
         <h1>Ingreso del superadmin</h1>
         <p>
-          Este acceso queda fuera de la navegacion publica. En produccion, las
-          credenciales deben salir de variables de entorno y luego migrarse a auth real
-          por roles.
+          SI NECESITAS AYUDA PARA INGRESAR A UNA DEMO QUE HAYAS CREADO O SOLICITADO CONTACTANOS POR WHATSAPP
+          NO SIGAS INTENTANDO EL INGRESO POR ESTE MEDIO.
         </p>
         <BackofficeLoginForm />
       </section>
