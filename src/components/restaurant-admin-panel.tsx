@@ -587,6 +587,15 @@ const [passwordSaving, setPasswordSaving] = useState(false);
 const [passwordError, setPasswordError] = useState<string | null>(null);
 const [passwordSuccess, setPasswordSuccess] = useState<string | null>(null);
 
+const [deleteCodeDraft, setDeleteCodeDraft] = useState({
+  deleteCode: "",
+  confirmDeleteCode: "",
+});
+
+const [deleteCodeSaving, setDeleteCodeSaving] = useState(false);
+const [deleteCodeError, setDeleteCodeError] = useState<string | null>(null);
+const [deleteCodeSuccess, setDeleteCodeSuccess] = useState<string | null>(null);
+
 const [feedbackMessage, setFeedbackMessage] = useState("");
 const [feedbackSaving, setFeedbackSaving] = useState(false);
 const [feedbackError, setFeedbackError] = useState<string | null>(null);
@@ -1694,6 +1703,19 @@ const [cashSuccess, setCashSuccess] = useState<string | null>(null);
   };
 
   const deleteLocalOrder = async (orderId: string) => {
+    if (!restaurant.localOrderDeletionCodeConfigured) {
+      window.alert(
+        "Primero configurá el código de borrado en la sección Seguridad."
+      );
+      return;
+    }
+
+    const deleteCode = window.prompt(
+      "Ingresá el código de borrado para ocultar este pedido del historial visible."
+    );
+
+    if (deleteCode === null) return;
+
     const confirmed = window.confirm(
       "Este pedido se ocultara del flujo operativo, pero quedara trazado en el historial y no se perdera el cierre de caja ya guardado. Queres continuar?"
     );
@@ -1705,6 +1727,12 @@ const [cashSuccess, setCashSuccess] = useState<string | null>(null);
     try {
       const response = await fetch(`/api/restaurant-admin/local-orders/${orderId}`, {
         method: "DELETE",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          deleteCode,
+        }),
       });
 
       const rawResponse = await response.text();
@@ -2009,6 +2037,57 @@ const [cashSuccess, setCashSuccess] = useState<string | null>(null);
       );
     } finally {
       setPasswordSaving(false);
+    }
+  };
+
+  const saveLocalOrderDeleteCode = async () => {
+    setDeleteCodeSaving(true);
+    setDeleteCodeError(null);
+    setDeleteCodeSuccess(null);
+
+    try {
+      const response = await fetch("/api/restaurant-admin/local-order-delete-code", {
+        method: "PATCH",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(deleteCodeDraft),
+      });
+
+      const rawResponse = await response.text();
+
+      let data: {
+        ok?: boolean;
+        error?: string;
+        message?: string;
+      } = {};
+
+      try {
+        data = rawResponse ? JSON.parse(rawResponse) : {};
+      } catch {
+        throw new Error(`La API no devolvió JSON. Status: ${response.status}.`);
+      }
+
+      if (!response.ok || !data.ok) {
+        throw new Error(data.error ?? "No se pudo guardar el código de borrado.");
+      }
+
+      setDeleteCodeDraft({
+        deleteCode: "",
+        confirmDeleteCode: "",
+      });
+      updateRestaurant("localOrderDeletionCodeConfigured", true);
+      setDeleteCodeSuccess(
+        data.message ?? "Código de borrado actualizado correctamente."
+      );
+    } catch (error) {
+      setDeleteCodeError(
+        error instanceof Error
+          ? error.message
+          : "No se pudo guardar el código de borrado."
+      );
+    } finally {
+      setDeleteCodeSaving(false);
     }
   };
 
@@ -5192,6 +5271,80 @@ const [cashSuccess, setCashSuccess] = useState<string | null>(null);
         <li>No compartir la contraseña con empleados no autorizados.</li>
         <li>Cambiarla si alguien deja de trabajar en el restaurante.</li>
       </ul>
+    </section>
+
+    <section className={styles.panel}>
+      <div className={styles.panelHeader}>
+        <div>
+          <span className={styles.eyebrow}>Código de borrado</span>
+          <h3>Proteger el borrado de pedidos</h3>
+          <p>
+            Cada vez que quieras borrar un pedido del historial visible, el panel
+            va a pedir este código.
+          </p>
+        </div>
+
+        <button
+          className={styles.primaryButton}
+          disabled={deleteCodeSaving}
+          onClick={saveLocalOrderDeleteCode}
+          type="button"
+        >
+          {deleteCodeSaving ? "Guardando..." : "Guardar código"}
+        </button>
+      </div>
+
+      {deleteCodeError ? (
+        <div className={styles.errorBox}>{deleteCodeError}</div>
+      ) : null}
+
+      {deleteCodeSuccess ? (
+        <div className={styles.successBox}>{deleteCodeSuccess}</div>
+      ) : null}
+
+      <div className={styles.formGrid}>
+        <label className={styles.full}>
+          <span>Estado actual</span>
+          <input
+            readOnly
+            value={
+              restaurant.localOrderDeletionCodeConfigured
+                ? "Código configurado"
+                : "Todavía no configurado"
+            }
+          />
+        </label>
+
+        <label>
+          <span>Nuevo código</span>
+          <input
+            autoComplete="off"
+            type="password"
+            value={deleteCodeDraft.deleteCode}
+            onChange={(event) =>
+              setDeleteCodeDraft((current) => ({
+                ...current,
+                deleteCode: event.target.value,
+              }))
+            }
+          />
+        </label>
+
+        <label>
+          <span>Confirmar código</span>
+          <input
+            autoComplete="off"
+            type="password"
+            value={deleteCodeDraft.confirmDeleteCode}
+            onChange={(event) =>
+              setDeleteCodeDraft((current) => ({
+                ...current,
+                confirmDeleteCode: event.target.value,
+              }))
+            }
+          />
+        </label>
+      </div>
     </section>
   </div>
 ) : null}

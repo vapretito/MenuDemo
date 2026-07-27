@@ -151,6 +151,9 @@ export function mapRestaurantToRecord(
       restaurant.defaultOrderingExperience
     ),
     localOrderingEnabled: restaurant.localOrderingEnabled,
+    localOrderDeletionCodeConfigured: Boolean(
+      restaurant.localOrderDeletionCodeHash
+    ),
     serviceMode: normalizeServiceMode(restaurant.serviceMode),
     localPaymentTiming: normalizeLocalPaymentTiming(restaurant.localPaymentTiming),
     unpaidOrderExpirationMinutes: restaurant.unpaidOrderExpirationMinutes,

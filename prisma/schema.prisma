@@ -165,6 +165,7 @@ model Restaurant {
   serviceMode               ServiceMode                   @default(COUNTER_PICKUP)
   localPaymentTiming        LocalPaymentTiming            @default(PAY_BEFORE_PREPARATION)
   unpaidOrderExpirationMinutes Int                        @default(15)
+  localOrderDeletionCodeHash String?
 
   accent       String @default("#f0c400")
   accentSoft   String @default("#fff1ac")

@@ -124,6 +124,7 @@ export type RestaurantRecord = {
   qrShowMenuiBranding?: boolean;
   defaultOrderingExperience?: RestaurantOrderingExperience;
   localOrderingEnabled?: boolean;
+  localOrderDeletionCodeConfigured?: boolean;
   serviceMode?: ServiceMode;
   localPaymentTiming?: LocalPaymentTiming;
   unpaidOrderExpirationMinutes?: number;

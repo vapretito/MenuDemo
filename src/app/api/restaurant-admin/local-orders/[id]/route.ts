@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { verifyPassword } from "@/lib/password";
 import { getRestaurantSession } from "@/lib/restaurant-session";
 import { prisma } from "@/lib/prisma";
 
@@ -146,11 +147,16 @@ export async function DELETE(_request: Request, context: RouteContext) {
 
   try {
     const { id } = await context.params;
+    const requestBody = (await _request.json().catch(() => ({}))) as {
+      deleteCode?: string;
+    };
+    const deleteCode = String(requestBody.deleteCode ?? "").trim();
 
     const existingOrder = await prisma.order.findFirst({
       where: {
         id,
         restaurantId: session.restaurantId,
+        deletedAt: null,
       },
       select: {
         id: true,
@@ -161,6 +167,44 @@ export async function DELETE(_request: Request, context: RouteContext) {
       return NextResponse.json(
         { error: "No encontramos ese pedido." },
         { status: 404 }
+      );
+    }
+
+    const restaurant = await prisma.restaurant.findUnique({
+      where: {
+        id: session.restaurantId,
+      },
+      select: {
+        localOrderDeletionCodeHash: true,
+      },
+    });
+
+    if (!restaurant?.localOrderDeletionCodeHash) {
+      return NextResponse.json(
+        {
+          error:
+            "Primero configurá un código de borrado en la sección Seguridad.",
+        },
+        { status: 400 }
+      );
+    }
+
+    if (!deleteCode) {
+      return NextResponse.json(
+        { error: "Ingresá el código de borrado para continuar." },
+        { status: 400 }
+      );
+    }
+
+    const isDeleteCodeValid = verifyPassword(
+      deleteCode,
+      restaurant.localOrderDeletionCodeHash
+    );
+
+    if (!isDeleteCodeValid) {
+      return NextResponse.json(
+        { error: "El código de borrado es incorrecto." },
+        { status: 401 }
       );
     }
 

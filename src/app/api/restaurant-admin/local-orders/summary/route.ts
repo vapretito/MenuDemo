@@ -63,7 +63,7 @@ export async function GET() {
         active,
         ready,
         recent: recent.slice(0, 10),
-        history: orders,
+        history: visibleOrders,
       },
     });
   } catch (error) {
