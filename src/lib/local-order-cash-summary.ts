@@ -6,6 +6,7 @@ type LocalOrderCashEvent = {
   status: string;
   paymentStatus: string;
   paidAt: Date | null;
+  confirmedAt: Date | null;
 };
 
 export function summarizeLocalOrderCash(input: {
@@ -16,11 +17,17 @@ export function summarizeLocalOrderCash(input: {
   const businessDate = input.businessDate ?? getTodayDateKey(input.timeZone);
 
   const dayOrders = input.orders.filter((order) => {
-    if (!order.paidAt || order.paymentStatus !== "PAID") {
+    if (order.paymentStatus !== "PAID") {
       return false;
     }
 
-    return getLocalDateKey(order.paidAt, input.timeZone) === businessDate;
+    const effectivePaidAt = order.paidAt ?? order.confirmedAt;
+
+    if (!effectivePaidAt) {
+      return false;
+    }
+
+    return getLocalDateKey(effectivePaidAt, input.timeZone) === businessDate;
   });
 
   const totalOrders = dayOrders.length;

@@ -30,7 +30,6 @@ export async function POST(request: Request) {
       where: {
         restaurantId: session.restaurantId,
         source: "LOCAL_QR",
-        deletedAt: null,
       },
       orderBy: {
         createdAt: "desc",
@@ -52,6 +51,7 @@ export async function POST(request: Request) {
         status: order.status,
         paymentStatus: order.paymentStatus,
         paidAt: order.paidAt,
+        confirmedAt: order.confirmedAt,
       })),
       timeZone,
     });
