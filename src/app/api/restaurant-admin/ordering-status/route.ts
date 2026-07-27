@@ -13,6 +13,7 @@ export async function PATCH(request: Request) {
     const body = await request.json();
 
     const isAcceptingOrders = Boolean(body.isAcceptingOrders);
+    const localOrderingEnabled = Boolean(body.localOrderingEnabled);
     const closedMessage =
       String(body.closedMessage ?? "").trim() ||
       "Estamos cerrados por ahora. Podés revisar el menú y consultarnos por WhatsApp.";
@@ -23,10 +24,12 @@ export async function PATCH(request: Request) {
       },
       data: {
         isAcceptingOrders,
+        localOrderingEnabled,
         closedMessage,
       },
       select: {
         isAcceptingOrders: true,
+        localOrderingEnabled: true,
         closedMessage: true,
       },
     });

@@ -413,6 +413,7 @@ const [whatsappSuccess, setWhatsappSuccess] = useState<string | null>(null);
 
 const [orderingDraft, setOrderingDraft] = useState({
   isAcceptingOrders: restaurant.isAcceptingOrders ?? true,
+  localOrderingEnabled: restaurant.localOrderingEnabled ?? false,
   closedMessage:
     restaurant.closedMessage ??
     "Estamos cerrados por ahora. Podés revisar el menú y consultarnos por WhatsApp.",
@@ -1510,6 +1511,7 @@ const [cashSuccess, setCashSuccess] = useState<string | null>(null);
         error?: string;
         restaurant?: {
           isAcceptingOrders: boolean;
+          localOrderingEnabled: boolean;
           closedMessage: string;
         };
       } = {};
@@ -1527,6 +1529,8 @@ const [cashSuccess, setCashSuccess] = useState<string | null>(null);
       setRestaurant((current) => ({
         ...current,
         isAcceptingOrders: data.restaurant?.isAcceptingOrders ?? true,
+        localOrderingEnabled:
+          data.restaurant?.localOrderingEnabled ?? current.localOrderingEnabled,
         closedMessage: data.restaurant?.closedMessage ?? current.closedMessage,
       }));
   
@@ -4772,6 +4776,27 @@ const [cashSuccess, setCashSuccess] = useState<string | null>(null);
 
   <div className={styles.formGrid}>
     <label className={styles.full}>
+      <span>Pedidos en local / QR funcional</span>
+
+      <select
+        value={orderingDraft.localOrderingEnabled ? "enabled" : "disabled"}
+        onChange={(event) =>
+          setOrderingDraft((current) => ({
+            ...current,
+            localOrderingEnabled: event.target.value === "enabled",
+          }))
+        }
+      >
+        <option value="disabled">Desactivado</option>
+        <option value="enabled">Activado</option>
+      </select>
+      <small>
+        Habilita la experiencia de <code>/ordenar</code> para registrar pedidos en el
+        local antes de pasar por caja.
+      </small>
+    </label>
+
+    <label className={styles.full}>
       <span>Estado de pedidos</span>
 
       <select
@@ -4813,6 +4838,11 @@ const [cashSuccess, setCashSuccess] = useState<string | null>(null);
       {orderingDraft.isAcceptingOrders
         ? "Los clientes pueden enviar pedidos por WhatsApp."
         : orderingDraft.closedMessage}
+    </p>
+    <p>
+      {orderingDraft.localOrderingEnabled
+        ? "El QR funcional en restaurant estÃ¡ habilitado."
+        : "El QR funcional en restaurant estÃ¡ deshabilitado."}
     </p>
   </div>
 </section>
