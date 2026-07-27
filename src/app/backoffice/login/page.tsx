@@ -20,7 +20,7 @@ export default async function BackofficeLoginPage() {
           SI NECESITAS AYUDA PARA INGRESAR A UNA DEMO QUE HAYAS CREADO O SOLICITADO CONTACTANOS POR WHATSAPP
           NO SIGAS INTENTANDO EL INGRESO POR ESTE MEDIO.
         </p> */}
-        <BackofficeLoginForm />
+        <BackofficeLoginForm /> 
       </section>
     </main>
   );
