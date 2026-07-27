@@ -28,6 +28,46 @@ const money = new Intl.NumberFormat("es-AR", {
   maximumFractionDigits: 0,
 });
 
+const formatElapsedSince = (value: string) => {
+  const diffMs = Date.now() - new Date(value).getTime();
+
+  if (!Number.isFinite(diffMs) || diffMs < 0) {
+    return "Hace instantes";
+  }
+
+  const diffMinutes = Math.floor(diffMs / 60000);
+
+  if (diffMinutes < 1) return "Hace instantes";
+  if (diffMinutes < 60) return `Hace ${diffMinutes} min`;
+
+  const diffHours = Math.floor(diffMinutes / 60);
+  if (diffHours < 24) return `Hace ${diffHours} h`;
+
+  const diffDays = Math.floor(diffHours / 24);
+  return `Hace ${diffDays} d`;
+};
+
+const getLocalOrderStatusLabel = (status: string) => {
+  switch (status) {
+    case "AWAITING_PAYMENT":
+      return "Pendiente de pago";
+    case "CONFIRMED":
+      return "Confirmado";
+    case "PREPARING":
+      return "Preparando";
+    case "READY":
+      return "Listo";
+    case "DELIVERED":
+      return "Entregado";
+    case "EXPIRED":
+      return "Vencido";
+    case "CANCELLED":
+      return "Cancelado";
+    default:
+      return "En curso";
+  }
+};
+
 const templateFilterOptions = [
   "Todos",
   "Delivery",
@@ -151,6 +191,7 @@ const getHeroImageOpacity = (intensity: number) => {
 
 type AdminSection =
   | "overview"
+  | "orders"
   | "customers"
   | "identity"
   | "categories"
@@ -213,9 +254,41 @@ type AppearanceDraft = {
     createdAt: string;
   };
 
+  type LocalOrderStatusValue =
+    | "AWAITING_PAYMENT"
+    | "CONFIRMED"
+    | "PREPARING"
+    | "READY"
+    | "DELIVERED"
+    | "EXPIRED"
+    | "CANCELLED";
+
+  type LocalPaymentStatusValue = "PENDING" | "PAID" | "CANCELLED";
+
+  type LocalOrderRecord = {
+    id: string;
+    customerName: string | null;
+    pickupCode: string | null;
+    status: LocalOrderStatusValue;
+    paymentStatus: LocalPaymentStatusValue;
+    totalArs: number;
+    customerNote: string | null;
+    createdAt: string;
+    confirmedAt: string | null;
+    serviceLocationName: string | null;
+    items: Array<{
+      id: string;
+      productName: string;
+      quantity: number;
+      subtotalArs: number;
+      notes: string | null;
+    }>;
+  };
+
 
 const sections: Array<{ id: AdminSection; label: string; hint: string }> = [
   { id: "overview", label: "Dashboard", hint: "Resumen operativo" },
+  { id: "orders", label: "Pedidos", hint: "Caja y cocina" },
   { id: "customers", label: "Clientes", hint: "CRM y seguimiento" },
   { id: "identity", label: "Mi restaurante", hint: "Marca y datos" },
   { id: "categories", label: "Categorías", hint: "Estructura del menú" },
@@ -318,6 +391,17 @@ export function RestaurantAdminPanel({
   const [customerLoading, setCustomerLoading] = useState(false);
   const [customerDeletingId, setCustomerDeletingId] = useState<string | null>(null);
   const [cartDeletingId, setCartDeletingId] = useState<string | null>(null);
+  const [localOrdersSummary, setLocalOrdersSummary] = useState({
+    awaitingPaymentCount: 0,
+    activeCount: 0,
+    readyCount: 0,
+    awaitingPayment: [] as LocalOrderRecord[],
+    active: [] as LocalOrderRecord[],
+    ready: [] as LocalOrderRecord[],
+    recent: [] as LocalOrderRecord[],
+  });
+  const [localOrdersLoading, setLocalOrdersLoading] = useState(false);
+  const [localOrderActionId, setLocalOrderActionId] = useState<string | null>(null);
 
 
 
@@ -1456,6 +1540,79 @@ const [cashSuccess, setCashSuccess] = useState<string | null>(null);
     }
   };
 
+  const loadLocalOrdersSummary = async () => {
+    setLocalOrdersLoading(true);
+
+    try {
+      const response = await fetch("/api/restaurant-admin/local-orders/summary", {
+        cache: "no-store",
+      });
+
+      const rawResponse = await response.text();
+
+      let data: {
+        ok?: boolean;
+        summary?: typeof localOrdersSummary;
+      } = {};
+
+      try {
+        data = rawResponse ? JSON.parse(rawResponse) : {};
+      } catch {
+        return;
+      }
+
+      if (response.ok && data.ok && data.summary) {
+        setLocalOrdersSummary(data.summary);
+      }
+    } catch (error) {
+      console.error("[Load Local Orders Summary Error]", error);
+    } finally {
+      setLocalOrdersLoading(false);
+    }
+  };
+
+  const updateLocalOrderStatus = async (
+    orderId: string,
+    action: "confirm_payment" | "mark_preparing" | "mark_ready" | "mark_delivered"
+  ) => {
+    setLocalOrderActionId(orderId);
+
+    try {
+      const response = await fetch(`/api/restaurant-admin/local-orders/${orderId}`, {
+        method: "PATCH",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ action }),
+      });
+
+      const rawResponse = await response.text();
+
+      let data: {
+        ok?: boolean;
+        error?: string;
+      } = {};
+
+      try {
+        data = rawResponse ? JSON.parse(rawResponse) : {};
+      } catch {
+        throw new Error(`La API no devolvio JSON. Status: ${response.status}.`);
+      }
+
+      if (!response.ok || !data.ok) {
+        throw new Error(data.error ?? "No se pudo actualizar el pedido.");
+      }
+
+      await loadLocalOrdersSummary();
+    } catch (error) {
+      window.alert(
+        error instanceof Error ? error.message : "No se pudo actualizar el pedido."
+      );
+    } finally {
+      setLocalOrderActionId(null);
+    }
+  };
+
   const loadCustomerSummary = async (filter: CustomerFilter) => {
     setCustomerLoading(true);
 
@@ -1833,6 +1990,7 @@ const [cashSuccess, setCashSuccess] = useState<string | null>(null);
   const loadDashboardData = useEffectEvent(() => {
     void loadCartSummary();
     void loadCashSummary();
+    void loadLocalOrdersSummary();
   });
 
   const loadCustomersData = useEffectEvent((filter: CustomerFilter) => {
@@ -2317,6 +2475,21 @@ const [cashSuccess, setCashSuccess] = useState<string | null>(null);
   <strong>{money.format(cartSummary.averageTicketArs)}</strong>
   <span>ticket promedio estimado</span>
 </article>
+
+<article className={styles.metricCard}>
+  <strong>{localOrdersSummary.awaitingPaymentCount}</strong>
+  <span>pendientes de pago en local</span>
+</article>
+
+<article className={styles.metricCard}>
+  <strong>{localOrdersSummary.activeCount}</strong>
+  <span>pedidos activos en local</span>
+</article>
+
+<article className={styles.metricCard}>
+  <strong>{localOrdersSummary.readyCount}</strong>
+  <span>pedidos listos para retirar</span>
+</article>
             </section>
 
             <section className={`${styles.panel} ${styles.overviewPanelSecondary}`}>
@@ -2376,6 +2549,176 @@ const [cashSuccess, setCashSuccess] = useState<string | null>(null);
             </section>
           </div>
         ) : null}
+
+{activeSection === "orders" ? (
+  <div className={styles.stack}>
+    <section className={styles.heroSummary}>
+      <div className={styles.heroSummaryPrimary}>
+        <span className={styles.eyebrow}>Pedidos en local</span>
+        <h3>Caja, preparacion y retiro</h3>
+        <p>
+          Administra los pedidos QR funcionales del local desde una sola vista:
+          pendientes de pago, en preparacion y listos para entregar.
+        </p>
+      </div>
+
+      <div className={styles.heroSummaryStats}>
+        <article className={styles.metricCard}>
+          <strong>{localOrdersSummary.awaitingPaymentCount}</strong>
+          <span>pendientes de pago</span>
+        </article>
+        <article className={styles.metricCard}>
+          <strong>{localOrdersSummary.activeCount}</strong>
+          <span>activos en cocina</span>
+        </article>
+        <article className={styles.metricCard}>
+          <strong>{localOrdersSummary.readyCount}</strong>
+          <span>listos para retirar</span>
+        </article>
+      </div>
+    </section>
+
+    <section className={styles.panel}>
+      <div className={styles.panelHeader}>
+        <div>
+          <span className={styles.eyebrow}>Caja</span>
+          <h3>Pedidos pendientes de pago</h3>
+          <p>Confirma el pago para habilitar la preparacion del pedido.</p>
+        </div>
+      </div>
+
+      <div className={styles.overviewFeed}>
+        {localOrdersLoading ? (
+          <p>Cargando pedidos en local...</p>
+        ) : localOrdersSummary.awaitingPayment.length ? (
+          localOrdersSummary.awaitingPayment.map((order) => (
+            <article
+              className={`${styles.publishCard} ${styles.overviewFeedCard}`}
+              key={order.id}
+            >
+              <span>
+                {(order.pickupCode ?? "Sin codigo")} · {formatElapsedSince(order.createdAt)}
+              </span>
+              <strong>{order.customerName ?? "Pedido en local"}</strong>
+              <p>
+                {order.items.map((item) => `${item.quantity}x ${item.productName}`).join(" · ")}
+              </p>
+              <p>
+                {order.serviceLocationName ?? "Retiro en caja"} ·{" "}
+                {getLocalOrderStatusLabel(order.status)} · {money.format(order.totalArs)}
+              </p>
+              {order.customerNote ? <p>Obs: {order.customerNote}</p> : null}
+              <div className={styles.feedCardActions}>
+                <button
+                  className={styles.primaryButton}
+                  disabled={localOrderActionId === order.id}
+                  onClick={() => void updateLocalOrderStatus(order.id, "confirm_payment")}
+                  type="button"
+                >
+                  {localOrderActionId === order.id ? "Confirmando..." : "Confirmar pago"}
+                </button>
+              </div>
+            </article>
+          ))
+        ) : (
+          <p>No hay pedidos pendientes de pago.</p>
+        )}
+      </div>
+    </section>
+
+    <section className={styles.panel}>
+      <div className={styles.panelHeader}>
+        <div>
+          <span className={styles.eyebrow}>Cocina</span>
+          <h3>Pedidos activos</h3>
+          <p>Estos pedidos ya fueron confirmados y pueden avanzar por cocina.</p>
+        </div>
+      </div>
+
+      <div className={styles.overviewFeed}>
+        {localOrdersSummary.active.length ? (
+          localOrdersSummary.active.map((order) => (
+            <article
+              className={`${styles.publishCard} ${styles.overviewFeedCard}`}
+              key={order.id}
+            >
+              <span>
+                {order.pickupCode ?? "Sin codigo"} · {getLocalOrderStatusLabel(order.status)}
+              </span>
+              <strong>{order.customerName ?? "Pedido en local"}</strong>
+              <p>
+                {order.items.map((item) => `${item.quantity}x ${item.productName}`).join(" · ")}
+              </p>
+              <p>{money.format(order.totalArs)}</p>
+              <div className={styles.feedCardActions}>
+                {order.status === "CONFIRMED" ? (
+                  <button
+                    className={styles.primaryButton}
+                    disabled={localOrderActionId === order.id}
+                    onClick={() => void updateLocalOrderStatus(order.id, "mark_preparing")}
+                    type="button"
+                  >
+                    {localOrderActionId === order.id ? "Actualizando..." : "Marcar preparando"}
+                  </button>
+                ) : null}
+
+                {order.status === "PREPARING" ? (
+                  <button
+                    className={styles.primaryButton}
+                    disabled={localOrderActionId === order.id}
+                    onClick={() => void updateLocalOrderStatus(order.id, "mark_ready")}
+                    type="button"
+                  >
+                    {localOrderActionId === order.id ? "Actualizando..." : "Marcar listo"}
+                  </button>
+                ) : null}
+              </div>
+            </article>
+          ))
+        ) : (
+          <p>No hay pedidos activos en este momento.</p>
+        )}
+      </div>
+    </section>
+
+    <section className={styles.panel}>
+      <div className={styles.panelHeader}>
+        <div>
+          <span className={styles.eyebrow}>Retiro</span>
+          <h3>Pedidos listos</h3>
+          <p>Marca como entregado cuando el cliente retire el pedido.</p>
+        </div>
+      </div>
+
+      <div className={styles.overviewFeed}>
+        {localOrdersSummary.ready.length ? (
+          localOrdersSummary.ready.map((order) => (
+            <article
+              className={`${styles.publishCard} ${styles.overviewFeedCard}`}
+              key={order.id}
+            >
+              <span>{order.pickupCode ?? "Sin codigo"} · Listo</span>
+              <strong>{order.customerName ?? "Pedido en local"}</strong>
+              <p>{money.format(order.totalArs)}</p>
+              <div className={styles.feedCardActions}>
+                <button
+                  className={styles.primaryButton}
+                  disabled={localOrderActionId === order.id}
+                  onClick={() => void updateLocalOrderStatus(order.id, "mark_delivered")}
+                  type="button"
+                >
+                  {localOrderActionId === order.id ? "Actualizando..." : "Marcar entregado"}
+                </button>
+              </div>
+            </article>
+          ))
+        ) : (
+          <p>No hay pedidos listos para retirar.</p>
+        )}
+      </div>
+    </section>
+  </div>
+) : null}
 
 {activeSection === "customers" ? (
   <div className={styles.stack}>
