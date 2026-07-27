@@ -40,6 +40,7 @@ export async function PATCH(request: Request, context: RouteContext) {
         id: true,
         status: true,
         paymentStatus: true,
+        paidAt: true,
       },
     });
 
@@ -54,6 +55,7 @@ export async function PATCH(request: Request, context: RouteContext) {
       paymentStatus?: "PAID";
       status?: "CONFIRMED" | "PREPARING" | "READY" | "DELIVERED";
       confirmedAt?: Date;
+      paidAt?: Date;
     } = {};
 
     if (action === "confirm_payment") {
@@ -68,6 +70,9 @@ export async function PATCH(request: Request, context: RouteContext) {
       }
 
       data.paymentStatus = "PAID";
+      if (!existingOrder.paidAt) {
+        data.paidAt = new Date();
+      }
       if (existingOrder.status === "AWAITING_PAYMENT") {
         data.status = "CONFIRMED";
         data.confirmedAt = new Date();

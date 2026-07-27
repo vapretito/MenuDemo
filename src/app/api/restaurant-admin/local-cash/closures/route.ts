@@ -51,7 +51,7 @@ export async function POST(request: Request) {
         itemCount: order.items.reduce((sum, item) => sum + item.quantity, 0),
         status: order.status,
         paymentStatus: order.paymentStatus,
-        confirmedAt: order.confirmedAt,
+        paidAt: order.paidAt,
       })),
       timeZone,
     });

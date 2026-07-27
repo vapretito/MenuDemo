@@ -381,6 +381,7 @@ model Order {
   customerNote  String?
 
   confirmedAt DateTime?
+  paidAt      DateTime?
   expiresAt   DateTime?
   deletedAt   DateTime?
   deletedByAdmin Boolean @default(false)
@@ -395,6 +396,7 @@ model Order {
   @@index([restaurantId, paymentStatus])
   @@index([serviceLocationId])
   @@index([createdAt])
+  @@index([paidAt])
   @@index([expiresAt])
   @@index([deletedAt])
 }
