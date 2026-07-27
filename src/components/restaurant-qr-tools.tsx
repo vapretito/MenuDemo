@@ -20,6 +20,8 @@ type RestaurantQrToolsProps = {
 const MENUI_LOGO_URL = "/logos/menui-logo.svg";
 const QR_SIZE = 512;
 
+type QrVariant = "visual" | "interactive";
+
 const loadImage = (src: string) =>
   new Promise<HTMLImageElement>((resolve, reject) => {
     const image = new Image();
@@ -48,17 +50,25 @@ export function RestaurantQrTools({
   onBrandingChange,
   onSave,
 }: RestaurantQrToolsProps) {
-  const [qrDataUrl, setQrDataUrl] = useState("");
+  const [selectedVariant, setSelectedVariant] = useState<QrVariant>("visual");
+  const [qrDataUrls, setQrDataUrls] = useState<Record<QrVariant, string>>({
+    visual: "",
+    interactive: "",
+  });
   const [copyFeedback, setCopyFeedback] = useState<string | null>(null);
 
   useEffect(() => {
     let cancelled = false;
 
-    async function buildQrCode() {
+    async function buildQrCode(
+      variant: QrVariant,
+      targetUrl: string,
+      badgeLabel: string
+    ) {
       try {
         const canvas = document.createElement("canvas");
 
-        await QRCode.toCanvas(canvas, qrMenuUrl, {
+        await QRCode.toCanvas(canvas, targetUrl, {
           width: QR_SIZE,
           margin: 1,
           color: {
@@ -107,28 +117,87 @@ export function RestaurantQrTools({
         const nextQrDataUrl = canvas.toDataURL("image/png");
 
         if (!cancelled) {
-          setQrDataUrl(nextQrDataUrl);
+          setQrDataUrls((current) => ({
+            ...current,
+            [variant]: nextQrDataUrl,
+          }));
         }
       } catch (buildError) {
-        console.error("[QR Build Error]", buildError);
+        console.error(`[QR Build Error] ${badgeLabel}`, buildError);
 
         if (!cancelled) {
-          setQrDataUrl("");
+          setQrDataUrls((current) => ({
+            ...current,
+            [variant]: "",
+          }));
         }
       }
     }
 
-    void buildQrCode();
+    void Promise.all([
+      buildQrCode("visual", qrMenuUrl, "visual"),
+      buildQrCode("interactive", localOrderingUrl, "interactive"),
+    ]);
 
     return () => {
       cancelled = true;
     };
-  }, [qrMenuUrl, showMenuiBranding]);
+  }, [localOrderingUrl, qrMenuUrl, showMenuiBranding]);
+
+  const qrConfig = {
+    visual: {
+      title: "QR menu",
+      badge: "Menu QR",
+      lead: "Version QR sin interaccion para mostrar en el local.",
+      description: "Escanea este codigo para ver el menu visual del restaurante.",
+      url: qrMenuUrl,
+      dataUrl: qrDataUrls.visual,
+      downloadName: `${restaurantName.toLowerCase().replace(/[^a-z0-9]+/g, "-")}-menu-qr.png`,
+      copyLabel: "Link QR menu copiado.",
+      openLabel: "Abrir QR menu",
+      copyButtonLabel: "Copiar link menu",
+      printButtonLabel: "Imprimir cartel QR menu",
+      downloadButtonLabel: "Descargar QR menu PNG",
+    },
+    interactive: {
+      title: "QR interactivo",
+      badge: "QR interactivo",
+      lead: "Version funcional para que el cliente haga el pedido en restaurant.",
+      description:
+        "Escanea este codigo para abrir el menu interactivo y registrar pedidos en local.",
+      url: localOrderingUrl,
+      dataUrl: qrDataUrls.interactive,
+      downloadName: `${restaurantName.toLowerCase().replace(/[^a-z0-9]+/g, "-")}-interactivo-qr.png`,
+      copyLabel: "Link QR interactivo copiado.",
+      openLabel: "Abrir QR interactivo",
+      copyButtonLabel: "Copiar link interactivo",
+      printButtonLabel: "Imprimir cartel QR interactivo",
+      downloadButtonLabel: "Descargar QR interactivo PNG",
+    },
+  } satisfies Record<
+    QrVariant,
+    {
+      title: string;
+      badge: string;
+      lead: string;
+      description: string;
+      url: string;
+      dataUrl: string;
+      downloadName: string;
+      copyLabel: string;
+      openLabel: string;
+      copyButtonLabel: string;
+      printButtonLabel: string;
+      downloadButtonLabel: string;
+    }
+  >;
+
+  const activeQr = qrConfig[selectedVariant];
 
   const handleCopyUrl = async () => {
     try {
-      await navigator.clipboard.writeText(qrMenuUrl);
-      setCopyFeedback("Link QR copiado.");
+      await navigator.clipboard.writeText(activeQr.url);
+      setCopyFeedback(activeQr.copyLabel);
     } catch (copyError) {
       console.error("[QR Copy Error]", copyError);
       setCopyFeedback("No se pudo copiar el link.");
@@ -136,16 +205,16 @@ export function RestaurantQrTools({
   };
 
   const handleDownloadQr = () => {
-    if (!qrDataUrl) return;
+    if (!activeQr.dataUrl) return;
 
     const link = document.createElement("a");
-    link.href = qrDataUrl;
-    link.download = `${restaurantName.toLowerCase().replace(/[^a-z0-9]+/g, "-")}-menu-qr.png`;
+    link.href = activeQr.dataUrl;
+    link.download = activeQr.downloadName;
     link.click();
   };
 
   const handlePrintPoster = () => {
-    if (!qrDataUrl) return;
+    if (!activeQr.dataUrl) return;
 
     const printWindow = window.open("", "_blank", "noopener,noreferrer,width=900,height=1200");
 
@@ -155,7 +224,9 @@ export function RestaurantQrTools({
     }
 
     const title = escapeHtml(restaurantName);
-    const url = escapeHtml(qrMenuUrl);
+    const url = escapeHtml(activeQr.url);
+    const badge = escapeHtml(activeQr.badge);
+    const description = escapeHtml(activeQr.description);
     printWindow.document.write(`<!doctype html>
 <html lang="es">
   <head>
@@ -226,10 +297,10 @@ export function RestaurantQrTools({
   <body>
     <main class="sheet">
       <section class="poster">
-        <span class="pill">Menu QR</span>
+        <span class="pill">${badge}</span>
         <h1>${title}</h1>
-        <p>Escanea este codigo para ver el menu visual del restaurante.</p>
-        <img class="qr" src="${qrDataUrl}" alt="QR del menu de ${title}" />
+        <p>${description}</p>
+        <img class="qr" src="${activeQr.dataUrl}" alt="QR de ${title}" />
         <div class="url">${url}</div>
       </section>
     </main>
@@ -247,11 +318,11 @@ export function RestaurantQrTools({
     <section className={styles.stack}>
       <div className={styles.layout}>
         <article className={styles.card}>
-          <span className={styles.eyebrow}>QR visual</span>
-          <h3 className={styles.title}>Version QR sin interaccion para mostrar en el local</h3>
+          <span className={styles.eyebrow}>QR del restaurant</span>
+          <h3 className={styles.title}>Genera y usa dos QRs distintos segun la necesidad</h3>
           <p className={styles.lead}>
-            Este link abre el menu completo en modo visual, ideal para mesas, mostrador o carteles
-            impresos. La URL publica recomendada es la del subdominio con <code>/qr</code>.
+            Desde aca podes elegir si queres trabajar con el <code>QR menu</code> o con el{" "}
+            <code>QR interactivo</code>, y luego abrirlo, copiarlo, descargarlo o imprimirlo.
           </p>
 
           <div className={styles.metaGrid}>
@@ -269,6 +340,33 @@ export function RestaurantQrTools({
               <strong>{localOrderingUrl}</strong>
               <p>Esta tercera version registra pedidos en local antes de pasar por caja.</p>
             </div>
+          </div>
+
+          <div className={styles.selectorBlock}>
+            <span className={styles.selectorLabel}>Que QR queres ver o imprimir</span>
+            <div className={styles.selectorRow}>
+              <button
+                className={
+                  selectedVariant === "visual" ? styles.selectorButtonActive : styles.selectorButton
+                }
+                onClick={() => setSelectedVariant("visual")}
+                type="button"
+              >
+                QR menu
+              </button>
+              <button
+                className={
+                  selectedVariant === "interactive"
+                    ? styles.selectorButtonActive
+                    : styles.selectorButton
+                }
+                onClick={() => setSelectedVariant("interactive")}
+                type="button"
+              >
+                QR interactivo
+              </button>
+            </div>
+            <p className={styles.selectorHint}>{activeQr.lead}</p>
           </div>
 
           <div className={styles.toggleRow}>
@@ -292,10 +390,10 @@ export function RestaurantQrTools({
               {isSaving ? "Guardando..." : "Guardar configuracion QR visual"}
             </button>
             <button className={styles.buttonGhost} onClick={handleCopyUrl} type="button">
-              Copiar link visual
+              {activeQr.copyButtonLabel}
             </button>
-            <a className={styles.buttonLink} href={qrMenuUrl} rel="noreferrer" target="_blank">
-              Abrir QR visual
+            <a className={styles.buttonLink} href={activeQr.url} rel="noreferrer" target="_blank">
+              {activeQr.openLabel}
             </a>
           </div>
 
@@ -310,42 +408,46 @@ export function RestaurantQrTools({
           <span className={styles.previewLabel}>Vista previa imprimible</span>
 
           <div className={styles.poster}>
-            <span className={styles.eyebrow}>Escanea el menu</span>
+            <span className={styles.eyebrow}>{activeQr.badge}</span>
             <h4>{restaurantName}</h4>
-            <p>Menu visual del restaurante sin carrito para mostrar en salon.</p>
+            <p>{activeQr.description}</p>
 
             <div className={styles.qrWrap}>
-              {qrDataUrl ? (
-                <img className={styles.qrImage} src={qrDataUrl} alt={`QR de ${restaurantName}`} />
+              {activeQr.dataUrl ? (
+                <img
+                  className={styles.qrImage}
+                  src={activeQr.dataUrl}
+                  alt={`QR de ${restaurantName}`}
+                />
               ) : (
                 <div className={styles.loading}>Generando QR...</div>
               )}
             </div>
 
-            <div className={styles.url}>{qrMenuUrl}</div>
+            <div className={styles.url}>{activeQr.url}</div>
           </div>
 
           <div className={styles.actions}>
             <button
               className={styles.buttonGhost}
-              disabled={!qrDataUrl}
+              disabled={!activeQr.dataUrl}
               onClick={handleDownloadQr}
               type="button"
             >
-              Descargar QR PNG
+              {activeQr.downloadButtonLabel}
             </button>
             <button
               className={styles.buttonGhost}
-              disabled={!qrDataUrl}
+              disabled={!activeQr.dataUrl}
               onClick={handlePrintPoster}
               type="button"
             >
-              Imprimir cartel QR
+              {activeQr.printButtonLabel}
             </button>
           </div>
 
           <p className={styles.hint}>
-            La impresion y la descarga usan exactamente el mismo QR, con el logo centrado si esta activado.
+            La impresion y la descarga usan el QR que tengas seleccionado arriba, con el logo centrado si esta activado.
           </p>
         </aside>
       </div>

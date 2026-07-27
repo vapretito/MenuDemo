@@ -81,6 +81,57 @@
   line-height: 1.5;
 }
 
+.selectorBlock {
+  margin-top: 20px;
+  border: 1px solid rgba(16, 24, 40, 0.08);
+  border-radius: 18px;
+  background: #ffffff;
+  padding: 16px;
+}
+
+.selectorLabel {
+  display: block;
+  color: #102033;
+  font-size: 13px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.selectorRow {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-top: 12px;
+}
+
+.selectorButton,
+.selectorButtonActive {
+  min-height: 42px;
+  border-radius: 999px;
+  padding: 0 16px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.selectorButton {
+  border: 1px solid rgba(16, 24, 40, 0.14);
+  background: #ffffff;
+  color: #102033;
+}
+
+.selectorButtonActive {
+  border: 1px solid rgba(15, 118, 110, 0.32);
+  background: rgba(15, 118, 110, 0.12);
+  color: #0f766e;
+}
+
+.selectorHint {
+  margin: 12px 0 0;
+  color: #5f7285;
+  line-height: 1.5;
+}
+
 .toggleRow {
   display: flex;
   align-items: center;
