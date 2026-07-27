@@ -26,6 +26,7 @@ export async function GET() {
       where: {
         restaurantId: session.restaurantId,
         source: "LOCAL_QR",
+        deletedAt: null,
       },
       orderBy: {
         createdAt: "desc",
@@ -52,14 +53,17 @@ export async function GET() {
       timeZone,
     });
 
-    const existingClosure = await prisma.localCashClosure.findUnique({
-      where: {
-        restaurantId_businessDate: {
-          restaurantId: session.restaurantId,
-          businessDate: todaySummary.businessDate,
-        },
-      },
-    });
+    const existingClosure =
+      todaySummary.totalOrders > 0
+        ? await prisma.localCashClosure.findUnique({
+            where: {
+              restaurantId_businessDate: {
+                restaurantId: session.restaurantId,
+                businessDate: todaySummary.businessDate,
+              },
+            },
+          })
+        : null;
 
     const lastClosures = await prisma.localCashClosure.findMany({
       where: {

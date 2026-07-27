@@ -30,6 +30,7 @@ export async function POST(request: Request) {
       where: {
         restaurantId: session.restaurantId,
         source: "LOCAL_QR",
+        deletedAt: null,
       },
       orderBy: {
         createdAt: "desc",
@@ -55,6 +56,16 @@ export async function POST(request: Request) {
       })),
       timeZone,
     });
+
+    if (summary.totalOrders === 0) {
+      return NextResponse.json(
+        {
+          error:
+            "No hay pedidos visibles pagados en el historial para cerrar la caja del restaurant.",
+        },
+        { status: 400 }
+      );
+    }
 
     const closure = await prisma.localCashClosure.upsert({
       where: {
