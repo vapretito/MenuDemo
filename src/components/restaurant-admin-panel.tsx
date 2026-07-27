@@ -7,6 +7,7 @@ import {
   useEffect,
   useEffectEvent,
   useMemo,
+  useRef,
   useState,
 } from "react";
 import styles from "./restaurant-admin-panel.module.css";
@@ -21,6 +22,12 @@ import {
   RestaurantRecord,
 } from "@/types/platform";
 import { menuTemplates, type MenuTemplatePreset } from "@/data/menu-templates";
+import {
+  getBrowserNotificationPermission,
+  playNotificationTone,
+  requestBrowserNotificationPermission,
+  showBrowserNotification,
+} from "@/lib/browser-notifications";
 
 const money = new Intl.NumberFormat("es-AR", {
   style: "currency",
@@ -365,6 +372,18 @@ type RestaurantAdminPanelProps = {
   initialRestaurant?: RestaurantRecord;
 };
 
+const buildOperationalLocalOrdersMap = (summary: {
+  awaitingPayment: LocalOrderRecord[];
+  active: LocalOrderRecord[];
+  ready: LocalOrderRecord[];
+}) =>
+  new Map(
+    [...summary.awaitingPayment, ...summary.active, ...summary.ready].map((order) => [
+      order.id,
+      order,
+    ])
+  );
+
 export function RestaurantAdminPanel({
   restaurantSlug,
   initialRestaurant,
@@ -415,6 +434,8 @@ export function RestaurantAdminPanel({
   });
   const [localOrdersLoading, setLocalOrdersLoading] = useState(false);
   const [localOrderActionId, setLocalOrderActionId] = useState<string | null>(null);
+  const [localOrderNativeNotificationsEnabled, setLocalOrderNativeNotificationsEnabled] =
+    useState(getBrowserNotificationPermission() === "granted");
   const [localCashSummary, setLocalCashSummary] = useState({
     businessDate: "",
     totalOrders: 0,
@@ -619,6 +640,8 @@ const [cashNotes, setCashNotes] = useState("");
 const [cashSaving, setCashSaving] = useState(false);
 const [cashError, setCashError] = useState<string | null>(null);
 const [cashSuccess, setCashSuccess] = useState<string | null>(null);
+const operationalLocalOrdersRef = useRef<Map<string, LocalOrderRecord>>(new Map());
+const hasHydratedOperationalLocalOrdersRef = useRef(false);
   const updateRestaurant = <K extends keyof RestaurantRecord>(
     field: K,
     value: RestaurantRecord[K]
@@ -1601,8 +1624,55 @@ const [cashSuccess, setCashSuccess] = useState<string | null>(null);
     }
   };
 
-  const loadLocalOrdersSummary = async () => {
-    setLocalOrdersLoading(true);
+  const notifyAboutNewLocalOrders = useEffectEvent(
+    (summary: {
+      awaitingPayment: LocalOrderRecord[];
+      active: LocalOrderRecord[];
+      ready: LocalOrderRecord[];
+    }) => {
+      const nextOperationalOrders = buildOperationalLocalOrdersMap(summary);
+
+      if (!hasHydratedOperationalLocalOrdersRef.current) {
+        operationalLocalOrdersRef.current = nextOperationalOrders;
+        hasHydratedOperationalLocalOrdersRef.current = true;
+        return;
+      }
+
+      const newOrders = [...nextOperationalOrders.values()].filter(
+        (order) => !operationalLocalOrdersRef.current.has(order.id)
+      );
+
+      operationalLocalOrdersRef.current = nextOperationalOrders;
+
+      if (!newOrders.length) {
+        return;
+      }
+
+      const [firstOrder] = newOrders;
+      void playNotificationTone();
+
+      if (localOrderNativeNotificationsEnabled) {
+        showBrowserNotification(
+          restaurant.name,
+          newOrders.length === 1
+            ? `Nuevo pedido: ${firstOrder.customerName ?? firstOrder.pickupCode ?? "Pedido en local"}`
+            : `Entraron ${newOrders.length} pedidos nuevos en el restaurant.`,
+          {
+            tag: `restaurant-local-orders-${restaurant.id}`,
+          }
+        );
+      }
+    }
+  );
+
+  const loadLocalOrdersSummary = async ({
+    silent = false,
+  }: {
+    silent?: boolean;
+  } = {}) => {
+    if (!silent) {
+      setLocalOrdersLoading(true);
+    }
 
     try {
       const response = await fetch("/api/restaurant-admin/local-orders/summary", {
@@ -1624,12 +1694,18 @@ const [cashSuccess, setCashSuccess] = useState<string | null>(null);
 
       if (response.ok && data.ok && data.summary) {
         setLocalOrdersSummary(data.summary);
+        notifyAboutNewLocalOrders(data.summary);
+        return data.summary;
       }
     } catch (error) {
       console.error("[Load Local Orders Summary Error]", error);
     } finally {
-      setLocalOrdersLoading(false);
+      if (!silent) {
+        setLocalOrdersLoading(false);
+      }
     }
+
+    return null;
   };
 
   const loadLocalCashSummary = async () => {
@@ -2241,6 +2317,11 @@ const [cashSuccess, setCashSuccess] = useState<string | null>(null);
     void loadLocalCashSummary();
   });
 
+  const pollLocalOperations = useEffectEvent(() => {
+    void loadLocalOrdersSummary({ silent: true });
+    void loadLocalCashSummary();
+  });
+
   const loadCustomersData = useEffectEvent((filter: CustomerFilter) => {
     void loadCustomerSummary(filter);
   });
@@ -2251,6 +2332,14 @@ const [cashSuccess, setCashSuccess] = useState<string | null>(null);
     }, 0);
 
     return () => window.clearTimeout(timer);
+  }, []);
+
+  useEffect(() => {
+    const intervalId = window.setInterval(() => {
+      pollLocalOperations();
+    }, 10000);
+
+    return () => window.clearInterval(intervalId);
   }, []);
 
   useEffect(() => {
@@ -2304,6 +2393,35 @@ const [cashSuccess, setCashSuccess] = useState<string | null>(null);
     } finally {
       setCashSaving(false);
     }
+  };
+
+  const enableLocalOrderNativeNotifications = async () => {
+    const permission = await requestBrowserNotificationPermission();
+    const granted = permission === "granted";
+
+    setLocalOrderNativeNotificationsEnabled(granted);
+
+    if (granted) {
+      showBrowserNotification(
+        restaurant.name,
+        "Te vamos a avisar cuando entre un pedido nuevo en el restaurant.",
+        {
+          tag: `restaurant-local-orders-${restaurant.id}`,
+        }
+      );
+      return;
+    }
+
+    if (permission === "denied") {
+      window.alert(
+        "Las notificaciones quedaron bloqueadas para este sitio. Podés habilitarlas desde la configuración del navegador."
+      );
+      return;
+    }
+
+    window.alert(
+      "Tu navegador no soporta notificaciones nativas. Igual vamos a intentar avisarte con sonido dentro del panel."
+    );
   };
 
 
@@ -2833,6 +2951,20 @@ const [cashSuccess, setCashSuccess] = useState<string | null>(null);
           <h3>Pedidos pendientes de pago</h3>
           <p>Confirma el pago para habilitar la preparacion del pedido.</p>
         </div>
+
+        <button
+          className={
+            localOrderNativeNotificationsEnabled
+              ? styles.secondaryButton
+              : styles.primaryButton
+          }
+          onClick={() => void enableLocalOrderNativeNotifications()}
+          type="button"
+        >
+          {localOrderNativeNotificationsEnabled
+            ? "Notificaciones activas"
+            : "Activar alertas"}
+        </button>
       </div>
 
       <div className={styles.overviewFeed}>

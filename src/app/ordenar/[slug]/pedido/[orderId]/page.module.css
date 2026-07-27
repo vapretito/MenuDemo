@@ -60,6 +60,20 @@
   line-height: 1.6;
 }
 
+.noticeRow {
+  display: flex;
+  justify-content: space-between;
+  gap: 14px;
+  align-items: center;
+  margin-top: 18px;
+}
+
+.noticeText {
+  margin: 0;
+  color: #58705c;
+  line-height: 1.5;
+}
+
 .metaGrid {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -152,6 +166,11 @@
 @media (max-width: 640px) {
   .card {
     padding: 22px;
+  }
+
+  .noticeRow {
+    flex-direction: column;
+    align-items: stretch;
   }
 
   .metaGrid {
