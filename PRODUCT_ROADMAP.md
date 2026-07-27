@@ -34,3 +34,11 @@
 - Integracion Mercado Pago `preapproval` para membresia automatica.
 - Upload real de imagenes con almacenamiento persistente.
 - Provision de subdominios y resolucion por host en produccion.
+
+## Nueva linea de producto: pedidos en local
+
+- Menui debe evolucionar de `menu + carrito + WhatsApp` a soportar tambien `Pedidos en local`.
+- Esta capacidad no debe quedar modelada solo alrededor de `mesa` o `table`.
+- Debe soportar `TABLE_SERVICE`, `COUNTER_PICKUP` y `BOTH`.
+- El QR actual visual del menu es una buena base de entrada, pero no reemplaza el flujo de orden local.
+- La especificacion activa para esta expansion vive en `LOCAL_ORDERING_SPEC.md`.

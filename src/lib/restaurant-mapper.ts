@@ -20,6 +20,9 @@ type FrontPlanId = FrontSubscription["planId"];
 type FrontCycle = FrontSubscription["cycle"];
 type FrontSubscriptionStatus = FrontSubscription["status"];
 type FrontCollectionMethod = FrontSubscription["collectionMethod"];
+type FrontOrderingExperience = NonNullable<RestaurantRecord["defaultOrderingExperience"]>;
+type FrontServiceMode = NonNullable<RestaurantRecord["serviceMode"]>;
+type FrontLocalPaymentTiming = NonNullable<RestaurantRecord["localPaymentTiming"]>;
 
 const normalizeRestaurantStatus = (status: string): FrontRestaurantStatus => {
   const normalized = status.toLowerCase();
@@ -44,6 +47,20 @@ const normalizeDnsStatus = (status: string): FrontDnsStatus => {
 
 const normalizeBillingMode = (mode: string): FrontBillingMode => {
   return mode === "MANUAL" ? "manual" : "mercado_pago_subscription";
+};
+
+const normalizeOrderingExperience = (value: string): FrontOrderingExperience => {
+  return value === "LOCAL_QR" ? "local_qr" : "delivery";
+};
+
+const normalizeServiceMode = (value: string): FrontServiceMode => {
+  if (value === "TABLE_SERVICE") return "table_service";
+  if (value === "BOTH") return "both";
+  return "counter_pickup";
+};
+
+const normalizeLocalPaymentTiming = (value: string): FrontLocalPaymentTiming => {
+  return value === "PAY_LATER" ? "pay_later" : "pay_before_preparation";
 };
 
 const normalizePlanId = (planId?: string | null): FrontPlanId => {
@@ -130,6 +147,13 @@ export function mapRestaurantToRecord(
       (restaurant.logoPosition as RestaurantRecord["logoPosition"]) ?? "left",
     coverImageUrl: restaurant.coverImageUrl,
     qrShowMenuiBranding: restaurant.qrShowMenuiBranding,
+    defaultOrderingExperience: normalizeOrderingExperience(
+      restaurant.defaultOrderingExperience
+    ),
+    localOrderingEnabled: restaurant.localOrderingEnabled,
+    serviceMode: normalizeServiceMode(restaurant.serviceMode),
+    localPaymentTiming: normalizeLocalPaymentTiming(restaurant.localPaymentTiming),
+    unpaidOrderExpirationMinutes: restaurant.unpaidOrderExpirationMinutes,
 
     whatsappIntroMessage: restaurant.whatsappIntroMessage,
 whatsappFooterMessage: restaurant.whatsappFooterMessage,

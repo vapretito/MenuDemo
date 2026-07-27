@@ -66,6 +66,48 @@ enum WebhookProcessStatus {
   FAILED
 }
 
+enum RestaurantOrderingExperience {
+  DELIVERY
+  LOCAL_QR
+}
+
+enum ServiceMode {
+  TABLE_SERVICE
+  COUNTER_PICKUP
+  BOTH
+}
+
+enum LocalPaymentTiming {
+  PAY_BEFORE_PREPARATION
+  PAY_LATER
+}
+
+enum LocalOrderSource {
+  WHATSAPP
+  LOCAL_QR
+}
+
+enum LocalOrderStatus {
+  AWAITING_PAYMENT
+  CONFIRMED
+  PREPARING
+  READY
+  DELIVERED
+  EXPIRED
+  CANCELLED
+}
+
+enum LocalPaymentStatus {
+  PENDING
+  PAID
+  CANCELLED
+}
+
+enum GuestSessionEntryPoint {
+  GENERAL_QR
+  LOCATION_QR
+}
+
 model User {
   id           String   @id @default(cuid())
   name         String
@@ -118,6 +160,11 @@ model Restaurant {
   logoPosition  String  @default("left")
   coverImageUrl String?
   qrShowMenuiBranding Boolean @default(true)
+  defaultOrderingExperience RestaurantOrderingExperience @default(DELIVERY)
+  localOrderingEnabled      Boolean                       @default(false)
+  serviceMode               ServiceMode                   @default(COUNTER_PICKUP)
+  localPaymentTiming        LocalPaymentTiming            @default(PAY_BEFORE_PREPARATION)
+  unpaidOrderExpirationMinutes Int                        @default(15)
 
   accent       String @default("#f0c400")
   accentSoft   String @default("#fff1ac")
@@ -155,6 +202,9 @@ model Restaurant {
 
   cashClosures CashClosure[]
   feedbackEntries Feedback[]
+  serviceLocations ServiceLocation[]
+  guestSessions GuestSession[]
+  localOrders Order[]
 
   @@index([status])
   @@index([dnsStatus])
@@ -247,6 +297,100 @@ model CashClosure {
   @@index([restaurantId])
   @@index([businessDate])
   @@index([createdAt])
+}
+
+model ServiceLocation {
+  id           String     @id @default(cuid())
+  restaurantId String
+  restaurant   Restaurant @relation(fields: [restaurantId], references: [id], onDelete: Cascade)
+
+  name       String
+  publicToken String @unique
+  isActive   Boolean @default(true)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  guestSessions GuestSession[]
+  orders        Order[]
+
+  @@unique([restaurantId, name])
+  @@index([restaurantId])
+  @@index([restaurantId, isActive])
+}
+
+model GuestSession {
+  id           String     @id @default(cuid())
+  restaurantId String
+  restaurant   Restaurant @relation(fields: [restaurantId], references: [id], onDelete: Cascade)
+
+  serviceLocationId String?
+  serviceLocation   ServiceLocation? @relation(fields: [serviceLocationId], references: [id], onDelete: SetNull)
+
+  entryPoint  GuestSessionEntryPoint
+  sessionToken String @unique
+  expiresAt   DateTime?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([restaurantId])
+  @@index([serviceLocationId])
+  @@index([entryPoint])
+  @@index([expiresAt])
+}
+
+model Order {
+  id           String     @id @default(cuid())
+  restaurantId String
+  restaurant   Restaurant @relation(fields: [restaurantId], references: [id], onDelete: Cascade)
+
+  source      LocalOrderSource  @default(LOCAL_QR)
+  serviceMode ServiceMode
+
+  serviceLocationId String?
+  serviceLocation   ServiceLocation? @relation(fields: [serviceLocationId], references: [id], onDelete: SetNull)
+
+  customerName  String?
+  pickupCode    String?
+  status        LocalOrderStatus   @default(AWAITING_PAYMENT)
+  paymentStatus LocalPaymentStatus @default(PENDING)
+  totalArs      Int
+  customerNote  String?
+
+  confirmedAt DateTime?
+  expiresAt   DateTime?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  items OrderItem[]
+
+  @@unique([restaurantId, pickupCode])
+  @@index([restaurantId])
+  @@index([restaurantId, status])
+  @@index([restaurantId, paymentStatus])
+  @@index([serviceLocationId])
+  @@index([createdAt])
+  @@index([expiresAt])
+}
+
+model OrderItem {
+  id      String @id @default(cuid())
+  orderId String
+  order   Order  @relation(fields: [orderId], references: [id], onDelete: Cascade)
+
+  productId     String?
+  productName   String
+  unitPriceArs  Int
+  quantity      Int
+  notes         String?
+  subtotalArs   Int
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([orderId])
+  @@index([productId])
 }
 
 model Category {

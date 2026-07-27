@@ -886,6 +886,7 @@ const [cashSuccess, setCashSuccess] = useState<string | null>(null);
 
   const publicUrl = `https://${restaurant.subdomain}`;
   const qrMenuUrl = `${publicUrl}/qr`;
+  const localOrderingUrl = `${publicUrl}/ordenar`;
   const adminWhatsappUrl = `https://wa.me/${restaurant.customerWhatsapp}`;
   const supportUrl =
     "https://wa.me/543518794501?text=Hola%2C%20necesito%20ayuda%20con%20mi%20panel%20admin%20de%20Menui";
@@ -4654,6 +4655,7 @@ const [cashSuccess, setCashSuccess] = useState<string | null>(null);
                 restaurantName={restaurant.name}
                 qrMenuUrl={qrMenuUrl}
                 publicMenuUrl={publicUrl}
+                localOrderingUrl={localOrderingUrl}
                 showMenuiBranding={qrSettingsDraft.qrShowMenuiBranding}
                 isSaving={qrSaving}
                 error={qrError}

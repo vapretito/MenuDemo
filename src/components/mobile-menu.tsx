@@ -15,6 +15,9 @@ import {
   buildOrderConfirmationStorageKey,
   type ConfirmOrderPayload,
 } from "@/lib/order-confirmation";
+import {
+  isValidCustomerName,
+} from "@/lib/local-ordering";
 const money = new Intl.NumberFormat("es-AR", {
   style: "currency",
   currency: "ARS",
@@ -23,7 +26,7 @@ const money = new Intl.NumberFormat("es-AR", {
 
 type MobileMenuProps = {
   restaurant: RestaurantRecord;
-  mode?: "interactive" | "visual";
+  mode?: "delivery" | "visual" | "local";
 };
 
 type SortMode = "featured" | "price_asc" | "price_desc";
@@ -146,10 +149,12 @@ const message = [
 
 export function MobileMenu({
   restaurant,
-  mode = "interactive",
+  mode = "delivery",
 }: MobileMenuProps) {
   const router = useRouter();
   const isVisualOnly = mode === "visual";
+  const isLocalOrdering = mode === "local";
+  const isDeliveryOrdering = mode === "delivery";
   const [activeCategory, setActiveCategory] = useState(restaurant.categories[0]?.id ?? "");
   const [cart, setCart] = useState<CartLine[]>([]);
   const [query, setQuery] = useState("");
@@ -172,6 +177,7 @@ export function MobileMenu({
 
 
 const manualOrdersEnabled = restaurant.isAcceptingOrders ?? true;
+const localOrdersEnabled = restaurant.localOrderingEnabled ?? false;
 
 const openingStatus = getRestaurantOpeningStatus({
   openingHours: restaurant.openingHours,
@@ -180,7 +186,13 @@ const openingStatus = getRestaurantOpeningStatus({
 
 const heroGradientIntensity = extractGradientIntensity(restaurant.theme.heroGradient);
 
-const canSendOrders = !isVisualOnly && manualOrdersEnabled && openingStatus.isOpen;
+const deliveryOrdersAvailable = manualOrdersEnabled && openingStatus.isOpen;
+const localOrdersAvailable = localOrdersEnabled && openingStatus.isOpen;
+const canSendOrders = isVisualOnly
+  ? false
+  : isLocalOrdering
+    ? localOrdersAvailable
+    : deliveryOrdersAvailable;
 
 const closedMessage =
   restaurant.closedMessage ??
@@ -273,29 +285,33 @@ const openProductModal = (item: RestaurantRecord["items"][number]) => {
   setSelectedProduct(item);
 };
 
-  const whatsappUrl = buildWhatsappUrl(
-    restaurant,
-    cart,
-    customerName,
-    customerWhatsapp,
-    deliveryAddress,
-    paymentMethod,
-    customerNote
-  );
+  const whatsappUrl = isDeliveryOrdering
+    ? buildWhatsappUrl(
+        restaurant,
+        cart,
+        customerName,
+        customerWhatsapp,
+        deliveryAddress,
+        paymentMethod,
+        customerNote
+      )
+    : "";
 
   const normalizedCustomerWhatsapp = customerWhatsapp.replace(/\D/g, "");
   const hasValidCustomerWhatsapp =
     normalizedCustomerWhatsapp.length >= 10 &&
     normalizedCustomerWhatsapp.length <= 15;
   const canSubmitCheckout =
-    Boolean(customerName.trim()) &&
-    hasValidCustomerWhatsapp &&
-    cartItems.length > 0 &&
-    canSendOrders;
+    isLocalOrdering
+      ? isValidCustomerName(customerName) && cartItems.length > 0 && canSendOrders
+      : Boolean(customerName.trim()) &&
+        hasValidCustomerWhatsapp &&
+        cartItems.length > 0 &&
+        canSendOrders;
 
 
   const trackCartEvent = async () => {
-    if (!cartItems.length) return;
+    if (!cartItems.length || !isDeliveryOrdering) return;
   
     try {
       await fetch("/api/menu/cart-events", {

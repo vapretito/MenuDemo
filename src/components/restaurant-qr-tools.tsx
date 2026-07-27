@@ -8,6 +8,7 @@ type RestaurantQrToolsProps = {
   restaurantName: string;
   qrMenuUrl: string;
   publicMenuUrl: string;
+  localOrderingUrl: string;
   showMenuiBranding: boolean;
   isSaving: boolean;
   error: string | null;
@@ -39,6 +40,7 @@ export function RestaurantQrTools({
   restaurantName,
   qrMenuUrl,
   publicMenuUrl,
+  localOrderingUrl,
   showMenuiBranding,
   isSaving,
   error,
@@ -245,8 +247,8 @@ export function RestaurantQrTools({
     <section className={styles.stack}>
       <div className={styles.layout}>
         <article className={styles.card}>
-          <span className={styles.eyebrow}>Menu QR</span>
-          <h3 className={styles.title}>Version visual sin carrito para mostrar en el local</h3>
+          <span className={styles.eyebrow}>QR visual</span>
+          <h3 className={styles.title}>Version QR sin interaccion para mostrar en el local</h3>
           <p className={styles.lead}>
             Este link abre el menu completo en modo visual, ideal para mesas, mostrador o carteles
             impresos. La URL publica recomendada es la del subdominio con <code>/qr</code>.
@@ -254,13 +256,18 @@ export function RestaurantQrTools({
 
           <div className={styles.metaGrid}>
             <div className={styles.metaItem}>
-              <span>Link QR del restaurante</span>
+              <span>Link QR visual</span>
               <strong>{qrMenuUrl}</strong>
             </div>
             <div className={styles.metaItem}>
-              <span>Menu principal actual</span>
+              <span>Menu delivery actual</span>
               <strong>{publicMenuUrl}</strong>
-              <p>El menu normal conserva su carrito. El QR abre la variante solo visual.</p>
+              <p>Esta version conserva carrito y envio por WhatsApp.</p>
+            </div>
+            <div className={styles.metaItem}>
+              <span>Menu QR funcional en restaurant</span>
+              <strong>{localOrderingUrl}</strong>
+              <p>Esta tercera version registra pedidos en local antes de pasar por caja.</p>
             </div>
           </div>
 
@@ -282,13 +289,13 @@ export function RestaurantQrTools({
 
           <div className={styles.actions}>
             <button className={styles.button} disabled={isSaving} onClick={onSave} type="button">
-              {isSaving ? "Guardando..." : "Guardar configuracion QR"}
+              {isSaving ? "Guardando..." : "Guardar configuracion QR visual"}
             </button>
             <button className={styles.buttonGhost} onClick={handleCopyUrl} type="button">
-              Copiar link QR
+              Copiar link visual
             </button>
             <a className={styles.buttonLink} href={qrMenuUrl} rel="noreferrer" target="_blank">
-              Abrir menu QR
+              Abrir QR visual
             </a>
           </div>
 

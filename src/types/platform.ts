@@ -31,6 +31,9 @@ export type RestaurantTheme = {
 
 export type RestaurantLogoSize = "small" | "medium" | "large";
 export type RestaurantLogoPosition = "left" | "center" | "right";
+export type RestaurantOrderingExperience = "delivery" | "local_qr";
+export type ServiceMode = "table_service" | "counter_pickup" | "both";
+export type LocalPaymentTiming = "pay_before_preparation" | "pay_later";
 
 export type RestaurantStatus =
   | "trial"
@@ -119,20 +122,25 @@ export type RestaurantRecord = {
   logoPosition?: RestaurantLogoPosition;
   coverImageUrl?: string | null;
   qrShowMenuiBranding?: boolean;
+  defaultOrderingExperience?: RestaurantOrderingExperience;
+  localOrderingEnabled?: boolean;
+  serviceMode?: ServiceMode;
+  localPaymentTiming?: LocalPaymentTiming;
+  unpaidOrderExpirationMinutes?: number;
   whatsappIntroMessage?: string;
-whatsappFooterMessage?: string;
-isAcceptingOrders?: boolean;
-closedMessage?: string;
-openingHours?: OpeningHour[] | null;
-openingHoursNote?: string;
-showOpeningHours?: boolean;
-trialEndsAt?: string | Date | null;
-address?: string | null;
-googleMapsUrl?: string | null;
-instagramUrl?: string | null;
-deliveryZones?: string | null;
-deliveryTimeEstimate?: string | null;
-timeZone?: string | null;
+  whatsappFooterMessage?: string;
+  isAcceptingOrders?: boolean;
+  closedMessage?: string;
+  openingHours?: OpeningHour[] | null;
+  openingHoursNote?: string;
+  showOpeningHours?: boolean;
+  trialEndsAt?: string | Date | null;
+  address?: string | null;
+  googleMapsUrl?: string | null;
+  instagramUrl?: string | null;
+  deliveryZones?: string | null;
+  deliveryTimeEstimate?: string | null;
+  timeZone?: string | null;
 };
 
 
