@@ -34,6 +34,7 @@ export async function PATCH(request: Request, context: RouteContext) {
       where: {
         id,
         restaurantId: session.restaurantId,
+        deletedAt: null,
       },
       select: {
         id: true,
@@ -125,6 +126,62 @@ export async function PATCH(request: Request, context: RouteContext) {
           error instanceof Error
             ? error.message
             : "No se pudo actualizar el pedido en local.",
+      },
+      { status: 500 }
+    );
+  }
+}
+
+export async function DELETE(_request: Request, context: RouteContext) {
+  const session = await getRestaurantSession();
+
+  if (!session) {
+    return NextResponse.json({ error: "No autorizado." }, { status: 401 });
+  }
+
+  try {
+    const { id } = await context.params;
+
+    const existingOrder = await prisma.order.findFirst({
+      where: {
+        id,
+        restaurantId: session.restaurantId,
+      },
+      select: {
+        id: true,
+      },
+    });
+
+    if (!existingOrder) {
+      return NextResponse.json(
+        { error: "No encontramos ese pedido." },
+        { status: 404 }
+      );
+    }
+
+    await prisma.order.update({
+      where: {
+        id,
+      },
+      data: {
+        deletedAt: new Date(),
+        deletedByAdmin: true,
+      },
+    });
+
+    return NextResponse.json({
+      ok: true,
+      deleted: true,
+    });
+  } catch (error) {
+    console.error("[Restaurant Local Order Delete Error]", error);
+
+    return NextResponse.json(
+      {
+        error:
+          error instanceof Error
+            ? error.message
+            : "No se pudo borrar el pedido en local.",
       },
       { status: 500 }
     );

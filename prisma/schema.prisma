@@ -201,6 +201,7 @@ model Restaurant {
   timeZone String @default("America/Argentina/Cordoba")
 
   cashClosures CashClosure[]
+  localCashClosures LocalCashClosure[]
   feedbackEntries Feedback[]
   serviceLocations ServiceLocation[]
   guestSessions GuestSession[]
@@ -299,6 +300,27 @@ model CashClosure {
   @@index([createdAt])
 }
 
+model LocalCashClosure {
+  id            String   @id @default(cuid())
+  restaurantId  String
+  businessDate  String
+  timeZone      String
+  totalOrders   Int      @default(0)
+  totalPaidArs  Int      @default(0)
+  totalItems    Int      @default(0)
+  averageTicketArs Int   @default(0)
+  statusBreakdown Json
+  notes         String?
+  createdAt     DateTime @default(now())
+
+  restaurant Restaurant @relation(fields: [restaurantId], references: [id], onDelete: Cascade)
+
+  @@unique([restaurantId, businessDate])
+  @@index([restaurantId])
+  @@index([businessDate])
+  @@index([createdAt])
+}
+
 model ServiceLocation {
   id           String     @id @default(cuid())
   restaurantId String
@@ -360,6 +382,8 @@ model Order {
 
   confirmedAt DateTime?
   expiresAt   DateTime?
+  deletedAt   DateTime?
+  deletedByAdmin Boolean @default(false)
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 
@@ -372,6 +396,7 @@ model Order {
   @@index([serviceLocationId])
   @@index([createdAt])
   @@index([expiresAt])
+  @@index([deletedAt])
 }
 
 model OrderItem {

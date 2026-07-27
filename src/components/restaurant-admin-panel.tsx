@@ -68,6 +68,16 @@ const getLocalOrderStatusLabel = (status: string) => {
   }
 };
 
+const formatExactDateTime = (value: string) =>
+  new Date(value).toLocaleString("es-AR", {
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+    hour: "2-digit",
+    minute: "2-digit",
+    second: "2-digit",
+  });
+
 const templateFilterOptions = [
   "Todos",
   "Delivery",
@@ -275,6 +285,8 @@ type AppearanceDraft = {
     customerNote: string | null;
     createdAt: string;
     confirmedAt: string | null;
+    deletedAt: string | null;
+    deletedByAdmin: boolean;
     serviceLocationName: string | null;
     items: Array<{
       id: string;
@@ -399,9 +411,49 @@ export function RestaurantAdminPanel({
     active: [] as LocalOrderRecord[],
     ready: [] as LocalOrderRecord[],
     recent: [] as LocalOrderRecord[],
+    history: [] as LocalOrderRecord[],
   });
   const [localOrdersLoading, setLocalOrdersLoading] = useState(false);
   const [localOrderActionId, setLocalOrderActionId] = useState<string | null>(null);
+  const [localCashSummary, setLocalCashSummary] = useState({
+    businessDate: "",
+    totalOrders: 0,
+    totalPaidArs: 0,
+    totalItems: 0,
+    averageTicketArs: 0,
+    statusBreakdown: {} as Record<
+      string,
+      {
+        label: string;
+        totalOrders: number;
+        totalArs: number;
+      }
+    >,
+    existingClosure: null as {
+      id: string;
+      businessDate: string;
+      totalOrders: number;
+      totalPaidArs: number;
+      totalItems: number;
+      averageTicketArs: number;
+      notes: string | null;
+      createdAt: string;
+    } | null,
+    lastClosures: [] as Array<{
+      id: string;
+      businessDate: string;
+      totalOrders: number;
+      totalPaidArs: number;
+      totalItems: number;
+      averageTicketArs: number;
+      notes: string | null;
+      createdAt: string;
+    }>,
+  });
+  const [localCashNotes, setLocalCashNotes] = useState("");
+  const [localCashSaving, setLocalCashSaving] = useState(false);
+  const [localCashError, setLocalCashError] = useState<string | null>(null);
+  const [localCashSuccess, setLocalCashSuccess] = useState<string | null>(null);
 
 
 
@@ -1571,6 +1623,34 @@ const [cashSuccess, setCashSuccess] = useState<string | null>(null);
     }
   };
 
+  const loadLocalCashSummary = async () => {
+    try {
+      const response = await fetch("/api/restaurant-admin/local-cash/summary", {
+        cache: "no-store",
+      });
+
+      const rawResponse = await response.text();
+
+      let data: {
+        ok?: boolean;
+        summary?: typeof localCashSummary;
+      } = {};
+
+      try {
+        data = rawResponse ? JSON.parse(rawResponse) : {};
+      } catch {
+        return;
+      }
+
+      if (response.ok && data.ok && data.summary) {
+        setLocalCashSummary(data.summary);
+        setLocalCashNotes(data.summary.existingClosure?.notes ?? "");
+      }
+    } catch (error) {
+      console.error("[Load Local Cash Summary Error]", error);
+    }
+  };
+
   const updateLocalOrderStatus = async (
     orderId: string,
     action: "confirm_payment" | "mark_preparing" | "mark_ready" | "mark_delivered"
@@ -1603,13 +1683,101 @@ const [cashSuccess, setCashSuccess] = useState<string | null>(null);
         throw new Error(data.error ?? "No se pudo actualizar el pedido.");
       }
 
-      await loadLocalOrdersSummary();
+      await Promise.all([loadLocalOrdersSummary(), loadLocalCashSummary()]);
     } catch (error) {
       window.alert(
         error instanceof Error ? error.message : "No se pudo actualizar el pedido."
       );
     } finally {
       setLocalOrderActionId(null);
+    }
+  };
+
+  const deleteLocalOrder = async (orderId: string) => {
+    const confirmed = window.confirm(
+      "Este pedido se ocultara del flujo operativo, pero quedara trazado en el historial y no se perdera el cierre de caja ya guardado. Queres continuar?"
+    );
+
+    if (!confirmed) return;
+
+    setLocalOrderActionId(orderId);
+
+    try {
+      const response = await fetch(`/api/restaurant-admin/local-orders/${orderId}`, {
+        method: "DELETE",
+      });
+
+      const rawResponse = await response.text();
+
+      let data: {
+        ok?: boolean;
+        deleted?: boolean;
+        error?: string;
+      } = {};
+
+      try {
+        data = rawResponse ? JSON.parse(rawResponse) : {};
+      } catch {
+        throw new Error(`La API no devolvio JSON. Status: ${response.status}.`);
+      }
+
+      if (!response.ok || !data.ok || !data.deleted) {
+        throw new Error(data.error ?? "No se pudo borrar el pedido.");
+      }
+
+      await Promise.all([loadLocalOrdersSummary(), loadLocalCashSummary()]);
+    } catch (error) {
+      window.alert(
+        error instanceof Error ? error.message : "No se pudo borrar el pedido."
+      );
+    } finally {
+      setLocalOrderActionId(null);
+    }
+  };
+
+  const closeLocalCashDay = async () => {
+    setLocalCashSaving(true);
+    setLocalCashError(null);
+    setLocalCashSuccess(null);
+
+    try {
+      const response = await fetch("/api/restaurant-admin/local-cash/closures", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          notes: localCashNotes,
+        }),
+      });
+
+      const rawResponse = await response.text();
+
+      let data: {
+        ok?: boolean;
+        error?: string;
+      } = {};
+
+      try {
+        data = rawResponse ? JSON.parse(rawResponse) : {};
+      } catch {
+        throw new Error(`La API no devolvio JSON. Status: ${response.status}.`);
+      }
+
+      if (!response.ok || !data.ok) {
+        throw new Error(data.error ?? "No se pudo cerrar la caja del restaurant.");
+      }
+
+      await loadLocalCashSummary();
+      setLocalCashSuccess("Caja del restaurant guardada correctamente.");
+    } catch (error) {
+      setLocalCashError(
+        error instanceof Error
+          ? error.message
+          : "No se pudo cerrar la caja del restaurant."
+      );
+    } finally {
+      setLocalCashSaving(false);
     }
   };
 
@@ -1991,6 +2159,7 @@ const [cashSuccess, setCashSuccess] = useState<string | null>(null);
     void loadCartSummary();
     void loadCashSummary();
     void loadLocalOrdersSummary();
+    void loadLocalCashSummary();
   });
 
   const loadCustomersData = useEffectEvent((filter: CustomerFilter) => {
@@ -2600,6 +2769,7 @@ const [cashSuccess, setCashSuccess] = useState<string | null>(null);
                 {(order.pickupCode ?? "Sin codigo")} · {formatElapsedSince(order.createdAt)}
               </span>
               <strong>{order.customerName ?? "Pedido en local"}</strong>
+              <p>Creado: {formatExactDateTime(order.createdAt)}</p>
               <p>
                 {order.items.map((item) => `${item.quantity}x ${item.productName}`).join(" · ")}
               </p>
@@ -2616,6 +2786,14 @@ const [cashSuccess, setCashSuccess] = useState<string | null>(null);
                   type="button"
                 >
                   {localOrderActionId === order.id ? "Confirmando..." : "Confirmar pago"}
+                </button>
+                <button
+                  className={styles.ghostDanger}
+                  disabled={localOrderActionId === order.id}
+                  onClick={() => void deleteLocalOrder(order.id)}
+                  type="button"
+                >
+                  Borrar
                 </button>
               </div>
             </article>
@@ -2646,6 +2824,7 @@ const [cashSuccess, setCashSuccess] = useState<string | null>(null);
                 {order.pickupCode ?? "Sin codigo"} · {getLocalOrderStatusLabel(order.status)}
               </span>
               <strong>{order.customerName ?? "Pedido en local"}</strong>
+              <p>Creado: {formatExactDateTime(order.createdAt)}</p>
               <p>
                 {order.items.map((item) => `${item.quantity}x ${item.productName}`).join(" · ")}
               </p>
@@ -2672,6 +2851,14 @@ const [cashSuccess, setCashSuccess] = useState<string | null>(null);
                     {localOrderActionId === order.id ? "Actualizando..." : "Marcar listo"}
                   </button>
                 ) : null}
+                <button
+                  className={styles.ghostDanger}
+                  disabled={localOrderActionId === order.id}
+                  onClick={() => void deleteLocalOrder(order.id)}
+                  type="button"
+                >
+                  Borrar
+                </button>
               </div>
             </article>
           ))
@@ -2699,6 +2886,7 @@ const [cashSuccess, setCashSuccess] = useState<string | null>(null);
             >
               <span>{order.pickupCode ?? "Sin codigo"} · Listo</span>
               <strong>{order.customerName ?? "Pedido en local"}</strong>
+              <p>Creado: {formatExactDateTime(order.createdAt)}</p>
               <p>{money.format(order.totalArs)}</p>
               <div className={styles.feedCardActions}>
                 <button
@@ -2709,11 +2897,142 @@ const [cashSuccess, setCashSuccess] = useState<string | null>(null);
                 >
                   {localOrderActionId === order.id ? "Actualizando..." : "Marcar entregado"}
                 </button>
+                <button
+                  className={styles.ghostDanger}
+                  disabled={localOrderActionId === order.id}
+                  onClick={() => void deleteLocalOrder(order.id)}
+                  type="button"
+                >
+                  Borrar
+                </button>
               </div>
             </article>
           ))
         ) : (
           <p>No hay pedidos listos para retirar.</p>
+        )}
+      </div>
+    </section>
+
+    <section className={styles.panel}>
+      <div className={styles.panelHeader}>
+        <div>
+          <span className={styles.eyebrow}>Historial</span>
+          <h3>Historial de pedidos en local</h3>
+          <p>Cada pedido conserva la fecha y hora exacta en la que fue creado.</p>
+        </div>
+      </div>
+
+      <div className={styles.overviewFeed}>
+        {localOrdersSummary.history.length ? (
+          localOrdersSummary.history.map((order) => (
+            <article
+              className={`${styles.publishCard} ${styles.overviewFeedCard}`}
+              key={order.id}
+            >
+              <span>{formatExactDateTime(order.createdAt)}</span>
+              <strong>
+                {(order.pickupCode ?? "Sin codigo")} · {order.customerName ?? "Pedido en local"}
+              </strong>
+              {order.deletedAt ? (
+                <p>Eliminado por admin: {formatExactDateTime(order.deletedAt)}</p>
+              ) : null}
+              <p>
+                {getLocalOrderStatusLabel(order.status)} · {money.format(order.totalArs)}
+              </p>
+              <p>
+                {order.items.map((item) => `${item.quantity}x ${item.productName}`).join(" · ")}
+              </p>
+              <div className={styles.feedCardActions}>
+                <button
+                  className={styles.ghostDanger}
+                  disabled={localOrderActionId === order.id}
+                  onClick={() => void deleteLocalOrder(order.id)}
+                  type="button"
+                >
+                  {localOrderActionId === order.id ? "Borrando..." : "Borrar pedido"}
+                </button>
+              </div>
+            </article>
+          ))
+        ) : (
+          <p>Todavia no hay pedidos en el historial del restaurant.</p>
+        )}
+      </div>
+    </section>
+
+    <section className={styles.panel}>
+      <div className={styles.panelHeader}>
+        <div>
+          <span className={styles.eyebrow}>Caja restaurant</span>
+          <h3>Cierre diario de pedidos en local</h3>
+          <p>
+            Este cierre usa solamente pedidos del restaurant confirmados y pagados
+            en caja, separado del resumen aproximado de WhatsApp.
+          </p>
+        </div>
+
+        <button
+          className={styles.primaryButton}
+          disabled={localCashSaving}
+          onClick={closeLocalCashDay}
+          type="button"
+        >
+          {localCashSaving ? "Guardando..." : "Cerrar caja restaurant"}
+        </button>
+      </div>
+
+      {localCashError ? <div className={styles.errorBox}>{localCashError}</div> : null}
+      {localCashSuccess ? <div className={styles.successBox}>{localCashSuccess}</div> : null}
+
+      <section className={`${styles.metricGrid} ${styles.metricGridSummary}`}>
+        <article className={styles.metricCard}>
+          <strong>{localCashSummary.totalOrders}</strong>
+          <span>pedidos pagados hoy</span>
+        </article>
+        <article className={styles.metricCard}>
+          <strong>{money.format(localCashSummary.totalPaidArs)}</strong>
+          <span>total cobrado hoy</span>
+        </article>
+        <article className={styles.metricCard}>
+          <strong>{localCashSummary.totalItems}</strong>
+          <span>productos vendidos hoy</span>
+        </article>
+        <article className={styles.metricCard}>
+          <strong>{money.format(localCashSummary.averageTicketArs)}</strong>
+          <span>ticket promedio del restaurant</span>
+        </article>
+      </section>
+
+      <div className={styles.formGrid}>
+        <label className={styles.full}>
+          <span>Notas del cierre de caja en restaurant</span>
+          <textarea
+            placeholder="Ej: hubo demoras, se entregaron 3 pedidos juntos, faltaron bebidas..."
+            value={localCashNotes}
+            onChange={(event) => setLocalCashNotes(event.target.value)}
+          />
+        </label>
+      </div>
+
+      <div className={styles.overviewFeed}>
+        {localCashSummary.lastClosures.length ? (
+          localCashSummary.lastClosures.map((closure) => (
+            <article
+              className={`${styles.publishCard} ${styles.overviewFeedCard}`}
+              key={closure.id}
+            >
+              <span>{closure.businessDate}</span>
+              <strong>{money.format(closure.totalPaidArs)}</strong>
+              <p>
+                {closure.totalOrders} pedidos · {closure.totalItems} productos · ticket
+                promedio {money.format(closure.averageTicketArs)}
+              </p>
+              {closure.notes ? <p>{closure.notes}</p> : null}
+            </article>
+          ))
+        ) : (
+          <p>Todavia no hay cierres de caja del restaurant guardados.</p>
         )}
       </div>
     </section>

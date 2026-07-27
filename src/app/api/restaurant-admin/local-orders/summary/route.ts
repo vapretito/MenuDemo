@@ -40,14 +40,16 @@ export async function GET() {
       take: 50,
     });
 
-    const awaitingPayment = orders.filter(
+    const visibleOrders = orders.filter((order) => !order.deletedAt);
+
+    const awaitingPayment = visibleOrders.filter(
       (order) => order.status === "AWAITING_PAYMENT"
     );
-    const active = orders.filter(
+    const active = visibleOrders.filter(
       (order) => order.status === "CONFIRMED" || order.status === "PREPARING"
     );
-    const ready = orders.filter((order) => order.status === "READY");
-    const recent = orders.filter((order) =>
+    const ready = visibleOrders.filter((order) => order.status === "READY");
+    const recent = visibleOrders.filter((order) =>
       ["DELIVERED", "EXPIRED", "CANCELLED"].includes(order.status)
     );
 
@@ -57,10 +59,11 @@ export async function GET() {
         awaitingPaymentCount: awaitingPayment.length,
         activeCount: active.length,
         readyCount: ready.length,
-        awaitingPayment: awaitingPayment,
+        awaitingPayment,
         active,
         ready,
         recent: recent.slice(0, 10),
+        history: orders,
       },
     });
   } catch (error) {
