@@ -1055,7 +1055,7 @@ const hasHydratedOperationalLocalOrdersRef = useRef(false);
 
   const publicUrl = `https://${restaurant.subdomain}`;
   const qrMenuUrl = `${publicUrl}/qr`;
-  const localOrderingUrl = `${publicUrl}/ordenar`;
+  const localOrderingUrl = `${publicUrl}/ordenar/${restaurant.slug}/acceso`;
   const adminWhatsappUrl = `https://wa.me/${restaurant.customerWhatsapp}`;
   const supportUrl =
     "https://wa.me/543518794501?text=Hola%2C%20necesito%20ayuda%20con%20mi%20panel%20admin%20de%20Menui";
@@ -1622,6 +1622,14 @@ const hasHydratedOperationalLocalOrdersRef = useRef(false);
     } catch (error) {
       console.error("[Load Cart Summary Error]", error);
     }
+  };
+
+  const getSectionBadgeCount = (sectionId: AdminSection) => {
+    if (sectionId === "orders") {
+      return localOrdersSummary.awaitingPaymentCount;
+    }
+
+    return 0;
   };
 
   const notifyAboutNewLocalOrders = useEffectEvent(
@@ -2633,7 +2641,14 @@ const hasHydratedOperationalLocalOrdersRef = useRef(false);
               }}
               type="button"
             >
-              <strong>{section.label}</strong>
+              <div className={styles.navItemHeader}>
+                <strong>{section.label}</strong>
+                {getSectionBadgeCount(section.id) > 0 ? (
+                  <span className={styles.navBadge}>
+                    {getSectionBadgeCount(section.id)}
+                  </span>
+                ) : null}
+              </div>
               <span>{section.hint}</span>
             </button>
           ))}

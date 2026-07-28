@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
+import { getValidGuestSessionForRestaurant } from "@/lib/guest-session";
 import {
   buildUnpaidExpirationDate,
   generatePickupCodeCandidate,
@@ -18,14 +19,12 @@ export async function POST(request: Request) {
       restaurantSlug?: string;
       customerName?: string;
       customerNote?: string;
-      serviceLocationToken?: string;
       items?: LocalOrderItemInput[];
     };
 
     const restaurantSlug = String(body.restaurantSlug ?? "").trim();
     const customerName = normalizeCustomerName(String(body.customerName ?? ""));
     const customerNote = String(body.customerNote ?? "").trim();
-    const serviceLocationToken = String(body.serviceLocationToken ?? "").trim();
     const items = Array.isArray(body.items) ? body.items : [];
 
     if (!restaurantSlug || !items.length) {
@@ -39,6 +38,18 @@ export async function POST(request: Request) {
       return NextResponse.json(
         { error: "Escribi un nombre valido para registrar el pedido." },
         { status: 400 }
+      );
+    }
+
+    const guestSession = await getValidGuestSessionForRestaurant(restaurantSlug);
+
+    if (!guestSession) {
+      return NextResponse.json(
+        {
+          error:
+            "La sesion QR ya no es valida. Escanea el codigo del local para generar un pedido nuevo.",
+        },
+        { status: 403 }
       );
     }
 
@@ -80,10 +91,10 @@ export async function POST(request: Request) {
             available: true,
           },
         },
-        serviceLocations: serviceLocationToken
+        serviceLocations: guestSession.serviceLocation?.publicToken
           ? {
               where: {
-                publicToken: serviceLocationToken,
+                publicToken: guestSession.serviceLocation.publicToken,
                 isActive: true,
               },
               select: {
@@ -112,7 +123,7 @@ export async function POST(request: Request) {
 
     if (
       restaurant.serviceMode === "TABLE_SERVICE" &&
-      !serviceLocationToken
+      !guestSession.serviceLocation
     ) {
       return NextResponse.json(
         { error: "Este restaurante necesita una ubicacion QR especifica." },
@@ -121,11 +132,11 @@ export async function POST(request: Request) {
     }
 
     const serviceLocation =
-      serviceLocationToken && Array.isArray(restaurant.serviceLocations)
+      guestSession.serviceLocation && Array.isArray(restaurant.serviceLocations)
         ? restaurant.serviceLocations[0] ?? null
         : null;
 
-    if (serviceLocationToken && !serviceLocation) {
+    if (guestSession.serviceLocation && !serviceLocation) {
       return NextResponse.json(
         { error: "La ubicacion QR no es valida o ya no esta activa." },
         { status: 404 }
