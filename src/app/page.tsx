@@ -10,6 +10,9 @@ const money = new Intl.NumberFormat("es-AR", {
   currency: "ARS",
   maximumFractionDigits: 0,
 });
+const SUPPORT_WHATSAPP_URL =
+  "https://wa.me/5493516641124?text=Hola%2C%20quiero%20informacion%20sobre%20MENUI";
+const SUPPORT_WHATSAPP_LINK = "https://wa.me/5493516641124";
 
 const benefits = [
   "Carrito por WhatsApp",
@@ -422,7 +425,7 @@ export default async function Home() {
               </p>
               <a
                 className={styles.contactButton}
-                href="https://wa.me/543518794501?text=Hola%2C%20quiero%20informacion%20sobre%20MENUI"
+                href={SUPPORT_WHATSAPP_URL}
               >
                 Enviar mensaje por WhatsApp
               </a>
@@ -489,7 +492,7 @@ export default async function Home() {
             <div>
               <h4>Contacto</h4>
               <a href="mailto:hola@menui.oi">ox.originalz@gmail.com</a>
-              <a href="https://wa.me/543518794501">WhatsApp</a>
+              <a href={SUPPORT_WHATSAPP_LINK}>WhatsApp</a>
               <span>7 días gratis y luego {money.format(monthlyPrice)} / mes</span>
             </div>
             <div>
@@ -513,7 +516,7 @@ export default async function Home() {
 
       <a
         className={styles.whatsappFloat}
-        href="https://wa.me/543518794501?text=Hola%2C%20quiero%20informacion%20sobre%20MENUI"
+        href={SUPPORT_WHATSAPP_URL}
         aria-label="Escribirme por WhatsApp"
       >
         WhatsApp

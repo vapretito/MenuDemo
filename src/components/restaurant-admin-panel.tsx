@@ -1058,7 +1058,7 @@ const hasHydratedOperationalLocalOrdersRef = useRef(false);
   const localOrderingUrl = `${publicUrl}/ordenar/${restaurant.slug}/acceso`;
   const adminWhatsappUrl = `https://wa.me/${restaurant.customerWhatsapp}`;
   const supportUrl =
-    "https://wa.me/543518794501?text=Hola%2C%20necesito%20ayuda%20con%20mi%20panel%20admin%20de%20Menui";
+    "https://wa.me/5493516641124?text=Hola%2C%20necesito%20ayuda%20con%20mi%20panel%20admin%20de%20Menui";
   const activeMeta = sections.find((section) => section.id === activeSection) ?? sections[0];
   const currentRestaurantSlug = restaurantSlug ?? restaurant.slug;
   const selectedTemplate =
@@ -5581,7 +5581,7 @@ const hasHydratedOperationalLocalOrdersRef = useRef(false);
 
       <div className={styles.publishCard}>
         <span>WhatsApp de soporte</span>
-        <strong>3518794501</strong>
+        <strong>+54 9 3516 64-1124</strong>
         <p>Disponible para consultas del panel admin y configuracion del menu.</p>
       </div>
     </section>

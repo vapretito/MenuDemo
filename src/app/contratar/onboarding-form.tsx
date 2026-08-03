@@ -52,7 +52,7 @@ const normalizeWhatsapp = (value: string) => value.replace(/\D/g, "").slice(0, 1
 const ARGENTINA_PREFIX = "54";
 const LOCAL_WHATSAPP_MAX_LENGTH = 13;
 const SUPPORT_WHATSAPP =
-  process.env.NEXT_PUBLIC_MENUI_SUPPORT_WHATSAPP ?? "543518794501";
+  process.env.NEXT_PUBLIC_MENUI_SUPPORT_WHATSAPP ?? "5493516641124";
 const SUPPORT_WHATSAPP_URL = `https://wa.me/${SUPPORT_WHATSAPP}?text=${encodeURIComponent(
   "Hola, quiero mas informacion o tengo una duda sobre Menui."
 )}`;
