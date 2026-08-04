@@ -174,6 +174,28 @@ export const menuTemplates: MenuTemplatePreset[] = [
     heroGradient: "linear-gradient(180deg, #111827 0%, #05070c 100%)",
   },
   {
+    id: "ikigai",
+    name: "Ikigai",
+    badge: "Ilustrado",
+    description:
+      "Artesanal, calmo y con alma oriental. Mezcla papel, tinta y calidez de cocina hecha a mano.",
+    bestFor:
+      "Ideal para ramen, gyozas, sushi, teppan, noodle bars y marcas asiaticas con identidad editorial.",
+    visualStyle:
+      "Texturas tipo papel, contrastes de tinta, acentos rojo sello y sensacion de menu ilustrado.",
+    personality: "Zen",
+    tags: ["Asian", "Ramen", "Editorial"],
+    accent: "#b5452d",
+    accentSoft: "#ead8bf",
+    surface: "#f7f0e2",
+    surfaceAlt: "#efe3cf",
+    border: "#2f241d",
+    text: "#1d1915",
+    titleColor: "#1d1915",
+    muted: "#6e5a49",
+    heroGradient: "linear-gradient(180deg, #f4ead6 0%, #e4d2b2 100%)",
+  },
+  {
     id: "mediterranean-light",
     name: "Mediterranean Light",
     badge: "Luz",

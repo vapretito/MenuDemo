@@ -1732,6 +1732,56 @@
   box-shadow: inset 0 -0.18rem 0 #a3ff12;
 }
 
+.templatePreview[data-template="ikigai"] .templateMiniHero,
+.menuPreview[data-template="ikigai"] .menuPreviewHero {
+  color: #1d1915;
+  border-radius: 0 0 2.4rem 2.4rem;
+  background:
+    radial-gradient(circle at 50% 18%, rgba(181, 69, 45, 0.16), transparent 14%),
+    linear-gradient(180deg, rgba(248, 240, 226, 0.98), rgba(232, 215, 187, 0.96));
+  box-shadow: inset 0 -0.14rem 0 rgba(47, 36, 29, 0.85);
+}
+
+.templatePreview[data-template="ikigai"] .templateMiniHero span,
+.templatePreview[data-template="ikigai"] .templateMiniHero small,
+.menuPreview[data-template="ikigai"] .menuPreviewHero p,
+.menuPreview[data-template="ikigai"] .menuPreviewHero > span,
+.menuPreview[data-template="ikigai"] .previewHeroBadges span {
+  color: #5d4b3b;
+}
+
+.templatePreview[data-template="ikigai"] .templateMiniChip,
+.menuPreview[data-template="ikigai"] .previewCategoryPill {
+  background: rgba(255, 250, 242, 0.78);
+}
+
+.templatePreview[data-template="ikigai"] .templateMiniChip,
+.templatePreview[data-template="ikigai"] .templateMiniChipActive,
+.menuPreview[data-template="ikigai"] .previewCategoryPill,
+.menuPreview[data-template="ikigai"] .previewCategoryPillActive,
+.menuPreview[data-template="ikigai"] .previewExpandedFooter button {
+  border-radius: 999px;
+}
+
+.templatePreview[data-template="ikigai"] .templateMiniCard,
+.menuPreview[data-template="ikigai"] .previewProductCard,
+.menuPreview[data-template="ikigai"] .previewExpandedProduct {
+  border-radius: 1.5rem;
+  border-color: rgba(47, 36, 29, 0.14);
+  background:
+    linear-gradient(180deg, rgba(255, 252, 246, 0.98), rgba(242, 232, 214, 0.95));
+  box-shadow: 0 0.9rem 1.8rem rgba(49, 33, 23, 0.08);
+}
+
+.templatePreview[data-template="ikigai"] .templateMiniImage,
+.menuPreview[data-template="ikigai"] .previewProductVisual,
+.menuPreview[data-template="ikigai"] .previewExpandedImage {
+  background:
+    radial-gradient(circle at 68% 26%, rgba(181, 69, 45, 0.28), transparent 20%),
+    linear-gradient(135deg, rgba(47, 36, 29, 0.12), transparent),
+    linear-gradient(135deg, #e7d1af, #b5452d);
+}
+
 .templatePreview[data-template="mediterranean-light"] .templateMiniHero,
 .menuPreview[data-template="mediterranean-light"] .menuPreviewHero {
   color: #173042;

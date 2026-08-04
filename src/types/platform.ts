@@ -88,6 +88,7 @@ export type MenuTemplateId =
   | "parrilla-criolla"
   | "brunch-pastel"
   | "asian-neon"
+  | "ikigai"
   | "mediterranean-light";
 
   export type OpeningHour = {
