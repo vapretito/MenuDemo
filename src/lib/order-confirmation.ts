@@ -11,6 +11,7 @@ export type ConfirmOrderPayload = {
   restaurantWhatsapp: string;
   customerName: string;
   customerWhatsapp: string;
+  fulfillmentLabel: string;
   deliveryAddress: string;
   paymentMethodLabel: string;
   customerNote: string;

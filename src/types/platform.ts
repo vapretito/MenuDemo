@@ -32,6 +32,10 @@ export type RestaurantTheme = {
 export type RestaurantLogoSize = "small" | "medium" | "large";
 export type RestaurantLogoPosition = "left" | "center" | "right";
 export type RestaurantOrderingExperience = "delivery" | "local_qr";
+export type RestaurantFulfillmentMode =
+  | "delivery_only"
+  | "takeaway_only"
+  | "delivery_and_takeaway";
 export type ServiceMode = "table_service" | "counter_pickup" | "both";
 export type LocalPaymentTiming = "pay_before_preparation" | "pay_later";
 
@@ -123,6 +127,7 @@ export type RestaurantRecord = {
   coverImageUrl?: string | null;
   qrShowMenuiBranding?: boolean;
   defaultOrderingExperience?: RestaurantOrderingExperience;
+  fulfillmentMode?: RestaurantFulfillmentMode;
   localOrderingEnabled?: boolean;
   localOrderDeletionCodeConfigured?: boolean;
   serviceMode?: ServiceMode;

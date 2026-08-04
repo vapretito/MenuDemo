@@ -20,6 +20,7 @@ export async function POST(request: Request) {
     const marketingConsent = Boolean(body.marketingConsent);
     const source = String(body.source ?? "menu").trim().toLowerCase() || "menu";
     const paymentMethod = String(body.paymentMethod ?? "").trim() || "efectivo";
+    const fulfillmentMode = String(body.fulfillmentMode ?? "").trim();
     const deliveryAddress = String(body.deliveryAddress ?? "").trim();
     const customerNote = String(body.customerNote ?? "").trim();
 
@@ -61,6 +62,18 @@ export async function POST(request: Request) {
       return NextResponse.json(
         { error: "Restaurante no encontrado." },
         { status: 404 }
+      );
+    }
+
+    const requiresDeliveryAddress =
+      restaurant.fulfillmentMode === "DELIVERY_ONLY" ||
+      (restaurant.fulfillmentMode === "DELIVERY_AND_TAKEAWAY" &&
+        fulfillmentMode === "delivery");
+
+    if (requiresDeliveryAddress && !deliveryAddress) {
+      return NextResponse.json(
+        { error: "La direccion de entrega es obligatoria para esta modalidad." },
+        { status: 400 }
       );
     }
 

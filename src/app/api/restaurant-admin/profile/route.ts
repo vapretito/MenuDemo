@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { getRestaurantSession } from "@/lib/restaurant-session";
 import { prisma } from "@/lib/prisma";
+import { RestaurantFulfillmentMode } from "@/generated/prisma/client";
 
 export async function PATCH(request: Request) {
   const session = await getRestaurantSession();
@@ -22,6 +23,13 @@ export async function PATCH(request: Request) {
     const instagramUrl = String(body.instagramUrl ?? "").trim();
     const deliveryZones = String(body.deliveryZones ?? "").trim();
     const deliveryTimeEstimate = String(body.deliveryTimeEstimate ?? "").trim();
+    const fulfillmentModeInput = String(body.fulfillmentMode ?? "").trim();
+    const fulfillmentMode =
+      fulfillmentModeInput === "TAKEAWAY_ONLY" ||
+      fulfillmentModeInput === "DELIVERY_AND_TAKEAWAY" ||
+      fulfillmentModeInput === "DELIVERY_ONLY"
+        ? (fulfillmentModeInput as RestaurantFulfillmentMode)
+        : RestaurantFulfillmentMode.DELIVERY_ONLY;
 
     if (!name || !city || !cuisine || !customerWhatsapp || !description) {
       return NextResponse.json(
@@ -49,6 +57,7 @@ export async function PATCH(request: Request) {
         instagramUrl: instagramUrl || null,
         deliveryZones: deliveryZones || null,
         deliveryTimeEstimate: deliveryTimeEstimate || null,
+        fulfillmentMode,
       },
       select: {
         id: true,
@@ -63,6 +72,7 @@ export async function PATCH(request: Request) {
         instagramUrl: true,
         deliveryZones: true,
         deliveryTimeEstimate: true,
+        fulfillmentMode: true,
       },
     });
 

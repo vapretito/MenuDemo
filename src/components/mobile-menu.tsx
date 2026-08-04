@@ -6,6 +6,7 @@ import posthog from "posthog-js";
 import styles from "./mobile-menu.module.css";
 import {
   CartLine,
+  RestaurantFulfillmentMode,
   RestaurantLogoPosition,
   RestaurantLogoSize,
   RestaurantRecord,
@@ -31,11 +32,28 @@ type MobileMenuProps = {
 
 type SortMode = "featured" | "price_asc" | "price_desc";
 type PaymentMethod = "efectivo" | "transferencia" | "tarjeta";
+type CheckoutFulfillmentChoice = "delivery" | "takeaway";
 
 const paymentLabels: Record<PaymentMethod, string> = {
   efectivo: "Efectivo",
   transferencia: "Transferencia",
   tarjeta: "Tarjeta al recibir",
+};
+
+const fulfillmentLabels: Record<CheckoutFulfillmentChoice, string> = {
+  delivery: "Delivery",
+  takeaway: "Take away",
+};
+
+const getAvailableFulfillmentChoices = (
+  fulfillmentMode?: RestaurantFulfillmentMode
+): CheckoutFulfillmentChoice[] => {
+  if (fulfillmentMode === "takeaway_only") return ["takeaway"];
+  if (fulfillmentMode === "delivery_and_takeaway") {
+    return ["delivery", "takeaway"];
+  }
+
+  return ["delivery"];
 };
 
 const logoSizeClassNames: Record<RestaurantLogoSize, string> = {
@@ -99,6 +117,7 @@ const buildWhatsappUrl = (
   cart: CartLine[],
   customerName: string,
   customerWhatsapp: string,
+  fulfillmentLabel: string,
   deliveryAddress: string,
   paymentMethod: PaymentMethod,
   customerNote: string
@@ -129,11 +148,12 @@ const message = [
   "",
   `Nombre: ${customerName.trim()}`,
   `WhatsApp: ${customerWhatsapp.trim()}`,
+  `Modalidad: ${fulfillmentLabel}`,
   "",
   lines,
   "",
   `Total estimado: ${money.format(total)}`,
-  `Direccion de entrega: ${deliveryAddress.trim() || "A confirmar"}`,
+  deliveryAddress.trim() ? `Direccion de entrega: ${deliveryAddress.trim()}` : null,
   `Forma de pago: ${paymentLabels[paymentMethod]}`,
   customerNote.trim() ? `Notas: ${customerNote.trim()}` : null,
   footerMessage ? "" : null,
@@ -168,6 +188,11 @@ export function MobileMenu({
   const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>("efectivo");
   const [customerNote, setCustomerNote] = useState("");
   const [checkoutError, setCheckoutError] = useState<string | null>(null);
+  const availableFulfillmentChoices = getAvailableFulfillmentChoices(
+    restaurant.fulfillmentMode
+  );
+  const [checkoutFulfillment, setCheckoutFulfillment] =
+    useState<CheckoutFulfillmentChoice>(availableFulfillmentChoices[0] ?? "delivery");
 
   const [selectedProduct, setSelectedProduct] = useState<
   RestaurantRecord["items"][number] | null
@@ -270,6 +295,8 @@ const showOpeningHours = restaurant.showOpeningHours ?? true;
   const selectedProductQuantity = selectedProduct
   ? cart.find((line) => line.itemId === selectedProduct.id)?.quantity ?? 0
   : 0;
+  const checkoutDeliveryAddress =
+    checkoutFulfillment === "delivery" ? deliveryAddress.trim() : "";
 
 const closeProductModal = () => {
   setSelectedProduct(null);
@@ -291,7 +318,8 @@ const openProductModal = (item: RestaurantRecord["items"][number]) => {
         cart,
         customerName,
         customerWhatsapp,
-        deliveryAddress,
+        fulfillmentLabels[checkoutFulfillment],
+        checkoutDeliveryAddress,
         paymentMethod,
         customerNote
       )
@@ -306,6 +334,7 @@ const openProductModal = (item: RestaurantRecord["items"][number]) => {
       ? isValidCustomerName(customerName) && cartItems.length > 0 && canSendOrders
       : Boolean(customerName.trim()) &&
         hasValidCustomerWhatsapp &&
+        (checkoutFulfillment === "takeaway" || Boolean(deliveryAddress.trim())) &&
         cartItems.length > 0 &&
         canSendOrders;
 
@@ -327,7 +356,8 @@ const openProductModal = (item: RestaurantRecord["items"][number]) => {
           marketingConsent,
           source: "menu",
           paymentMethod,
-          deliveryAddress,
+          fulfillmentMode: checkoutFulfillment,
+          deliveryAddress: checkoutDeliveryAddress,
           customerNote,
           items: cartItems.map((line) => ({
             itemId: line.item.id,
@@ -388,13 +418,19 @@ const openProductModal = (item: RestaurantRecord["items"][number]) => {
       return;
     }
 
+    if (checkoutFulfillment === "delivery" && !checkoutDeliveryAddress) {
+      setCheckoutError("CompletÃ¡ la direcciÃ³n para pedidos con delivery.");
+      return;
+    }
+
     setCheckoutError(null);
     posthog.capture("order_submitted", {
       restaurant_slug: restaurant.slug,
       total_ars: total,
       item_count: totalUnits,
       payment_method: paymentMethod,
-      has_delivery_address: Boolean(deliveryAddress.trim()),
+      fulfillment_mode: checkoutFulfillment,
+      has_delivery_address: Boolean(checkoutDeliveryAddress),
       marketing_consent: marketingConsent,
     });
     void trackCartEvent();
@@ -405,7 +441,8 @@ const openProductModal = (item: RestaurantRecord["items"][number]) => {
       restaurantWhatsapp: restaurant.customerWhatsapp,
       customerName: customerName.trim(),
       customerWhatsapp: customerWhatsapp.trim(),
-      deliveryAddress: deliveryAddress.trim(),
+      fulfillmentLabel: fulfillmentLabels[checkoutFulfillment],
+      deliveryAddress: checkoutDeliveryAddress || "Retira en el local",
       paymentMethodLabel: paymentLabels[paymentMethod],
       customerNote: customerNote.trim(),
       totalArs: total,
@@ -955,12 +992,41 @@ const openProductModal = (item: RestaurantRecord["items"][number]) => {
                   }}
                 />
               </label>
+              {availableFulfillmentChoices.length > 1 ? (
+                <label>
+                  <span>Como queres recibir tu pedido</span>
+                  <select
+                    value={checkoutFulfillment}
+                    onChange={(event) => {
+                      setCheckoutFulfillment(
+                        event.target.value as CheckoutFulfillmentChoice
+                      );
+                      if (checkoutError) setCheckoutError(null);
+                    }}
+                  >
+                    <option value="delivery">Delivery</option>
+                    <option value="takeaway">Take away</option>
+                  </select>
+                </label>
+              ) : null}
               <label>
-                <span>Direccion de entrega</span>
+                <span>
+                  {checkoutFulfillment === "delivery"
+                    ? "Direccion de entrega"
+                    : "Retiro en el local"}
+                </span>
                 <textarea
-                  placeholder="Calle, numero, piso, departamento y referencias"
+                  disabled={checkoutFulfillment !== "delivery"}
+                  placeholder={
+                    checkoutFulfillment === "delivery"
+                      ? "Calle, numero, piso, departamento y referencias"
+                      : "No hace falta completar direccion para take away"
+                  }
                   value={deliveryAddress}
-                  onChange={(event) => setDeliveryAddress(event.target.value)}
+                  onChange={(event) => {
+                    setDeliveryAddress(event.target.value);
+                    if (checkoutError) setCheckoutError(null);
+                  }}
                 />
               </label>
               <label>

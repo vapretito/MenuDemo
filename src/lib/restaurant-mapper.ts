@@ -21,6 +21,7 @@ type FrontCycle = FrontSubscription["cycle"];
 type FrontSubscriptionStatus = FrontSubscription["status"];
 type FrontCollectionMethod = FrontSubscription["collectionMethod"];
 type FrontOrderingExperience = NonNullable<RestaurantRecord["defaultOrderingExperience"]>;
+type FrontFulfillmentMode = NonNullable<RestaurantRecord["fulfillmentMode"]>;
 type FrontServiceMode = NonNullable<RestaurantRecord["serviceMode"]>;
 type FrontLocalPaymentTiming = NonNullable<RestaurantRecord["localPaymentTiming"]>;
 
@@ -51,6 +52,12 @@ const normalizeBillingMode = (mode: string): FrontBillingMode => {
 
 const normalizeOrderingExperience = (value: string): FrontOrderingExperience => {
   return value === "LOCAL_QR" ? "local_qr" : "delivery";
+};
+
+const normalizeFulfillmentMode = (value: string): FrontFulfillmentMode => {
+  if (value === "TAKEAWAY_ONLY") return "takeaway_only";
+  if (value === "DELIVERY_AND_TAKEAWAY") return "delivery_and_takeaway";
+  return "delivery_only";
 };
 
 const normalizeServiceMode = (value: string): FrontServiceMode => {
@@ -150,6 +157,7 @@ export function mapRestaurantToRecord(
     defaultOrderingExperience: normalizeOrderingExperience(
       restaurant.defaultOrderingExperience
     ),
+    fulfillmentMode: normalizeFulfillmentMode(restaurant.fulfillmentMode),
     localOrderingEnabled: restaurant.localOrderingEnabled,
     localOrderDeletionCodeConfigured: Boolean(
       restaurant.localOrderDeletionCodeHash

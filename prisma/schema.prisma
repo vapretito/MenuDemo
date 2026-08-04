@@ -71,6 +71,12 @@ enum RestaurantOrderingExperience {
   LOCAL_QR
 }
 
+enum RestaurantFulfillmentMode {
+  DELIVERY_ONLY
+  TAKEAWAY_ONLY
+  DELIVERY_AND_TAKEAWAY
+}
+
 enum ServiceMode {
   TABLE_SERVICE
   COUNTER_PICKUP
@@ -161,6 +167,7 @@ model Restaurant {
   coverImageUrl String?
   qrShowMenuiBranding Boolean @default(true)
   defaultOrderingExperience RestaurantOrderingExperience @default(DELIVERY)
+  fulfillmentMode          RestaurantFulfillmentMode      @default(DELIVERY_ONLY)
   localOrderingEnabled      Boolean                       @default(false)
   serviceMode               ServiceMode                   @default(COUNTER_PICKUP)
   localPaymentTiming        LocalPaymentTiming            @default(PAY_BEFORE_PREPARATION)

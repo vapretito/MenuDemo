@@ -17,6 +17,7 @@ import {
   MenuCategory,
   MenuItem,
   OpeningHour,
+  RestaurantFulfillmentMode,
   RestaurantLogoPosition,
   RestaurantLogoSize,
   RestaurantRecord,
@@ -642,6 +643,12 @@ const [cashError, setCashError] = useState<string | null>(null);
 const [cashSuccess, setCashSuccess] = useState<string | null>(null);
 const operationalLocalOrdersRef = useRef<Map<string, LocalOrderRecord>>(new Map());
 const hasHydratedOperationalLocalOrdersRef = useRef(false);
+const fulfillmentModeLabel =
+  restaurant.fulfillmentMode === "takeaway_only"
+    ? "Solo take away"
+    : restaurant.fulfillmentMode === "delivery_and_takeaway"
+      ? "Delivery y take away"
+      : "Solo delivery";
   const updateRestaurant = <K extends keyof RestaurantRecord>(
     field: K,
     value: RestaurantRecord[K]
@@ -1480,6 +1487,12 @@ const hasHydratedOperationalLocalOrdersRef = useRef(false);
           instagramUrl: restaurant.instagramUrl,
           deliveryZones: restaurant.deliveryZones,
           deliveryTimeEstimate: restaurant.deliveryTimeEstimate,
+          fulfillmentMode:
+            restaurant.fulfillmentMode === "takeaway_only"
+              ? "TAKEAWAY_ONLY"
+              : restaurant.fulfillmentMode === "delivery_and_takeaway"
+                ? "DELIVERY_AND_TAKEAWAY"
+                : "DELIVERY_ONLY",
         }),
       });
   
@@ -1499,6 +1512,7 @@ const hasHydratedOperationalLocalOrdersRef = useRef(false);
           instagramUrl?: string | null;
           deliveryZones?: string | null;
           deliveryTimeEstimate?: string | null;
+          fulfillmentMode?: "DELIVERY_ONLY" | "TAKEAWAY_ONLY" | "DELIVERY_AND_TAKEAWAY";
         };
       } = {};
   
@@ -1526,6 +1540,12 @@ const hasHydratedOperationalLocalOrdersRef = useRef(false);
         deliveryZones: data.restaurant?.deliveryZones ?? current.deliveryZones,
         deliveryTimeEstimate:
           data.restaurant?.deliveryTimeEstimate ?? current.deliveryTimeEstimate,
+        fulfillmentMode:
+          data.restaurant?.fulfillmentMode === "TAKEAWAY_ONLY"
+            ? "takeaway_only"
+            : data.restaurant?.fulfillmentMode === "DELIVERY_AND_TAKEAWAY"
+              ? "delivery_and_takeaway"
+              : "delivery_only",
       }));
   
       setProfileSuccess("Datos del restaurante guardados correctamente.");
@@ -3520,6 +3540,27 @@ const hasHydratedOperationalLocalOrdersRef = useRef(false);
       updateRestaurant("googleMapsUrl", event.target.value)
     }
   />
+</label>
+
+<label className={styles.full}>
+  <span>Modalidad de pedidos del menu web</span>
+  <select
+    value={restaurant.fulfillmentMode ?? "delivery_only"}
+    onChange={(event) =>
+      updateRestaurant(
+        "fulfillmentMode",
+        event.target.value as RestaurantFulfillmentMode
+      )
+    }
+  >
+    <option value="delivery_only">Solo delivery</option>
+    <option value="delivery_and_takeaway">Delivery y take away</option>
+    <option value="takeaway_only">Solo take away</option>
+  </select>
+  <small>
+    Controla si en el carrito se pide direccion siempre, si el cliente puede elegir
+    take away o si solo retira en el local.
+  </small>
 </label>
 
 <label className={styles.full}>
@@ -5611,7 +5652,7 @@ const hasHydratedOperationalLocalOrdersRef = useRef(false);
                 </div>
                 <div className={`${styles.publishCard} ${styles.publishingCard}`}>
                   <span>Uso principal</span>
-                  <strong>Delivery y take away desde menu web</strong>
+                  <strong>{fulfillmentModeLabel} desde menu web</strong>
                 </div>
               </div>
             </section>

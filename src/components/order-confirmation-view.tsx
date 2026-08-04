@@ -96,10 +96,9 @@ export function OrderConfirmationView({
             <small>{payload.customerWhatsapp}</small>
           </article>
           <article className={styles.summaryBox}>
-            <span>Entrega</span>
-            <strong>
-              {payload.deliveryAddress || "Direccion a confirmar por WhatsApp"}
-            </strong>
+            <span>Modalidad</span>
+            <strong>{payload.fulfillmentLabel}</strong>
+            <small>{payload.deliveryAddress || "Sin direccion cargada"}</small>
             <small>{payload.paymentMethodLabel}</small>
           </article>
         </div>
