@@ -15,7 +15,19 @@ export async function GET() {
         restaurantId: session.restaurantId,
         source: "LOCAL_QR",
       },
-      include: {
+      select: {
+        id: true,
+        customerName: true,
+        customerWhatsapp: true,
+        pickupCode: true,
+        status: true,
+        paymentStatus: true,
+        totalArs: true,
+        customerNote: true,
+        createdAt: true,
+        confirmedAt: true,
+        deletedAt: true,
+        deletedByAdmin: true,
         serviceLocation: {
           select: {
             name: true,

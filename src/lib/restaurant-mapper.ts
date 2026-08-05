@@ -167,19 +167,22 @@ export function mapRestaurantToRecord(
     unpaidOrderExpirationMinutes: restaurant.unpaidOrderExpirationMinutes,
 
     whatsappIntroMessage: restaurant.whatsappIntroMessage,
-whatsappFooterMessage: restaurant.whatsappFooterMessage,
+    whatsappFooterMessage: restaurant.whatsappFooterMessage,
+    whatsappReadyNotificationsEnabled:
+      restaurant.whatsappReadyNotificationsEnabled,
+    whatsappReadyMessageTemplate: restaurant.whatsappReadyMessageTemplate,
 
-isAcceptingOrders: restaurant.isAcceptingOrders,
-closedMessage: restaurant.closedMessage,
+    isAcceptingOrders: restaurant.isAcceptingOrders,
+    closedMessage: restaurant.closedMessage,
   
 
-openingHours: Array.isArray(restaurant.openingHours)
-  ? (restaurant.openingHours as RestaurantRecord["openingHours"])
-  : [],
-openingHoursNote: restaurant.openingHoursNote,
+    openingHours: Array.isArray(restaurant.openingHours)
+      ? (restaurant.openingHours as RestaurantRecord["openingHours"])
+      : [],
+    openingHoursNote: restaurant.openingHoursNote,
 
-showOpeningHours: restaurant.showOpeningHours,
-timeZone: restaurant.timeZone,
+    showOpeningHours: restaurant.showOpeningHours,
+    timeZone: restaurant.timeZone,
 
 
     dnsStatus: normalizeDnsStatus(restaurant.dnsStatus),

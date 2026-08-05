@@ -136,6 +136,8 @@ export type RestaurantRecord = {
   unpaidOrderExpirationMinutes?: number;
   whatsappIntroMessage?: string;
   whatsappFooterMessage?: string;
+  whatsappReadyNotificationsEnabled?: boolean;
+  whatsappReadyMessageTemplate?: string;
   isAcceptingOrders?: boolean;
   closedMessage?: string;
   openingHours?: OpeningHour[] | null;

@@ -14,6 +14,7 @@ import {
   isValidCustomerName,
   normalizeCustomerName,
 } from "@/lib/local-ordering";
+import { isValidWhatsapp, normalizeWhatsapp } from "@/lib/whatsapp";
 
 const money = new Intl.NumberFormat("es-AR", {
   style: "currency",
@@ -99,6 +100,7 @@ export function LocalOrderingMenu({ restaurant }: LocalOrderingMenuProps) {
   const [showAllCategories, setShowAllCategories] = useState(false);
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
   const [customerName, setCustomerName] = useState("");
+  const [customerWhatsapp, setCustomerWhatsapp] = useState("");
   const [customerNote, setCustomerNote] = useState("");
   const [checkoutError, setCheckoutError] = useState<string | null>(null);
   const [isSubmittingOrder, setIsSubmittingOrder] = useState(false);
@@ -109,6 +111,8 @@ export function LocalOrderingMenu({ restaurant }: LocalOrderingMenuProps) {
     timeZone: restaurant.timeZone,
   });
   const canSubmitOrders = localOrdersEnabled && openingStatus.isOpen;
+  const requiresWhatsappForReadyNotice =
+    restaurant.whatsappReadyNotificationsEnabled ?? false;
 
   const groupedCategories = useMemo(
     () =>
@@ -230,6 +234,16 @@ export function LocalOrderingMenu({ restaurant }: LocalOrderingMenuProps) {
       return;
     }
 
+    if (
+      requiresWhatsappForReadyNotice &&
+      !isValidWhatsapp(normalizeWhatsapp(customerWhatsapp))
+    ) {
+      setCheckoutError(
+        "Ingresa un WhatsApp valido para recibir el aviso cuando tu pedido este listo."
+      );
+      return;
+    }
+
     setCheckoutError(null);
     setIsSubmittingOrder(true);
 
@@ -242,6 +256,7 @@ export function LocalOrderingMenu({ restaurant }: LocalOrderingMenuProps) {
         body: JSON.stringify({
           restaurantSlug: restaurant.slug,
           customerName: normalizeCustomerName(customerName),
+          customerWhatsapp: normalizeWhatsapp(customerWhatsapp),
           customerNote: customerNote.trim(),
           items: cartItems.map((line) => ({
             itemId: line.item.id,
@@ -572,6 +587,24 @@ export function LocalOrderingMenu({ restaurant }: LocalOrderingMenuProps) {
                   value={customerName}
                   onChange={(event) => {
                     setCustomerName(event.target.value);
+                    if (checkoutError) setCheckoutError(null);
+                  }}
+                />
+              </label>
+
+              <label>
+                <span>
+                  WhatsApp
+                  {requiresWhatsappForReadyNotice
+                    ? " para avisarte cuando este listo"
+                    : " (opcional)"}
+                </span>
+                <input
+                  placeholder="5493511234567"
+                  type="tel"
+                  value={customerWhatsapp}
+                  onChange={(event) => {
+                    setCustomerWhatsapp(event.target.value);
                     if (checkoutError) setCheckoutError(null);
                   }}
                 />

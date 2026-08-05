@@ -29,6 +29,10 @@ import {
   requestBrowserNotificationPermission,
   showBrowserNotification,
 } from "@/lib/browser-notifications";
+import {
+  buildLocalOrderReadyMessage,
+  buildWhatsappUrl,
+} from "@/lib/whatsapp";
 
 const money = new Intl.NumberFormat("es-AR", {
   style: "currency",
@@ -286,6 +290,7 @@ type AppearanceDraft = {
   type LocalOrderRecord = {
     id: string;
     customerName: string | null;
+    customerWhatsapp: string | null;
     pickupCode: string | null;
     status: LocalOrderStatusValue;
     paymentStatus: LocalPaymentStatusValue;
@@ -562,6 +567,11 @@ const [whatsappDraft, setWhatsappDraft] = useState({
   whatsappFooterMessage:
     restaurant.whatsappFooterMessage ??
     "Por favor confirmar disponibilidad y tiempo estimado.",
+  whatsappReadyNotificationsEnabled:
+    restaurant.whatsappReadyNotificationsEnabled ?? false,
+  whatsappReadyMessageTemplate:
+    restaurant.whatsappReadyMessageTemplate ??
+    "Hola {customerName}, tu pedido {pickupCode} ya esta listo para retirar en {restaurantName}.",
 });
 
 const [whatsappSaving, setWhatsappSaving] = useState(false);
@@ -1584,6 +1594,8 @@ const fulfillmentModeLabel =
         restaurant?: {
           whatsappIntroMessage: string;
           whatsappFooterMessage: string;
+          whatsappReadyNotificationsEnabled: boolean;
+          whatsappReadyMessageTemplate: string;
         };
       } = {};
   
@@ -1601,9 +1613,12 @@ const fulfillmentModeLabel =
         ...current,
         whatsappIntroMessage: data.restaurant?.whatsappIntroMessage,
         whatsappFooterMessage: data.restaurant?.whatsappFooterMessage,
+        whatsappReadyNotificationsEnabled:
+          data.restaurant?.whatsappReadyNotificationsEnabled,
+        whatsappReadyMessageTemplate: data.restaurant?.whatsappReadyMessageTemplate,
       }));
-  
-      setWhatsappSuccess("Mensaje de WhatsApp guardado correctamente.");
+
+      setWhatsappSuccess("Configuracion de WhatsApp guardada correctamente.");
     } catch (error) {
       setWhatsappError(
         error instanceof Error
@@ -1764,14 +1779,35 @@ const fulfillmentModeLabel =
     }
   };
 
+  const openReadyWhatsappNotification = (order: LocalOrderRecord) => {
+    if (!order.customerWhatsapp) {
+      window.alert("Este pedido no tiene WhatsApp cargado.");
+      return;
+    }
+
+    const message = buildLocalOrderReadyMessage({
+      customerName: order.customerName,
+      pickupCode: order.pickupCode,
+      restaurantName: restaurant.name,
+      totalArs: order.totalArs,
+      template: whatsappDraft.whatsappReadyMessageTemplate,
+    });
+
+    window.open(
+      buildWhatsappUrl(order.customerWhatsapp, message),
+      "_blank",
+      "noopener,noreferrer"
+    );
+  };
+
   const updateLocalOrderStatus = async (
-    orderId: string,
+    order: LocalOrderRecord,
     action: "confirm_payment" | "mark_preparing" | "mark_ready" | "mark_delivered"
   ) => {
-    setLocalOrderActionId(orderId);
+    setLocalOrderActionId(order.id);
 
     try {
-      const response = await fetch(`/api/restaurant-admin/local-orders/${orderId}`, {
+      const response = await fetch(`/api/restaurant-admin/local-orders/${order.id}`, {
         method: "PATCH",
         headers: {
           "Content-Type": "application/json",
@@ -1797,6 +1833,14 @@ const fulfillmentModeLabel =
       }
 
       await Promise.all([loadLocalOrdersSummary(), loadLocalCashSummary()]);
+
+      if (
+        action === "mark_ready" &&
+        whatsappDraft.whatsappReadyNotificationsEnabled &&
+        order.customerWhatsapp
+      ) {
+        openReadyWhatsappNotification(order);
+      }
     } catch (error) {
       window.alert(
         error instanceof Error ? error.message : "No se pudo actualizar el pedido."
@@ -3028,7 +3072,7 @@ const fulfillmentModeLabel =
                 <button
                   className={styles.primaryButton}
                   disabled={localOrderActionId === order.id}
-                  onClick={() => void updateLocalOrderStatus(order.id, "confirm_payment")}
+                  onClick={() => void updateLocalOrderStatus(order, "confirm_payment")}
                   type="button"
                 >
                   {localOrderActionId === order.id ? "Confirmando..." : "Confirmar pago"}
@@ -3080,7 +3124,7 @@ const fulfillmentModeLabel =
                   <button
                     className={styles.primaryButton}
                     disabled={localOrderActionId === order.id}
-                    onClick={() => void updateLocalOrderStatus(order.id, "mark_preparing")}
+                    onClick={() => void updateLocalOrderStatus(order, "mark_preparing")}
                     type="button"
                   >
                     {localOrderActionId === order.id ? "Actualizando..." : "Marcar preparando"}
@@ -3091,7 +3135,7 @@ const fulfillmentModeLabel =
                   <button
                     className={styles.primaryButton}
                     disabled={localOrderActionId === order.id}
-                    onClick={() => void updateLocalOrderStatus(order.id, "mark_ready")}
+                    onClick={() => void updateLocalOrderStatus(order, "mark_ready")}
                     type="button"
                   >
                     {localOrderActionId === order.id ? "Actualizando..." : "Marcar listo"}
@@ -3134,11 +3178,27 @@ const fulfillmentModeLabel =
               <strong>{order.customerName ?? "Pedido en local"}</strong>
               <p>Creado: {formatExactDateTime(order.createdAt)}</p>
               <p>{money.format(order.totalArs)}</p>
+              {order.customerWhatsapp ? (
+                <p>WhatsApp: {order.customerWhatsapp}</p>
+              ) : (
+                <p>Sin WhatsApp cargado para aviso.</p>
+              )}
               <div className={styles.feedCardActions}>
+                {whatsappDraft.whatsappReadyNotificationsEnabled &&
+                order.customerWhatsapp ? (
+                  <button
+                    className={styles.secondaryButton}
+                    disabled={localOrderActionId === order.id}
+                    onClick={() => openReadyWhatsappNotification(order)}
+                    type="button"
+                  >
+                    Avisar por WhatsApp
+                  </button>
+                ) : null}
                 <button
                   className={styles.primaryButton}
                   disabled={localOrderActionId === order.id}
-                  onClick={() => void updateLocalOrderStatus(order.id, "mark_delivered")}
+                  onClick={() => void updateLocalOrderStatus(order, "mark_delivered")}
                   type="button"
                 >
                   {localOrderActionId === order.id ? "Actualizando..." : "Marcar entregado"}
@@ -5681,7 +5741,7 @@ const fulfillmentModeLabel =
   <div className={styles.panelHeader}>
     <div>
       <span className={styles.eyebrow}>WhatsApp</span>
-      <h3>Mensaje personalizado del carrito</h3>
+      <h3>Carrito y avisos de pedido listo</h3>
       <p>
         Este texto se usa cuando el cliente toca “Enviar pedido por WhatsApp”.
       </p>
@@ -5693,7 +5753,7 @@ const fulfillmentModeLabel =
       onClick={saveWhatsappMessage}
       type="button"
     >
-      {whatsappSaving ? "Guardando..." : "Guardar mensaje"}
+      {whatsappSaving ? "Guardando..." : "Guardar configuracion"}
     </button>
   </div>
 
@@ -5731,10 +5791,45 @@ const fulfillmentModeLabel =
         }
       />
     </label>
+
+    <label className={styles.full}>
+      <span>Aviso de pedido listo por WhatsApp</span>
+      <select
+        value={whatsappDraft.whatsappReadyNotificationsEnabled ? "enabled" : "disabled"}
+        onChange={(event) =>
+          setWhatsappDraft((current) => ({
+            ...current,
+            whatsappReadyNotificationsEnabled: event.target.value === "enabled",
+          }))
+        }
+      >
+        <option value="disabled">Desactivado</option>
+        <option value="enabled">Activado</option>
+      </select>
+      <small>
+        Cuando activas esta opcion, el QR local pide el WhatsApp del cliente y el panel te deja abrir el aviso con el mensaje ya armado.
+      </small>
+    </label>
+
+    <label className={styles.full}>
+      <span>Mensaje cuando el pedido esta listo</span>
+      <textarea
+        value={whatsappDraft.whatsappReadyMessageTemplate}
+        onChange={(event) =>
+          setWhatsappDraft((current) => ({
+            ...current,
+            whatsappReadyMessageTemplate: event.target.value,
+          }))
+        }
+      />
+      <small>
+        Variables disponibles: {"{customerName}"}, {"{pickupCode}"}, {"{restaurantName}"} y {"{total}"}.
+      </small>
+    </label>
   </div>
 
   <div className={`${styles.publishCard} ${styles.previewMessageCard}`}>
-    <span>Vista previa</span>
+    <span>Vista previa del carrito</span>
     <strong>
       {whatsappDraft.whatsappIntroMessage || "Mensaje inicial"}
     </strong>
@@ -5744,6 +5839,24 @@ const fulfillmentModeLabel =
       Dirección de entrega: A confirmar<br />
       Forma de pago: Efectivo<br />
       {whatsappDraft.whatsappFooterMessage}
+    </p>
+  </div>
+
+  <div className={`${styles.publishCard} ${styles.previewMessageCard}`}>
+    <span>Vista previa del aviso</span>
+    <strong>
+      {whatsappDraft.whatsappReadyNotificationsEnabled
+        ? "Avisos activos"
+        : "Avisos desactivados"}
+    </strong>
+    <p>
+      {buildLocalOrderReadyMessage({
+        customerName: "Juan",
+        pickupCode: "A123",
+        restaurantName: restaurant.name,
+        totalArs: 10000,
+        template: whatsappDraft.whatsappReadyMessageTemplate,
+      })}
     </p>
   </div>
 </section>

@@ -7,6 +7,7 @@ import {
   isValidCustomerName,
   normalizeCustomerName,
 } from "@/lib/local-ordering";
+import { isValidWhatsapp, normalizeWhatsapp } from "@/lib/whatsapp";
 
 type LocalOrderItemInput = {
   itemId: string;
@@ -18,12 +19,16 @@ export async function POST(request: Request) {
     const body = (await request.json()) as {
       restaurantSlug?: string;
       customerName?: string;
+      customerWhatsapp?: string;
       customerNote?: string;
       items?: LocalOrderItemInput[];
     };
 
     const restaurantSlug = String(body.restaurantSlug ?? "").trim();
     const customerName = normalizeCustomerName(String(body.customerName ?? ""));
+    const customerWhatsapp = normalizeWhatsapp(
+      String(body.customerWhatsapp ?? "").trim()
+    );
     const customerNote = String(body.customerNote ?? "").trim();
     const items = Array.isArray(body.items) ? body.items : [];
 
@@ -83,6 +88,7 @@ export async function POST(request: Request) {
         serviceMode: true,
         localPaymentTiming: true,
         unpaidOrderExpirationMinutes: true,
+        whatsappReadyNotificationsEnabled: true,
         products: {
           select: {
             id: true,
@@ -118,6 +124,19 @@ export async function POST(request: Request) {
       return NextResponse.json(
         { error: "Este restaurante todavia no habilito pedidos en local." },
         { status: 403 }
+      );
+    }
+
+    if (
+      restaurant.whatsappReadyNotificationsEnabled &&
+      !isValidWhatsapp(customerWhatsapp)
+    ) {
+      return NextResponse.json(
+        {
+          error:
+            "Ingresa un WhatsApp valido para poder recibir el aviso cuando el pedido este listo.",
+        },
+        { status: 400 }
       );
     }
 
@@ -225,6 +244,7 @@ export async function POST(request: Request) {
           serviceMode: restaurant.serviceMode,
           serviceLocationId: serviceLocation?.id ?? null,
           customerName,
+          customerWhatsapp: customerWhatsapp || null,
           pickupCode,
           status: payBeforePreparation ? "AWAITING_PAYMENT" : "CONFIRMED",
           paymentStatus: "PENDING",
@@ -245,6 +265,7 @@ export async function POST(request: Request) {
         select: {
           id: true,
           customerName: true,
+          customerWhatsapp: true,
           pickupCode: true,
           status: true,
           totalArs: true,

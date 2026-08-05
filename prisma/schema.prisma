@@ -196,6 +196,8 @@ model Restaurant {
 
   whatsappIntroMessage  String @default("Hola, quiero hacer este pedido desde el menú online:")
   whatsappFooterMessage String @default("Por favor confirmar disponibilidad y tiempo estimado.")
+  whatsappReadyNotificationsEnabled Boolean @default(false)
+  whatsappReadyMessageTemplate      String  @default("Hola {customerName}, tu pedido {pickupCode} ya esta listo para retirar en {restaurantName}.")
 
   cartEvents CartEvent[]
   customers  Customer[]
@@ -381,12 +383,13 @@ model Order {
   serviceLocationId String?
   serviceLocation   ServiceLocation? @relation(fields: [serviceLocationId], references: [id], onDelete: SetNull)
 
-  customerName  String?
-  pickupCode    String?
-  status        LocalOrderStatus   @default(AWAITING_PAYMENT)
-  paymentStatus LocalPaymentStatus @default(PENDING)
-  totalArs      Int
-  customerNote  String?
+  customerName     String?
+  customerWhatsapp String?
+  pickupCode       String?
+  status           LocalOrderStatus   @default(AWAITING_PAYMENT)
+  paymentStatus    LocalPaymentStatus @default(PENDING)
+  totalArs         Int
+  customerNote     String?
 
   confirmedAt DateTime?
   paidAt      DateTime?
