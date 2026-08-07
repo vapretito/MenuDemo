@@ -3,6 +3,7 @@ import type {
   Category,
   Product,
   Restaurant,
+  RestaurantGroup,
   Subscription,
 } from "@/generated/prisma/client";
 
@@ -10,6 +11,7 @@ type RestaurantWithRelations = Restaurant & {
   categories: Category[];
   products: Product[];
   subscription: Subscription | null;
+  group: RestaurantGroup | null;
 };
 
 type FrontRestaurantStatus = RestaurantRecord["status"];
@@ -24,6 +26,7 @@ type FrontOrderingExperience = NonNullable<RestaurantRecord["defaultOrderingExpe
 type FrontFulfillmentMode = NonNullable<RestaurantRecord["fulfillmentMode"]>;
 type FrontServiceMode = NonNullable<RestaurantRecord["serviceMode"]>;
 type FrontLocalPaymentTiming = NonNullable<RestaurantRecord["localPaymentTiming"]>;
+type FrontAccessMode = RestaurantRecord["accessMode"];
 
 const normalizeRestaurantStatus = (status: string): FrontRestaurantStatus => {
   const normalized = status.toLowerCase();
@@ -48,6 +51,10 @@ const normalizeDnsStatus = (status: string): FrontDnsStatus => {
 
 const normalizeBillingMode = (mode: string): FrontBillingMode => {
   return mode === "MANUAL" ? "manual" : "mercado_pago_subscription";
+};
+
+const normalizeAccessMode = (mode: string): FrontAccessMode => {
+  return mode === "CONTAINER_PATH" ? "container_path" : "subdomain";
 };
 
 const normalizeOrderingExperience = (value: string): FrontOrderingExperience => {
@@ -146,6 +153,10 @@ export function mapRestaurantToRecord(
     name: restaurant.name,
     slug: restaurant.slug,
     subdomain: restaurant.subdomain,
+    accessMode: normalizeAccessMode(restaurant.accessMode),
+    groupId: restaurant.group?.id ?? null,
+    groupName: restaurant.group?.name ?? null,
+    groupSlug: restaurant.group?.slug ?? null,
   
     menuTemplate: restaurant.menuTemplate as RestaurantRecord["menuTemplate"],
     logoUrl: restaurant.logoUrl,

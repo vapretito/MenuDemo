@@ -1,5 +1,9 @@
 import { NextResponse } from "next/server";
-import { DnsStatus, RestaurantStatus } from "@/generated/prisma/client";
+import {
+  DnsStatus,
+  RestaurantAccessMode,
+  RestaurantStatus,
+} from "@/generated/prisma/client";
 import { isBackofficeAuthenticated } from "@/lib/backoffice-auth";
 import { prisma } from "@/lib/prisma";
 import { mapRestaurantToRecord } from "@/lib/restaurant-mapper";
@@ -34,6 +38,8 @@ export async function PATCH(request: Request, { params }: RouteProps) {
     dnsStatus?: DnsStatus;
     graceUntil?: Date | null;
     trialEndsAt?: Date | null;
+    accessMode?: RestaurantAccessMode;
+    groupId?: string | null;
   } = {};
 
   if (body.status) {
@@ -86,6 +92,47 @@ if (
   if (body.dnsStatus === "error") {
     data.dnsStatus = DnsStatus.ERROR;
   }
+
+  if (body.accessMode) {
+    data.accessMode =
+      body.accessMode === "container_path"
+        ? RestaurantAccessMode.CONTAINER_PATH
+        : RestaurantAccessMode.SUBDOMAIN;
+  }
+
+  if (Object.prototype.hasOwnProperty.call(body, "groupId")) {
+    const nextGroupId = String(body.groupId ?? "").trim() || null;
+
+    if (nextGroupId) {
+      const group = await prisma.restaurantGroup.findUnique({
+        where: {
+          id: nextGroupId,
+        },
+        select: {
+          id: true,
+        },
+      });
+
+      if (!group) {
+        return NextResponse.json(
+          { error: "El grupo seleccionado no existe." },
+          { status: 400 }
+        );
+      }
+    }
+
+    data.groupId = nextGroupId;
+  }
+
+  if (
+    data.accessMode === RestaurantAccessMode.CONTAINER_PATH &&
+    data.groupId === null
+  ) {
+    return NextResponse.json(
+      { error: "Los restaurantes sin subdominio deben pertenecer a un grupo." },
+      { status: 400 }
+    );
+  }
   
 
   const restaurant = await prisma.restaurant.update({
@@ -105,6 +152,7 @@ if (
         },
       },
       subscription: true,
+      group: true,
     },
   });
 

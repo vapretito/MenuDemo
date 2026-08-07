@@ -24,6 +24,11 @@ const money = new Intl.NumberFormat("es-AR", {
 
 type LocalOrderingMenuProps = {
   restaurant: RestaurantRecord;
+  orderApiPath?: string;
+  orderSuccessPathBuilder?: (slug: string, orderId: string) => string;
+  homeHref?: string;
+  homeLabel?: string;
+  homeBrandSrc?: string | null;
 };
 
 type SortMode = "featured" | "price_asc" | "price_desc";
@@ -89,7 +94,15 @@ const normalizeLogoPosition = (
   return "left";
 };
 
-export function LocalOrderingMenu({ restaurant }: LocalOrderingMenuProps) {
+export function LocalOrderingMenu({
+  restaurant,
+  orderApiPath = "/api/local-orders",
+  orderSuccessPathBuilder = (slug, orderId) =>
+    `/ordenar/${slug}/pedido/${orderId}`,
+  homeHref = "https://menui.online",
+  homeLabel = "Realizado por Menui",
+  homeBrandSrc = "/logos/menui-logo.svg",
+}: LocalOrderingMenuProps) {
   const router = useRouter();
   const [activeCategory, setActiveCategory] = useState(
     restaurant.categories[0]?.id ?? ""
@@ -248,7 +261,7 @@ export function LocalOrderingMenu({ restaurant }: LocalOrderingMenuProps) {
     setIsSubmittingOrder(true);
 
     try {
-      const response = await fetch("/api/local-orders", {
+      const response = await fetch(orderApiPath, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -281,7 +294,7 @@ export function LocalOrderingMenu({ restaurant }: LocalOrderingMenuProps) {
         service_mode: restaurant.serviceMode ?? "counter_pickup",
       });
 
-      router.push(`/ordenar/${restaurant.slug}/pedido/${data.order.id}`);
+      router.push(orderSuccessPathBuilder(restaurant.slug, data.order.id));
     } catch (error) {
       setCheckoutError(
         error instanceof Error ? error.message : "No se pudo registrar el pedido."
@@ -496,17 +509,21 @@ export function LocalOrderingMenu({ restaurant }: LocalOrderingMenuProps) {
       <footer className={styles.miniFooter}>
         <a
           className={styles.miniFooterLink}
-          href="https://menui.online"
+          href={homeHref}
           rel="noreferrer"
           target="_blank"
-          aria-label="Realizado por Menui"
+          aria-label={homeLabel}
         >
           <span>realizado por</span>
-          <img
-            className={styles.miniFooterLogo}
-            src="/logos/menui-logo.svg"
-            alt="Menui"
-          />
+          {homeBrandSrc ? (
+            <img
+              className={styles.miniFooterLogo}
+              src={homeBrandSrc}
+              alt={homeLabel}
+            />
+          ) : (
+            <strong>{homeLabel}</strong>
+          )}
         </a>
       </footer>
 

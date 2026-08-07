@@ -41,6 +41,11 @@ const features = [
     title: "Cada restaurante con su propio espacio",
     text: "Subdominio, menú, configuración y panel separados para operar varias marcas desde una sola plataforma.",
   },
+  {
+    eyebrow: "Marketplace",
+    title: "Menui también puede operar como una sola app",
+    text: "Con una sección como /contenedores, el cliente instala una sola PWA, descubre varios locales y recibe notificaciones dentro del mismo dominio.",
+  },
 ];
 
 const steps = [
@@ -122,6 +127,7 @@ export default async function Home() {
 
           <nav className={styles.nav} aria-label="Navegación principal">
             <a href="#plataforma">Plataforma</a>
+            <Link href="/contenedores">Contenedores</Link>
             <a href="#flujo">Flujo</a>
             <a href="#precios">Precios</a>
             <a href="#admin">Admin</a>
@@ -133,6 +139,9 @@ export default async function Home() {
             </Link>
             <Link className={styles.secondaryButton} href={`/menu/${featuredRestaurant.slug}`}>
               Ver demo
+            </Link>
+            <Link className={styles.secondaryButton} href="/contenedores">
+              Ver contenedores
             </Link>
             <a className={styles.secondaryButton} href="#contacto">
               Contacto
@@ -157,6 +166,9 @@ export default async function Home() {
               </Link>
               <Link className={styles.primaryButton} href={`/menu/${featuredRestaurant.slug}`}>
                 Probar menú demo
+              </Link>
+              <Link className={styles.secondaryButton} href="/contenedores">
+                Abrir contenedores
               </Link>
               <Link className={styles.secondaryButton} href="/admin">
                 Ver admin demo
@@ -484,6 +496,7 @@ export default async function Home() {
               <a href="#plataforma">Plataforma</a>
               <a href="#precios">Precios</a>
               <Link href={`/menu/${featuredRestaurant.slug}`}>Ver menú demo</Link>
+              <Link href="/contenedores">Menui Contenedores</Link>
             </div>
             <div>
               <h4>Accesos</h4>
@@ -508,6 +521,9 @@ export default async function Home() {
       <div className={styles.mobileBottomBar}>
         <Link className={styles.secondaryButton} href={`/menu/${featuredRestaurant.slug}`}>
           Ver menú
+        </Link>
+        <Link className={styles.secondaryButton} href="/contenedores">
+          Contenedores
         </Link>
         <Link className={styles.primaryButton} href="/registrar">
           Registrar

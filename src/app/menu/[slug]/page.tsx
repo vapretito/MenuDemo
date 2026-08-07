@@ -37,6 +37,7 @@ export default async function MenuPage({ params }: MenuPageProps) {
         },
       },
       subscription: true,
+      group: true,
     },
   });
 

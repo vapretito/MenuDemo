@@ -3,6 +3,7 @@ import {
   BillingMode,
   CollectionMethod,
   DnsStatus,
+  RestaurantAccessMode,
   RestaurantStatus,
   SubscriptionStatus,
   UserRole,
@@ -14,6 +15,7 @@ import {
 } from "../../../../lib/password";
 import { prisma } from "../../../../lib/prisma";
 import { mapRestaurantToRecord } from "../../../../lib/restaurant-mapper";
+import { getRestaurantLoginUrl } from "@/lib/restaurant-urls";
 
 const slugify = (value: string) =>
   value
@@ -40,6 +42,11 @@ const statusMap: Record<string, RestaurantStatus> = {
 const billingModeMap: Record<string, BillingMode> = {
   mercado_pago_subscription: BillingMode.MERCADO_PAGO_SUBSCRIPTION,
   manual: BillingMode.MANUAL,
+};
+
+const accessModeMap: Record<string, RestaurantAccessMode> = {
+  subdomain: RestaurantAccessMode.SUBDOMAIN,
+  container_path: RestaurantAccessMode.CONTAINER_PATH,
 };
 
 const planPrices: Record<string, { name: string; price: number }> = {
@@ -84,6 +91,7 @@ export async function GET() {
         },
       },
       subscription: true,
+      group: true,
     },
   });
 
@@ -113,19 +121,49 @@ export async function POST(request: Request) {
     const rawBillingMode = String(
       body.billingMode ?? "mercado_pago_subscription"
     ).trim();
+    const rawAccessMode = String(body.accessMode ?? "subdomain").trim();
+    const groupId = String(body.groupId ?? "").trim() || null;
 
     const slug = slugify(rawSlug || name);
-    const subdomain =
-      String(body.subdomain ?? "").trim() || `${slug}.${getRootDomain()}`;
+    const accessMode = accessModeMap[rawAccessMode] ?? RestaurantAccessMode.SUBDOMAIN;
+    const subdomainInput = String(body.subdomain ?? "").trim().toLowerCase();
+    const subdomain = subdomainInput || `${slug}.${getRootDomain()}`;
 
-    if (!name || !slug || !city || !customerWhatsapp) {
+    if (
+      !name ||
+      !slug ||
+      !city ||
+      !customerWhatsapp ||
+      (accessMode === RestaurantAccessMode.SUBDOMAIN && !subdomainInput) ||
+      (accessMode === RestaurantAccessMode.CONTAINER_PATH && !groupId)
+    ) {
       return NextResponse.json(
         {
           error:
-            "Faltan datos obligatorios: nombre, slug, ciudad o WhatsApp.",
+            accessMode === RestaurantAccessMode.SUBDOMAIN
+              ? "Faltan datos obligatorios: nombre, slug, subdominio, ciudad o WhatsApp."
+              : "Faltan datos obligatorios: nombre, slug, grupo, ciudad o WhatsApp.",
         },
         { status: 400 }
       );
+    }
+
+    if (groupId) {
+      const group = await prisma.restaurantGroup.findUnique({
+        where: {
+          id: groupId,
+        },
+        select: {
+          id: true,
+        },
+      });
+
+      if (!group) {
+        return NextResponse.json(
+          { error: "El grupo seleccionado ya no existe." },
+          { status: 400 }
+        );
+      }
     }
 
     const selectedPlan = planPrices[planId] ?? planPrices.basic;
@@ -182,6 +220,8 @@ export async function POST(request: Request) {
         name,
         slug,
         subdomain,
+        accessMode,
+        groupId,
         city,
         cuisine: cuisine || "Gastronomía",
         description:
@@ -237,6 +277,7 @@ export async function POST(request: Request) {
           },
         },
         subscription: true,
+        group: true,
       },
       });
 
@@ -273,7 +314,11 @@ export async function POST(request: Request) {
         restaurantName: restaurant.name,
         email: adminEmail,
         temporaryPassword,
-        loginUrl: `https://${restaurant.subdomain}/login`,
+        loginUrl: getRestaurantLoginUrl({
+          slug: restaurant.slug,
+          subdomain: restaurant.subdomain,
+          accessMode: mapRestaurantToRecord(restaurant).accessMode,
+        }),
       },
     });
   } catch (error) {

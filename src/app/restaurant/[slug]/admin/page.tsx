@@ -32,6 +32,7 @@ export default async function RestaurantAdminPage({
         },
       },
       subscription: true,
+      group: true,
     },
   });
 

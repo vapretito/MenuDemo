@@ -3,6 +3,7 @@ import { UserRole } from "@/generated/prisma/client";
 import { isBackofficeAuthenticated } from "@/lib/backoffice-auth";
 import { generateTemporaryPassword, hashPassword } from "@/lib/password";
 import { prisma } from "@/lib/prisma";
+import { getRestaurantLoginUrl } from "@/lib/restaurant-urls";
 
 type RouteProps = {
   params: Promise<{
@@ -29,6 +30,12 @@ export async function POST(_request: Request, { params }: RouteProps) {
         name: true,
         slug: true,
         subdomain: true,
+        accessMode: true,
+        group: {
+          select: {
+            slug: true,
+          },
+        },
         adminName: true,
         users: {
           where: {
@@ -88,7 +95,15 @@ export async function POST(_request: Request, { params }: RouteProps) {
         restaurantName: restaurant.name,
         email: adminUser.email,
         temporaryPassword,
-        loginUrl: `https://${restaurant.subdomain}/login`,
+        loginUrl: getRestaurantLoginUrl({
+          slug: restaurant.slug,
+          subdomain: restaurant.subdomain,
+          accessMode:
+            restaurant.accessMode === "CONTAINER_PATH"
+              ? "container_path"
+              : "subdomain",
+          groupSlug: restaurant.group?.slug,
+        }),
       },
       message:
         "Contrasena temporal generada. Compartila con el cliente para que ingrese y la cambie desde su admin.",

@@ -4,8 +4,15 @@ import { useEffect, useEffectEvent, useMemo, useState } from "react";
 import styles from "./super-admin-panel.module.css";
 import { platformSnapshot } from "@/data/platform";
 import {
+  getRestaurantAdminUrl,
+  getRestaurantLoginUrl,
+  getRestaurantPublicUrl,
+} from "@/lib/restaurant-urls";
+import {
   FeedbackRecord,
   RestaurantCreationInput,
+  RestaurantGroupCreationInput,
+  RestaurantGroupRecord,
   RestaurantRecord,
 } from "@/types/platform";
 
@@ -19,6 +26,8 @@ const defaultForm: RestaurantCreationInput = {
   name: "",
   slug: "",
   subdomain: "",
+  accessMode: "subdomain",
+  groupId: null,
   city: "",
   cuisine: "",
   adminName: "",
@@ -35,7 +44,19 @@ type PasswordResetCredentials = {
   loginUrl: string;
 };
 
-type SuperAdminView = "dashboard" | "restaurants" | "billing" | "feedback";
+const defaultGroupForm: RestaurantGroupCreationInput = {
+  name: "",
+  slug: "",
+  description: "",
+  accentColor: "#1d4ed8",
+};
+
+type SuperAdminView =
+  | "dashboard"
+  | "restaurants"
+  | "groups"
+  | "billing"
+  | "feedback";
 type RestaurantQuickFilter =
   | "all"
   | "trials_due"
@@ -56,6 +77,11 @@ const sidebarItems: Array<{
     id: "restaurants",
     label: "Restaurantes",
     description: "Clientes y demos",
+  },
+  {
+    id: "groups",
+    label: "Grupos",
+    description: "Portadas y PWAs",
   },
   {
     id: "billing",
@@ -99,10 +125,15 @@ const hasPendingPayment = (restaurant: RestaurantRecord) => {
 
 export function SuperAdminPanel() {
   const [restaurants, setRestaurants] = useState<RestaurantRecord[]>([]);
+  const [groups, setGroups] = useState<RestaurantGroupRecord[]>([]);
   const [selectedSlug, setSelectedSlug] = useState("");
   const [form, setForm] = useState<RestaurantCreationInput>(defaultForm);
+  const [groupForm, setGroupForm] = useState<RestaurantGroupCreationInput>(
+    defaultGroupForm
+  );
   const [activeView, setActiveView] = useState<SuperAdminView>("dashboard");
   const [isCreateOpen, setIsCreateOpen] = useState(false);
+  const [isCreateGroupOpen, setIsCreateGroupOpen] = useState(false);
 
   const [mpPayerEmail, setMpPayerEmail] = useState("");
   const [mpLoading, setMpLoading] = useState(false);
@@ -259,6 +290,33 @@ export function SuperAdminPanel() {
     );
   }, [filteredRestaurants, selectedSlug]);
 
+  const formPreviewSlug = form.slug.trim().toLowerCase();
+  const formPreviewSubdomain =
+    form.subdomain.trim().toLowerCase() || `${formPreviewSlug || "restaurante"}.menui.online`;
+  const formPublicUrl = formPreviewSlug
+    ? getRestaurantPublicUrl({
+        slug: formPreviewSlug,
+        subdomain: formPreviewSubdomain,
+        accessMode: form.accessMode,
+      })
+    : "";
+  const formLoginUrl = formPreviewSlug
+    ? getRestaurantLoginUrl({
+        slug: formPreviewSlug,
+        subdomain: formPreviewSubdomain,
+        accessMode: form.accessMode,
+      })
+    : "";
+  const selectedPublicUrl = selectedRestaurant
+    ? getRestaurantPublicUrl(selectedRestaurant)
+    : "";
+  const selectedLoginUrl = selectedRestaurant
+    ? getRestaurantLoginUrl(selectedRestaurant)
+    : "";
+  const selectedAdminUrl = selectedRestaurant
+    ? getRestaurantAdminUrl(selectedRestaurant)
+    : "";
+
   const loadRestaurants = useEffectEvent(async () => {
     setIsLoadingRestaurants(true);
     setBackofficeError(null);
@@ -330,6 +388,32 @@ export function SuperAdminPanel() {
     }
   });
 
+  const loadGroups = useEffectEvent(async () => {
+    try {
+      const response = await fetch("/api/backoffice/groups", {
+        cache: "no-store",
+      });
+
+      const rawResponse = await response.text();
+      const data = rawResponse
+        ? (JSON.parse(rawResponse) as {
+            groups?: RestaurantGroupRecord[];
+            error?: string;
+          })
+        : {};
+
+      if (!response.ok) {
+        throw new Error(data.error ?? "No se pudieron cargar grupos.");
+      }
+
+      setGroups(data.groups ?? []);
+    } catch (error) {
+      setBackofficeError(
+        error instanceof Error ? error.message : "Error cargando grupos."
+      );
+    }
+  });
+
   const loadFeedbackEntries = useEffectEvent(async () => {
     setFeedbackLoading(true);
     setFeedbackError(null);
@@ -371,6 +455,7 @@ export function SuperAdminPanel() {
   useEffect(() => {
     const timeoutId = window.setTimeout(() => {
       void loadRestaurants();
+      void loadGroups();
       void loadBackofficeCartSummary();
       void loadFeedbackEntries();
     }, 0);
@@ -380,15 +465,19 @@ export function SuperAdminPanel() {
     };
   }, []);
 
-  const createRestaurant = async () => {
+const createRestaurant = async () => {
     if (
       !form.name ||
       !form.slug ||
-      !form.subdomain ||
       !form.city ||
-      !form.customerWhatsapp
+      !form.customerWhatsapp ||
+      (form.accessMode === "subdomain" && !form.subdomain)
     ) {
-      setBackofficeError("Completá nombre, slug, subdominio, ciudad y WhatsApp.");
+      setBackofficeError(
+        form.accessMode === "subdomain"
+          ? "Completá nombre, slug, subdominio, ciudad y WhatsApp."
+          : "Completá nombre, slug, ciudad y WhatsApp."
+      );
       return;
     }
 
@@ -451,6 +540,72 @@ export function SuperAdminPanel() {
       billingMode: "manual",
     }));
     setBackofficeError(null);
+  };
+
+  const createGroup = async () => {
+    if (!groupForm.name || !groupForm.slug) {
+      setBackofficeError("Completá al menos nombre y slug del grupo.");
+      return;
+    }
+
+    setBackofficeError(null);
+
+    try {
+      const response = await fetch("/api/backoffice/groups", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(groupForm),
+      });
+
+      const rawResponse = await response.text();
+      const data = rawResponse
+        ? (JSON.parse(rawResponse) as {
+            group?: RestaurantGroupRecord;
+            error?: string;
+          })
+        : {};
+
+      if (!response.ok || !data.group) {
+        throw new Error(data.error ?? "No se pudo crear el grupo.");
+      }
+
+      setGroups((current) => [...current, data.group as RestaurantGroupRecord]);
+      setGroupForm(defaultGroupForm);
+      setIsCreateGroupOpen(false);
+    } catch (error) {
+      setBackofficeError(
+        error instanceof Error ? error.message : "Error creando grupo."
+      );
+    }
+  };
+
+  const deleteGroup = async (groupId: string) => {
+    setBackofficeError(null);
+
+    try {
+      const response = await fetch(`/api/backoffice/groups/${groupId}`, {
+        method: "DELETE",
+      });
+
+      const rawResponse = await response.text();
+      const data = rawResponse
+        ? (JSON.parse(rawResponse) as {
+            error?: string;
+          })
+        : {};
+
+      if (!response.ok) {
+        throw new Error(data.error ?? "No se pudo borrar el grupo.");
+      }
+
+      setGroups((current) => current.filter((group) => group.id !== groupId));
+    } catch (error) {
+      setBackofficeError(
+        error instanceof Error ? error.message : "Error borrando grupo."
+      );
+    }
   };
 
   const deleteRestaurant = async (slug: string) => {
@@ -606,6 +761,50 @@ export function SuperAdminPanel() {
     } catch (error) {
       setBackofficeError(
         error instanceof Error ? error.message : "Error actualizando estado."
+      );
+    }
+  };
+
+  const updateRestaurantAccess = async (
+    restaurantId: string,
+    payload: {
+      accessMode: RestaurantRecord["accessMode"];
+      groupId: string | null;
+    }
+  ) => {
+    setBackofficeError(null);
+
+    try {
+      const response = await fetch(`/api/backoffice/restaurants/${restaurantId}`, {
+        method: "PATCH",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(payload),
+      });
+
+      const rawResponse = await response.text();
+      const data = rawResponse
+        ? (JSON.parse(rawResponse) as {
+            restaurant?: RestaurantRecord;
+            error?: string;
+          })
+        : {};
+
+      if (!response.ok || !data.restaurant) {
+        throw new Error(data.error ?? "No se pudo actualizar el acceso.");
+      }
+
+      setRestaurants((current) =>
+        current.map((restaurant) =>
+          restaurant.id === restaurantId
+            ? (data.restaurant as RestaurantRecord)
+            : restaurant
+        )
+      );
+    } catch (error) {
+      setBackofficeError(
+        error instanceof Error ? error.message : "Error actualizando acceso."
       );
     }
   };
@@ -1107,6 +1306,49 @@ export function SuperAdminPanel() {
   
                 <div className={styles.createGrid}>
                   <label>
+                    <span>Modo de acceso</span>
+                    <select
+                      value={form.accessMode}
+                      onChange={(event) =>
+                        setForm((current) => ({
+                          ...current,
+                          accessMode:
+                            event.target.value as RestaurantCreationInput["accessMode"],
+                          subdomain:
+                            event.target.value === "container_path"
+                              ? ""
+                              : current.subdomain,
+                        }))
+                      }
+                    >
+                      <option value="subdomain">Con subdominio</option>
+                      <option value="container_path">Dentro de Menui /contenedores</option>
+                    </select>
+                  </label>
+
+                  {form.accessMode === "container_path" ? (
+                    <label>
+                      <span>Grupo</span>
+                      <select
+                        value={form.groupId ?? ""}
+                        onChange={(event) =>
+                          setForm((current) => ({
+                            ...current,
+                            groupId: event.target.value || null,
+                          }))
+                        }
+                      >
+                        <option value="">Seleccionar grupo</option>
+                        {groups.map((group) => (
+                          <option key={group.id} value={group.id}>
+                            {group.name} ({group.slug})
+                          </option>
+                        ))}
+                      </select>
+                    </label>
+                  ) : null}
+
+                  <label>
                     <span>Nombre</span>
                     <input
                       value={form.name}
@@ -1133,19 +1375,26 @@ export function SuperAdminPanel() {
                     />
                   </label>
   
-                  <label>
-                    <span>Subdominio</span>
-                    <input
-                      placeholder="demo.menui.online"
-                      value={form.subdomain}
-                      onChange={(event) =>
-                        setForm((current) => ({
-                          ...current,
-                          subdomain: event.target.value,
-                        }))
-                      }
-                    />
-                  </label>
+                  {form.accessMode === "subdomain" ? (
+                    <label>
+                      <span>Subdominio</span>
+                      <input
+                        placeholder="demo.menui.online"
+                        value={form.subdomain}
+                        onChange={(event) =>
+                          setForm((current) => ({
+                            ...current,
+                            subdomain: event.target.value,
+                          }))
+                        }
+                      />
+                    </label>
+                  ) : (
+                    <label>
+                      <span>Ruta dentro de Menui</span>
+                      <input value={formPublicUrl} disabled readOnly />
+                    </label>
+                  )}
   
                   <label>
                     <span>Ciudad</span>
@@ -1279,6 +1528,12 @@ export function SuperAdminPanel() {
                       Cancelar
                     </button>
                   </div>
+
+                  <div className={`${styles.detailCard} ${styles.full}`}>
+                    <span>Vista previa de acceso</span>
+                    <strong>{formPublicUrl || "Completa el slug para generar la URL"}</strong>
+                    <strong>{formLoginUrl || "El login se va a generar automaticamente"}</strong>
+                  </div>
                 </div>
               </section>
             ) : null}
@@ -1302,7 +1557,7 @@ export function SuperAdminPanel() {
                   <span>Login</span>
                   <strong>{createdCredentials.loginUrl}</strong>
                   <p>
-                    Ya podés abrir el subdominio, entrar al login y mostrarle el
+                    Ya podés abrir el acceso generado, entrar al login y mostrarle el
                     admin al cliente sin activar cobro.
                   </p>
                 </div>
@@ -1451,7 +1706,11 @@ export function SuperAdminPanel() {
                       >
                         <div>
                           <strong>{restaurant.name}</strong>
-                          <span>{restaurant.subdomain}</span>
+                          <span>
+                            {restaurant.accessMode === "container_path"
+                              ? `menui.online/${restaurant.groupSlug ?? "grupo"}/${restaurant.slug}/menu`
+                              : restaurant.subdomain}
+                          </span>
                         </div>
                         <small>{restaurant.status}</small>
                       </button>
@@ -1505,8 +1764,32 @@ export function SuperAdminPanel() {
                   </div>
   
                   <div className={styles.detailCard}>
-                    <span>Subdominio</span>
-                    <strong>{selectedRestaurant.subdomain}</strong>
+                    <span>Modo de acceso</span>
+                    <strong>
+                      {selectedRestaurant.accessMode === "container_path"
+                        ? `Dentro de Menui /${selectedRestaurant.groupSlug ?? "grupo"}`
+                        : "Subdominio propio"}
+                    </strong>
+                  </div>
+
+                  <div className={styles.detailCard}>
+                    <span>Grupo</span>
+                    <strong>{selectedRestaurant.groupName ?? "Sin grupo"}</strong>
+                  </div>
+
+                  <div className={styles.detailCard}>
+                    <span>URL pública</span>
+                    <strong>{selectedPublicUrl}</strong>
+                  </div>
+
+                  <div className={styles.detailCard}>
+                    <span>Login</span>
+                    <strong>{selectedLoginUrl}</strong>
+                  </div>
+
+                  <div className={styles.detailCard}>
+                    <span>Admin</span>
+                    <strong>{selectedAdminUrl}</strong>
                   </div>
   
                   <div className={styles.detailCard}>
@@ -1627,6 +1910,46 @@ export function SuperAdminPanel() {
     </select>
   </div>
 
+  <div className={styles.statusControl}>
+    <span>Modo</span>
+
+    <select
+      className={styles.statusSelect}
+      value={selectedRestaurant.accessMode}
+      onChange={(event) =>
+        void updateRestaurantAccess(selectedRestaurant.id, {
+          accessMode: event.target.value as RestaurantRecord["accessMode"],
+          groupId: selectedRestaurant.groupId ?? null,
+        })
+      }
+    >
+      <option value="subdomain">subdomain</option>
+      <option value="container_path">group path</option>
+    </select>
+  </div>
+
+  <div className={styles.statusControl}>
+    <span>Grupo</span>
+
+    <select
+      className={styles.statusSelect}
+      value={selectedRestaurant.groupId ?? ""}
+      onChange={(event) =>
+        void updateRestaurantAccess(selectedRestaurant.id, {
+          accessMode: selectedRestaurant.accessMode,
+          groupId: event.target.value || null,
+        })
+      }
+    >
+      <option value="">Sin grupo</option>
+      {groups.map((group) => (
+        <option key={group.id} value={group.id}>
+          {group.name}
+        </option>
+      ))}
+    </select>
+  </div>
+
   <button
     className={styles.secondaryAction}
     onClick={() => openPasswordResetModal(selectedRestaurant.id)}
@@ -1646,6 +1969,149 @@ export function SuperAdminPanel() {
                   </div>
                 )}
               </section>
+            </section>
+          </div>
+        ) : null}
+
+        {activeView === "groups" ? (
+          <div className={styles.viewStack}>
+            {isCreateGroupOpen ? (
+              <section className={styles.panelSection}>
+                <div className={styles.panelHeader}>
+                  <div>
+                    <span className={styles.eyebrow}>Nuevo grupo</span>
+                    <h3>Crear portada/PWA</h3>
+                    <p>
+                      Cada grupo vive bajo una ruta propia como
+                      <strong> menui.online/foodpark-centro</strong>.
+                    </p>
+                  </div>
+                </div>
+
+                <div className={styles.createGrid}>
+                  <label>
+                    <span>Nombre</span>
+                    <input
+                      value={groupForm.name}
+                      onChange={(event) =>
+                        setGroupForm((current) => ({
+                          ...current,
+                          name: event.target.value,
+                        }))
+                      }
+                    />
+                  </label>
+
+                  <label>
+                    <span>Slug</span>
+                    <input
+                      placeholder="foodpark-centro"
+                      value={groupForm.slug}
+                      onChange={(event) =>
+                        setGroupForm((current) => ({
+                          ...current,
+                          slug: event.target.value,
+                        }))
+                      }
+                    />
+                  </label>
+
+                  <label>
+                    <span>Color acento</span>
+                    <input
+                      type="color"
+                      value={groupForm.accentColor}
+                      onChange={(event) =>
+                        setGroupForm((current) => ({
+                          ...current,
+                          accentColor: event.target.value,
+                        }))
+                      }
+                    />
+                  </label>
+
+                  <label className={styles.full}>
+                    <span>Descripcion</span>
+                    <textarea
+                      value={groupForm.description}
+                      onChange={(event) =>
+                        setGroupForm((current) => ({
+                          ...current,
+                          description: event.target.value,
+                        }))
+                      }
+                    />
+                  </label>
+
+                  <div className={styles.formActions}>
+                    <button
+                      className={styles.actionButton}
+                      onClick={createGroup}
+                      type="button"
+                    >
+                      Crear grupo
+                    </button>
+                    <button
+                      className={styles.secondaryAction}
+                      onClick={() => setIsCreateGroupOpen(false)}
+                      type="button"
+                    >
+                      Cancelar
+                    </button>
+                  </div>
+                </div>
+              </section>
+            ) : null}
+
+            <section className={styles.panelSection}>
+              <div className={styles.panelHeader}>
+                <div>
+                  <span className={styles.eyebrow}>Grupos</span>
+                  <h3>Portadas y PWAs instalables</h3>
+                </div>
+                <div className={styles.headerActions}>
+                  <span className={styles.countBadge}>{groups.length} grupos</span>
+                  <button
+                    className={styles.actionButton}
+                    onClick={() => setIsCreateGroupOpen(true)}
+                    type="button"
+                  >
+                    Crear grupo
+                  </button>
+                </div>
+              </div>
+
+              {groups.length ? (
+                <div className={styles.infoGrid}>
+                  {groups.map((group) => (
+                    <article key={group.id}>
+                      <span>{group.slug}</span>
+                      <strong>{group.name}</strong>
+                      <p>{group.description || "Sin descripcion cargada."}</p>
+                      <p>PWA: menui.online/{group.slug}</p>
+                      <p>{group.restaurantsCount} restaurantes asignados</p>
+                      <div className={styles.formActions}>
+                        <button
+                          className={styles.secondaryAction}
+                          disabled={group.restaurantsCount > 0}
+                          onClick={() => void deleteGroup(group.id)}
+                          type="button"
+                        >
+                          Borrar grupo
+                        </button>
+                      </div>
+                    </article>
+                  ))}
+                </div>
+              ) : (
+                <div className={styles.emptyFilterState}>
+                  <strong>Todavia no hay grupos creados</strong>
+                  <p>
+                    Crea un grupo para publicar una lista de restaurantes bajo una
+                    ruta propia y preparar una PWA separada.
+                  </p>
+                </div>
+              )}
             </section>
           </div>
         ) : null}

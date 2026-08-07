@@ -27,6 +27,7 @@ export default async function QrMenuPage({ params }: QrMenuPageProps) {
         },
       },
       subscription: true,
+      group: true,
     },
   });
 

@@ -58,6 +58,9 @@ type LocalOrderStatusSnapshot = {
 
 type LocalOrderStatusClientProps = {
   initialOrder: LocalOrderStatusSnapshot;
+  repeatOrderHref?: string;
+  menuHref?: string;
+  eyebrowLabel?: string;
 };
 
 const buildClientNotificationMessage = (order: LocalOrderStatusSnapshot) => {
@@ -76,6 +79,9 @@ const buildClientNotificationMessage = (order: LocalOrderStatusSnapshot) => {
 
 export function LocalOrderStatusClient({
   initialOrder,
+  repeatOrderHref,
+  menuHref,
+  eyebrowLabel = "Pedido en local",
 }: LocalOrderStatusClientProps) {
   const [order, setOrder] = useState(initialOrder);
   const [notificationsEnabled, setNotificationsEnabled] = useState(
@@ -161,7 +167,7 @@ export function LocalOrderStatusClient({
     }, 10000);
 
     return () => window.clearInterval(intervalId);
-  }, [loadLatestOrder]);
+  }, []);
 
   const enableNotifications = async () => {
     const permission = await requestBrowserNotificationPermission();
@@ -195,7 +201,7 @@ export function LocalOrderStatusClient({
   return (
     <main className={styles.page}>
       <section className={styles.card}>
-        <span className={styles.eyebrow}>Pedido en local</span>
+        <span className={styles.eyebrow}>{eyebrowLabel}</span>
         <h1>{order.restaurant.name}</h1>
         <p className={styles.reference}>{reference}</p>
 
@@ -259,10 +265,16 @@ export function LocalOrderStatusClient({
         </section>
 
         <div className={styles.actions}>
-          <a className={styles.primary} href={`/ordenar/${order.restaurant.slug}`}>
+          <a
+            className={styles.primary}
+            href={repeatOrderHref ?? `/ordenar/${order.restaurant.slug}`}
+          >
             Hacer otro pedido
           </a>
-          <a className={styles.secondary} href={`/menu/${order.restaurant.slug}`}>
+          <a
+            className={styles.secondary}
+            href={menuHref ?? `/menu/${order.restaurant.slug}`}
+          >
             Ver menu delivery
           </a>
         </div>

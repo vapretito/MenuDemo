@@ -32,6 +32,11 @@ enum BillingMode {
   MANUAL
 }
 
+enum RestaurantAccessMode {
+  SUBDOMAIN
+  CONTAINER_PATH
+}
+
 enum SubscriptionStatus {
   SCHEDULED
   PENDING
@@ -136,6 +141,8 @@ model Restaurant {
   name      String
   slug      String @unique
   subdomain String @unique
+  accessMode RestaurantAccessMode @default(SUBDOMAIN)
+  groupId String?
 
   city        String
   cuisine     String
@@ -188,6 +195,7 @@ model Restaurant {
   updatedAt DateTime @updatedAt
 
   users         User[]
+  group         RestaurantGroup? @relation(fields: [groupId], references: [id], onDelete: SetNull)
   subscription  Subscription?
   categories    Category[]
   products      Product[]
@@ -220,6 +228,22 @@ model Restaurant {
   @@index([status])
   @@index([dnsStatus])
   @@index([billingMode])
+  @@index([groupId])
+}
+
+model RestaurantGroup {
+  id          String   @id @default(cuid())
+  name        String
+  slug        String   @unique
+  description String   @default("")
+  accentColor String   @default("#1d4ed8")
+  isActive    Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  restaurants Restaurant[]
+
+  @@index([isActive])
 }
 
 model Feedback {

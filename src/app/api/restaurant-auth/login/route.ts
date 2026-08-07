@@ -8,6 +8,7 @@ import {
   setRestaurantSessionCookie,
 } from "@/lib/restaurant-session";
 import { getPostHogClient } from "@/lib/posthog-server";
+import { getRestaurantAdminUrl } from "@/lib/restaurant-urls";
 
 export async function POST(request: Request) {
   try {
@@ -32,6 +33,7 @@ export async function POST(request: Request) {
         id: true,
         slug: true,
         subdomain: true,
+        accessMode: true,
         status: true,
         name: true,
         trialEndsAt: true,
@@ -51,7 +53,7 @@ export async function POST(request: Request) {
         {
           error:
             "El restaurante no tiene acceso habilitado. Regularizá la membresía para ingresar.",
-          activationUrl: `https://${restaurant.subdomain}/activar/${restaurant.slug}`,
+          activationUrl: `/activar/${restaurant.slug}`,
         },
         { status: 403 }
       );
@@ -121,7 +123,14 @@ export async function POST(request: Request) {
 
     return NextResponse.json({
       ok: true,
-      redirectTo: `https://${restaurant.subdomain}/admin`,
+      redirectTo: getRestaurantAdminUrl({
+        slug: restaurant.slug,
+        subdomain: restaurant.subdomain,
+        accessMode:
+          restaurant.accessMode === "CONTAINER_PATH"
+            ? "container_path"
+            : "subdomain",
+      }),
     });
   } catch (error) {
     console.error("[Restaurant Login Error]", error);

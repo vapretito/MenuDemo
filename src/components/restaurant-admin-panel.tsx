@@ -33,6 +33,11 @@ import {
   buildLocalOrderReadyMessage,
   buildWhatsappUrl,
 } from "@/lib/whatsapp";
+import {
+  getRestaurantLocalOrderingUrl,
+  getRestaurantPublicUrl,
+  getRestaurantQrMenuUrl,
+} from "@/lib/restaurant-urls";
 
 const money = new Intl.NumberFormat("es-AR", {
   style: "currency",
@@ -1070,9 +1075,9 @@ const fulfillmentModeLabel =
     ? activeProductCategoryItems.findIndex((item) => item.id === activeProduct.id)
     : -1;
 
-  const publicUrl = `https://${restaurant.subdomain}`;
-  const qrMenuUrl = `${publicUrl}/qr`;
-  const localOrderingUrl = `${publicUrl}/ordenar/${restaurant.slug}/acceso`;
+  const publicUrl = getRestaurantPublicUrl(restaurant);
+  const qrMenuUrl = getRestaurantQrMenuUrl(restaurant);
+  const localOrderingUrl = getRestaurantLocalOrderingUrl(restaurant);
   const adminWhatsappUrl = `https://wa.me/${restaurant.customerWhatsapp}`;
   const supportUrl =
     "https://wa.me/5493516641124?text=Hola%2C%20necesito%20ayuda%20con%20mi%20panel%20admin%20de%20Menui";

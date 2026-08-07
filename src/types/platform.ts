@@ -49,6 +49,7 @@ export type RestaurantStatus =
 export type DnsSetupStatus = "pending" | "configured";
 export type PlanId = "basic" | "pro" | "premium" | "demo" | "test_real";
 export type BillingMode = "mercado_pago_subscription" | "manual";
+export type RestaurantAccessMode = "subdomain" | "container_path";
 export type PaymentStatus =
   | "pending"
   | "approved"
@@ -104,6 +105,10 @@ export type RestaurantRecord = {
   name: string;
   slug: string;
   subdomain: string;
+  accessMode: RestaurantAccessMode;
+  groupId?: string | null;
+  groupName?: string | null;
+  groupSlug?: string | null;
   dnsStatus: DnsSetupStatus;
   connectedToDemo: boolean;
   billingMode: BillingMode;
@@ -158,6 +163,8 @@ export type RestaurantCreationInput = {
   name: string;
   slug: string;
   subdomain: string;
+  accessMode: RestaurantAccessMode;
+  groupId?: string | null;
   city: string;
   cuisine: string;
   adminName: string;
@@ -188,6 +195,23 @@ export type PlatformSnapshot = {
   mercadopagoNote: string;
   plans: PlanRecord[];
   restaurants: RestaurantRecord[];
+};
+
+export type RestaurantGroupRecord = {
+  id: string;
+  name: string;
+  slug: string;
+  description: string;
+  accentColor: string;
+  isActive: boolean;
+  restaurantsCount: number;
+};
+
+export type RestaurantGroupCreationInput = {
+  name: string;
+  slug: string;
+  description: string;
+  accentColor: string;
 };
 
 export type PaymentRecord = {

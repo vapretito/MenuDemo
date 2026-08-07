@@ -27,6 +27,7 @@ export default async function OrderConfirmationPage({
     },
     include: {
       subscription: true,
+      group: true,
     },
   });
 

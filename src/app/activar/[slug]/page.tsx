@@ -1,5 +1,10 @@
 import { notFound } from "next/navigation";
 import { prisma } from "@/lib/prisma";
+import {
+  getRestaurantAdminUrl,
+  getRestaurantLoginUrl,
+  getRestaurantPublicUrl,
+} from "@/lib/restaurant-urls";
 import styles from "./page.module.css";
 
 type ActivationPageProps = {
@@ -131,6 +136,11 @@ export default async function ActivationPage({
     },
     include: {
       subscription: true,
+      group: {
+        select: {
+          slug: true,
+        },
+      },
     },
   });
 
@@ -140,9 +150,26 @@ export default async function ActivationPage({
 
   const statusCopy = getStatusCopy(restaurant.status, restaurant.trialEndsAt);
 
-  const publicUrl = `https://${restaurant.subdomain}`;
-  const loginUrl = `https://${restaurant.subdomain}/login`;
-  const adminUrl = `https://${restaurant.subdomain}/admin`;
+  const accessMode =
+    restaurant.accessMode === "CONTAINER_PATH" ? "container_path" : "subdomain";
+  const publicUrl = getRestaurantPublicUrl({
+    slug: restaurant.slug,
+    subdomain: restaurant.subdomain,
+    accessMode,
+    groupSlug: restaurant.group?.slug,
+  });
+  const loginUrl = getRestaurantLoginUrl({
+    slug: restaurant.slug,
+    subdomain: restaurant.subdomain,
+    accessMode,
+    groupSlug: restaurant.group?.slug,
+  });
+  const adminUrl = getRestaurantAdminUrl({
+    slug: restaurant.slug,
+    subdomain: restaurant.subdomain,
+    accessMode,
+    groupSlug: restaurant.group?.slug,
+  });
 
   const supportWhatsapp = process.env.MENUI_SUPPORT_WHATSAPP ?? "";
   const supportUrl = supportWhatsapp
