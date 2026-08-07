@@ -1,0 +1,23 @@
+
+> demo-menu@0.1.0 start
+> next start
+
+▲ Next.js 16.2.4
+- Local:         http://localhost:3000
+- Network:       http://192.168.0.19:3000
+✓ Ready in 144ms
+prisma:error 
+Invalid `prisma.restaurant.findFirst()` invocation:
+
+
+
+prisma:error 
+Invalid `prisma.restaurantGroup.findUnique()` invocation:
+
+
+
+prisma:error 
+Invalid `prisma.restaurantGroup.findUnique()` invocation:
+
+
+

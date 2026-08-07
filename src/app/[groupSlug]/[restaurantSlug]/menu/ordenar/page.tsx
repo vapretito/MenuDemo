@@ -24,9 +24,7 @@ export default async function GroupRestaurantOrderAliasPage({
       <LocalOrderingMenu
         restaurant={restaurant}
         orderApiPath="/api/contenedores/orders"
-        orderSuccessPathBuilder={(slug, orderId) =>
-          `/${groupSlug}/${slug}/pedido/${orderId}`
-        }
+        orderSuccessPathPrefix={`/${groupSlug}`}
         homeHref={`/${groupSlug}`}
         homeLabel={`Volver a ${restaurant.groupName ?? "grupo"}`}
         homeBrandSrc={null}

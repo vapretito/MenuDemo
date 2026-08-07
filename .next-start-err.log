@@ -1,0 +1,23 @@
+⨯ Error [PrismaClientKnownRequestError]: 
+Invalid `prisma.restaurantGroup.findUnique()` invocation:
+
+
+
+    at async Module.f [as generateMetadata] (C:\Users\TitoM4lda\Desktop\PROYECTOS\Demo Menu\demo-menu\.next\server\chunks\ssr\[root-of-the-server]__0tp.vmk._.js:1:508) {
+  code: 'EACCES',
+  meta: { modelName: 'RestaurantGroup' },
+  clientVersion: '7.8.0',
+  digest: '286330074'
+}
+⨯ Error [PrismaClientKnownRequestError]: 
+Invalid `prisma.restaurant.findFirst()` invocation:
+
+
+
+    at async k (C:\Users\TitoM4lda\Desktop\PROYECTOS\Demo Menu\demo-menu\.next\server\chunks\ssr\[root-of-the-server]__0y.pw1.._.js:1:16817)
+    at async i (C:\Users\TitoM4lda\Desktop\PROYECTOS\Demo Menu\demo-menu\.next\server\chunks\ssr\[root-of-the-server]__0y.pw1.._.js:1:18603) {
+  code: 'EACCES',
+  meta: { modelName: 'Restaurant' },
+  clientVersion: '7.8.0',
+  digest: '2603508703'
+}

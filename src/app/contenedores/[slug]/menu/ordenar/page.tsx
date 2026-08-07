@@ -23,9 +23,7 @@ export default async function MarketplaceRestaurantOrderPage({
       <LocalOrderingMenu
         restaurant={restaurant}
         orderApiPath="/api/contenedores/orders"
-        orderSuccessPathBuilder={(restaurantSlug, orderId) =>
-          `/contenedores/${restaurantSlug}/pedido/${orderId}`
-        }
+        orderSuccessPathPrefix="/contenedores"
         homeHref="/contenedores"
         homeLabel="Volver a Contenedores"
         homeBrandSrc={null}

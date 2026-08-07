@@ -25,7 +25,7 @@ const money = new Intl.NumberFormat("es-AR", {
 type LocalOrderingMenuProps = {
   restaurant: RestaurantRecord;
   orderApiPath?: string;
-  orderSuccessPathBuilder?: (slug: string, orderId: string) => string;
+  orderSuccessPathPrefix?: string;
   homeHref?: string;
   homeLabel?: string;
   homeBrandSrc?: string | null;
@@ -97,8 +97,7 @@ const normalizeLogoPosition = (
 export function LocalOrderingMenu({
   restaurant,
   orderApiPath = "/api/local-orders",
-  orderSuccessPathBuilder = (slug, orderId) =>
-    `/ordenar/${slug}/pedido/${orderId}`,
+  orderSuccessPathPrefix = "/ordenar",
   homeHref = "https://menui.online",
   homeLabel = "Realizado por Menui",
   homeBrandSrc = "/logos/menui-logo.svg",
@@ -294,7 +293,9 @@ export function LocalOrderingMenu({
         service_mode: restaurant.serviceMode ?? "counter_pickup",
       });
 
-      router.push(orderSuccessPathBuilder(restaurant.slug, data.order.id));
+      router.push(
+        `${orderSuccessPathPrefix}/${restaurant.slug}/pedido/${data.order.id}`
+      );
     } catch (error) {
       setCheckoutError(
         error instanceof Error ? error.message : "No se pudo registrar el pedido."
