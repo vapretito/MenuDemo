@@ -29,6 +29,7 @@ export function getRestaurantPublicUrl({
   slug,
   subdomain,
   accessMode,
+  groupSlug,
 }: RestaurantUrlInput) {
   if (normalizeAccessMode(accessMode) === "container_path") {
     return `https://${getRootDomain()}${getRestaurantPublicPath({
@@ -45,6 +46,7 @@ export function getRestaurantLoginUrl({
   slug,
   subdomain,
   accessMode,
+  groupSlug,
 }: RestaurantUrlInput) {
   if (normalizeAccessMode(accessMode) === "container_path") {
     return `https://${getRootDomain()}/${groupSlug || "contenedores"}/${slug}/login`;
@@ -69,6 +71,7 @@ export function getRestaurantQrMenuUrl({
   slug,
   subdomain,
   accessMode,
+  groupSlug,
 }: RestaurantUrlInput) {
   if (normalizeAccessMode(accessMode) === "container_path") {
     return `https://${getRootDomain()}/${groupSlug || "contenedores"}/${slug}/menu`;
@@ -81,6 +84,7 @@ export function getRestaurantLocalOrderingUrl({
   slug,
   subdomain,
   accessMode,
+  groupSlug,
 }: RestaurantUrlInput) {
   if (normalizeAccessMode(accessMode) === "container_path") {
     return `https://${getRootDomain()}/${groupSlug || "contenedores"}/${slug}/menu/ordenar`;
