@@ -1,4 +1,4 @@
-import { RestaurantStatus } from "@/generated/prisma/client";
+import { RestaurantAccessMode, RestaurantStatus } from "@/generated/prisma/client";
 import { prisma } from "@/lib/prisma";
 import { canRestaurantAccessPanel } from "@/lib/restaurant-access";
 import { mapRestaurantToRecord } from "@/lib/restaurant-mapper";
@@ -21,7 +21,7 @@ const restaurantInclude = {
 
 const publicRestaurantFilter = {
   status: {
-    in: [
+    in: <RestaurantStatus[]>[
       RestaurantStatus.ACTIVE,
       RestaurantStatus.TRIAL,
       RestaurantStatus.MANUAL,
@@ -83,7 +83,7 @@ export async function getPublicRestaurantGroupBySlug(groupSlug: string) {
       restaurants: {
         where: {
           ...publicRestaurantFilter,
-          accessMode: "CONTAINER_PATH",
+          accessMode: RestaurantAccessMode.CONTAINER_PATH,
         },
         include: restaurantInclude,
         orderBy: [{ connectedToDemo: "desc" }, { name: "asc" }],
@@ -116,7 +116,7 @@ export async function getPublicRestaurantInGroup(
   const restaurant = await prisma.restaurant.findFirst({
     where: {
       slug: restaurantSlug,
-      accessMode: "CONTAINER_PATH",
+      accessMode: RestaurantAccessMode.CONTAINER_PATH,
       group: {
         slug: groupSlug,
         isActive: true,
