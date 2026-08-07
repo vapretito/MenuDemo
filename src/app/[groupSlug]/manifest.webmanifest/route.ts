@@ -32,7 +32,7 @@ export async function GET(_request: Request, { params }: RouteContext) {
       name: `${group.name} | Menui`,
       short_name: group.name,
       description: group.description || `${group.name} en Menui`,
-      start_url: `/${group.slug}`,
+      start_url: `/${group.slug}/`,
       scope: `/${group.slug}/`,
       display: "standalone",
       background_color: "#fff8ef",
