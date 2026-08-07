@@ -203,7 +203,7 @@ export async function POST(request: Request) {
       return tx.order.create({
         data: {
           restaurantId: restaurant.id,
-          source: "WHATSAPP",
+          source: "LOCAL_QR",
           serviceMode: restaurant.serviceMode,
           serviceLocationId: null,
           customerName,

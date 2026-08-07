@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { ADMIN_LOCAL_ORDER_SOURCES } from "@/lib/local-order-sources";
 import { getRestaurantSession } from "@/lib/restaurant-session";
 import { prisma } from "@/lib/prisma";
 
@@ -13,7 +14,9 @@ export async function GET() {
     const orders = await prisma.order.findMany({
       where: {
         restaurantId: session.restaurantId,
-        source: "LOCAL_QR",
+        source: {
+          in: [...ADMIN_LOCAL_ORDER_SOURCES],
+        },
       },
       select: {
         id: true,

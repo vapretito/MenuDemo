@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { Prisma } from "@/generated/prisma/client";
+import { ADMIN_LOCAL_ORDER_SOURCES } from "@/lib/local-order-sources";
 import { getRestaurantSession } from "@/lib/restaurant-session";
 import { prisma } from "@/lib/prisma";
 import { summarizeLocalOrderCash } from "@/lib/local-order-cash-summary";
@@ -29,7 +30,9 @@ export async function POST(request: Request) {
     const orders = await prisma.order.findMany({
       where: {
         restaurantId: session.restaurantId,
-        source: "LOCAL_QR",
+        source: {
+          in: [...ADMIN_LOCAL_ORDER_SOURCES],
+        },
         deletedAt: null,
       },
       orderBy: {
