@@ -224,6 +224,7 @@ model Restaurant {
   serviceLocations ServiceLocation[]
   guestSessions GuestSession[]
   localOrders Order[]
+  localOrderPushSubscriptions LocalOrderPushSubscription[]
 
   @@index([status])
   @@index([dnsStatus])
@@ -424,6 +425,7 @@ model Order {
   updatedAt   DateTime @updatedAt
 
   items OrderItem[]
+  pushSubscriptions LocalOrderPushSubscription[]
 
   @@unique([restaurantId, pickupCode])
   @@index([restaurantId])
@@ -434,6 +436,26 @@ model Order {
   @@index([paidAt])
   @@index([expiresAt])
   @@index([deletedAt])
+}
+
+model LocalOrderPushSubscription {
+  id           String     @id @default(cuid())
+  orderId       String
+  order         Order      @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  restaurantId  String
+  restaurant    Restaurant @relation(fields: [restaurantId], references: [id], onDelete: Cascade)
+  endpoint      String
+  p256dh        String
+  auth          String
+  targetUrl     String
+  expirationTime DateTime?
+  createdAt     DateTime   @default(now())
+  updatedAt     DateTime   @updatedAt
+
+  @@unique([orderId, endpoint])
+  @@index([restaurantId])
+  @@index([orderId])
+  @@index([createdAt])
 }
 
 model OrderItem {

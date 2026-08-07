@@ -77,6 +77,7 @@ export default async function MarketplaceOrderStatusPage({
       repeatOrderHref={`/contenedores/${slug}/menu`}
       menuHref="/contenedores"
       eyebrowLabel="Pedido desde Contenedores"
+      statusPageHref={`/contenedores/${slug}/pedido/${orderId}`}
     />
   );
 }

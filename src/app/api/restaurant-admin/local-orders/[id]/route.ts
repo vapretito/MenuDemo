@@ -2,6 +2,10 @@ import { NextResponse } from "next/server";
 import { verifyPassword } from "@/lib/password";
 import { getRestaurantSession } from "@/lib/restaurant-session";
 import { prisma } from "@/lib/prisma";
+import {
+  buildLocalOrderStatusPushBody,
+  sendLocalOrderPushNotifications,
+} from "@/lib/web-push";
 
 type RouteContext = {
   params: Promise<{
@@ -42,6 +46,12 @@ export async function PATCH(request: Request, context: RouteContext) {
         status: true,
         paymentStatus: true,
         paidAt: true,
+        pickupCode: true,
+        restaurant: {
+          select: {
+            name: true,
+          },
+        },
       },
     });
 
@@ -113,12 +123,29 @@ export async function PATCH(request: Request, context: RouteContext) {
       data.status = "DELIVERED";
     }
 
-    await prisma.order.update({
+    const updatedOrder = await prisma.order.update({
       where: {
         id,
       },
       data,
+      select: {
+        id: true,
+        status: true,
+      },
     });
+
+    if (updatedOrder.status !== existingOrder.status) {
+      await sendLocalOrderPushNotifications({
+        orderId: updatedOrder.id,
+        title: existingOrder.restaurant.name,
+        body: buildLocalOrderStatusPushBody({
+          status: updatedOrder.status,
+          pickupCode: existingOrder.pickupCode,
+          restaurantName: existingOrder.restaurant.name,
+        }),
+        tag: `local-order-${updatedOrder.id}`,
+      });
+    }
 
     return NextResponse.json({
       ok: true,
@@ -138,7 +165,7 @@ export async function PATCH(request: Request, context: RouteContext) {
   }
 }
 
-export async function DELETE(_request: Request, context: RouteContext) {
+export async function DELETE(request: Request, context: RouteContext) {
   const session = await getRestaurantSession();
 
   if (!session) {
@@ -147,7 +174,7 @@ export async function DELETE(_request: Request, context: RouteContext) {
 
   try {
     const { id } = await context.params;
-    const requestBody = (await _request.json().catch(() => ({}))) as {
+    const requestBody = (await request.json().catch(() => ({}))) as {
       deleteCode?: string;
     };
     const deleteCode = String(requestBody.deleteCode ?? "").trim();
@@ -183,7 +210,7 @@ export async function DELETE(_request: Request, context: RouteContext) {
       return NextResponse.json(
         {
           error:
-            "Primero configurá un código de borrado en la sección Seguridad.",
+            "Primero configura un codigo de borrado en la seccion Seguridad.",
         },
         { status: 400 }
       );
@@ -191,7 +218,7 @@ export async function DELETE(_request: Request, context: RouteContext) {
 
     if (!deleteCode) {
       return NextResponse.json(
-        { error: "Ingresá el código de borrado para continuar." },
+        { error: "Ingresa el codigo de borrado para continuar." },
         { status: 400 }
       );
     }
@@ -203,7 +230,7 @@ export async function DELETE(_request: Request, context: RouteContext) {
 
     if (!isDeleteCodeValid) {
       return NextResponse.json(
-        { error: "El código de borrado es incorrecto." },
+        { error: "El codigo de borrado es incorrecto." },
         { status: 401 }
       );
     }

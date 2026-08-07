@@ -78,6 +78,7 @@ export default async function GroupRestaurantOrderStatusPage({
       repeatOrderHref={`/${groupSlug}/${restaurantSlug}/menu`}
       menuHref={`/${groupSlug}`}
       eyebrowLabel="Pedido desde grupo Menui"
+      statusPageHref={`/${groupSlug}/${restaurantSlug}/pedido/${orderId}`}
     />
   );
 }

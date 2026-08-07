@@ -71,6 +71,7 @@ export default async function LocalOrderStatusPage({
           notes: item.notes,
         })),
       }}
+      statusPageHref={`/ordenar/${slug}/pedido/${orderId}`}
     />
   );
 }

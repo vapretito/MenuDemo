@@ -61,13 +61,32 @@ type LocalOrderStatusClientProps = {
   repeatOrderHref?: string;
   menuHref?: string;
   eyebrowLabel?: string;
+  statusPageHref?: string;
+};
+
+const canUsePushNotifications = () =>
+  typeof window !== "undefined" &&
+  "serviceWorker" in navigator &&
+  "PushManager" in window;
+
+const urlBase64ToUint8Array = (base64String: string) => {
+  const padding = "=".repeat((4 - (base64String.length % 4)) % 4);
+  const base64 = (base64String + padding).replace(/-/g, "+").replace(/_/g, "/");
+  const rawData = window.atob(base64);
+  const outputArray = new Uint8Array(rawData.length);
+
+  for (let index = 0; index < rawData.length; index += 1) {
+    outputArray[index] = rawData.charCodeAt(index);
+  }
+
+  return outputArray;
 };
 
 const buildClientNotificationMessage = (order: LocalOrderStatusSnapshot) => {
   const statusLabel = getLocalOrderStatusLabel(order.status);
 
   if (order.status === "READY") {
-    return `${statusLabel}. Ya podés retirarlo en el local.`;
+    return `${statusLabel}. Ya podes retirarlo en el local.`;
   }
 
   if (order.status === "DELIVERED") {
@@ -82,11 +101,13 @@ export function LocalOrderStatusClient({
   repeatOrderHref,
   menuHref,
   eyebrowLabel = "Pedido en local",
+  statusPageHref,
 }: LocalOrderStatusClientProps) {
   const [order, setOrder] = useState(initialOrder);
   const [notificationsEnabled, setNotificationsEnabled] = useState(
     getBrowserNotificationPermission() === "granted"
   );
+  const [pushSupported, setPushSupported] = useState(false);
   const previousStatusRef = useRef(initialOrder.status);
   const previousPaymentStatusRef = useRef(initialOrder.paymentStatus);
 
@@ -94,11 +115,76 @@ export function LocalOrderStatusClient({
     () => formatLocalOrderReference(order.customerName, order.pickupCode),
     [order.customerName, order.pickupCode]
   );
-  const statusLabel = useMemo(() => getLocalOrderStatusLabel(order.status), [order.status]);
+  const statusLabel = useMemo(
+    () => getLocalOrderStatusLabel(order.status),
+    [order.status]
+  );
   const statusMessage = useMemo(
     () => getLocalOrderStatusMessage(order.status),
     [order.status]
   );
+
+  const subscribeToPushNotifications = useEffectEvent(async () => {
+    if (!pushSupported || getBrowserNotificationPermission() !== "granted") {
+      return {
+        ok: false,
+        reason: "unsupported",
+      } as const;
+    }
+
+    const keyResponse = await fetch("/api/push/public-key", {
+      cache: "no-store",
+    });
+    const keyData = (await keyResponse.json().catch(() => ({}))) as {
+      configured?: boolean;
+      publicKey?: string | null;
+    };
+
+    if (!keyResponse.ok || !keyData.configured || !keyData.publicKey) {
+      return {
+        ok: false,
+        reason: "not_configured",
+      } as const;
+    }
+
+    const registration = await navigator.serviceWorker.register("/menui-push-sw.js");
+    let subscription = await registration.pushManager.getSubscription();
+
+    if (!subscription) {
+      subscription = await registration.pushManager.subscribe({
+        userVisibleOnly: true,
+        applicationServerKey: urlBase64ToUint8Array(keyData.publicKey),
+      });
+    }
+
+    const targetUrl =
+      statusPageHref ??
+      `${window.location.pathname}${window.location.search}${window.location.hash}`;
+    const response = await fetch(
+      `/api/local-orders/${order.id}/push-subscription?slug=${encodeURIComponent(order.restaurant.slug)}`,
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          subscription: subscription.toJSON(),
+          targetUrl,
+        }),
+      }
+    );
+
+    if (!response.ok) {
+      const data = (await response.json().catch(() => ({}))) as {
+        error?: string;
+      };
+      throw new Error(data.error ?? "No se pudo registrar la suscripcion push.");
+    }
+
+    return {
+      ok: true,
+    } as const;
+  });
 
   const loadLatestOrder = useEffectEvent(async () => {
     try {
@@ -111,10 +197,7 @@ export function LocalOrderStatusClient({
 
       const data = (await response.json().catch(() => ({}))) as {
         ok?: boolean;
-        order?: Omit<
-          LocalOrderStatusSnapshot,
-          "serviceLocationName" | "items"
-        >;
+        order?: Omit<LocalOrderStatusSnapshot, "serviceLocationName" | "items">;
       };
 
       if (!response.ok || !data.ok || !data.order) {
@@ -162,6 +245,10 @@ export function LocalOrderStatusClient({
   }, [order.restaurant.name, statusLabel]);
 
   useEffect(() => {
+    setPushSupported(canUsePushNotifications());
+  }, []);
+
+  useEffect(() => {
     const intervalId = window.setInterval(() => {
       void loadLatestOrder();
     }, 10000);
@@ -169,20 +256,48 @@ export function LocalOrderStatusClient({
     return () => window.clearInterval(intervalId);
   }, []);
 
+  useEffect(() => {
+    if (!notificationsEnabled || !pushSupported) {
+      return;
+    }
+
+    void subscribeToPushNotifications().catch((error) => {
+      console.error("[Push Subscription Sync Error]", error);
+    });
+  }, [notificationsEnabled, pushSupported]);
+
   const enableNotifications = async () => {
     const permission = await requestBrowserNotificationPermission();
     const granted = permission === "granted";
     setNotificationsEnabled(granted);
 
     if (granted) {
-      void playNotificationTone();
-      showBrowserNotification(
-        order.restaurant.name,
-        "Te vamos a avisar cuando el pedido cambie de estado.",
-        {
-          tag: `local-order-subscription-${order.id}`,
+      try {
+        const result = await subscribeToPushNotifications();
+
+        if (!result.ok && result.reason === "not_configured") {
+          window.alert(
+            "Las notificaciones push todavia no estan configuradas en Menui. Cuando carguemos las claves del proyecto, este boton ya va a avisarte aun con la app cerrada."
+          );
+          return;
         }
-      );
+
+        void playNotificationTone();
+        showBrowserNotification(
+          order.restaurant.name,
+          "Te vamos a avisar aunque salgas de la PWA cuando tu pedido cambie de estado.",
+          {
+            tag: `local-order-subscription-${order.id}`,
+          }
+        );
+      } catch (error) {
+        console.error("[Push Subscription Enable Error]", error);
+        window.alert(
+          error instanceof Error
+            ? error.message
+            : "No se pudo activar la suscripcion push en este dispositivo."
+        );
+      }
       return;
     }
 
@@ -194,7 +309,7 @@ export function LocalOrderStatusClient({
     }
 
     window.alert(
-      "Las notificaciones quedaron bloqueadas en este navegador. Podés habilitarlas manualmente desde la configuración del sitio."
+      "Las notificaciones quedaron bloqueadas en este navegador. Podes habilitarlas manualmente desde la configuracion del sitio."
     );
   };
 
@@ -212,15 +327,20 @@ export function LocalOrderStatusClient({
 
         <div className={styles.noticeRow}>
           <p className={styles.noticeText}>
-            Esta pantalla se actualiza sola. Si activás las notificaciones, el
-            navegador te avisa cuando cambie el estado.
+            Esta pantalla se actualiza sola. Si activas las notificaciones, te
+            podemos avisar tambien fuera de la PWA cuando cambie el estado del pedido.
           </p>
           <button
             className={notificationsEnabled ? styles.secondary : styles.primary}
             onClick={() => void enableNotifications()}
             type="button"
+            disabled={!pushSupported}
           >
-            {notificationsEnabled ? "Notificaciones activas" : "Activar notificaciones"}
+            {!pushSupported
+              ? "Push no disponible"
+              : notificationsEnabled
+                ? "Notificaciones activas"
+                : "Activar notificaciones"}
           </button>
         </div>
 
