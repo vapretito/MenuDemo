@@ -143,6 +143,29 @@ const normalizeSubscriptionStatus = (
   return "scheduled";
 };
 
+const normalizeNumber = (value: unknown) => {
+  if (typeof value === "number") {
+    return value;
+  }
+
+  if (typeof value === "string") {
+    const parsed = Number(value);
+    return Number.isFinite(parsed) ? parsed : 0;
+  }
+
+  if (
+    value &&
+    typeof value === "object" &&
+    "toNumber" in value &&
+    typeof value.toNumber === "function"
+  ) {
+    const parsed = value.toNumber();
+    return Number.isFinite(parsed) ? parsed : 0;
+  }
+
+  return 0;
+};
+
 export function mapRestaurantToRecord(
   restaurant: RestaurantWithRelations
 ): RestaurantRecord {
@@ -203,7 +226,7 @@ export function mapRestaurantToRecord(
     cuisine: restaurant.cuisine,
     description: restaurant.description,
     status: normalizeRestaurantStatus(restaurant.status),
-    trialEndsAt: restaurant.trialEndsAt,
+    trialEndsAt: restaurant.trialEndsAt?.toISOString() ?? null,
     adminName: restaurant.adminName ?? "",
     adminWhatsapp: restaurant.adminWhatsapp ?? restaurant.customerWhatsapp,
     customerWhatsapp: restaurant.customerWhatsapp,
@@ -221,7 +244,7 @@ export function mapRestaurantToRecord(
     subscription: {
       planId: normalizePlanId(subscription?.planId),
       plan: subscription?.planName ?? "Menui Basic",
-      amountArs: subscription?.amountArs ?? 0,
+      amountArs: normalizeNumber(subscription?.amountArs),
       cycle: normalizeCycle(),
       mercadopagoPreapprovalId:
         subscription?.mercadopagoPreapprovalId ??
@@ -265,7 +288,7 @@ export function mapRestaurantToRecord(
       categoryId: product.categoryId,
       name: product.name,
       description: product.description,
-      price: product.priceArs,
+      price: normalizeNumber(product.priceArs),
       image: product.image ?? "",
       featured: product.featured,
       available: product.available,

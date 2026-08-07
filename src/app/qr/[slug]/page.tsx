@@ -34,6 +34,7 @@ export default async function QrMenuPage({ params }: QrMenuPageProps) {
   if (!restaurant) {
     notFound();
   }
+  
 
   if (!canRestaurantAccessPanel(restaurant)) {
     redirect(`/activar/${restaurant.slug}`);
