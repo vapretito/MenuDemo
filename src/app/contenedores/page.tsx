@@ -2,6 +2,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import styles from "./page.module.css";
 import { getPublicRestaurantsForGroup } from "@/lib/restaurant-groups";
+import type { RestaurantRecord } from "@/types/platform";
 
 const money = new Intl.NumberFormat("es-AR", {
   style: "currency",
@@ -52,9 +53,11 @@ export default async function ContenedoresPage() {
 
         {restaurants.length ? (
           <div className={styles.grid}>
-            {restaurants.map((restaurant) => {
+            {restaurants.map((restaurant: RestaurantRecord) => {
               const featuredItem =
-                restaurant.items.find((item) => item.featured) ?? restaurant.items[0];
+                restaurant.items.find(
+                  (item: RestaurantRecord["items"][number]) => item.featured
+                ) ?? restaurant.items[0];
 
               return (
                 <article className={styles.card} key={restaurant.id}>
