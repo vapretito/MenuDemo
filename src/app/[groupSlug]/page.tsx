@@ -4,6 +4,8 @@ import styles from "@/app/contenedores/page.module.css";
 import { getPublicRestaurantsForGroup } from "@/lib/restaurant-groups";
 import type { RestaurantRecord } from "@/types/platform";
 
+export const dynamic = "force-dynamic";
+
 const money = new Intl.NumberFormat("es-AR", {
   style: "currency",
   currency: "ARS",
