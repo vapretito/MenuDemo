@@ -1334,6 +1334,7 @@ const createRestaurant = async () => {
                         onChange={(event) =>
                           setForm((current) => ({
                             ...current,
+                            accessMode: "container_path",
                             groupId: event.target.value || null,
                           }))
                         }
