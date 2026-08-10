@@ -1,59 +1,29 @@
-.navbar {
+.toggle {
   position: fixed;
   top: calc(env(safe-area-inset-top, 0px) + 16px);
   left: 50%;
   z-index: 40;
   display: inline-flex;
   align-items: center;
-  gap: 12px;
-  padding: 8px;
-  border: 1px solid rgba(78, 41, 26, 0.14);
+  justify-content: center;
+  padding: 0;
+  border: 1px solid rgba(78, 41, 26, 0.16);
   border-radius: 999px;
   background: rgba(255, 251, 246, 0.92);
-  color: #2e1b15;
-  box-shadow: 0 18px 45px rgba(66, 32, 18, 0.18);
+  box-shadow: 0 14px 36px rgba(66, 32, 18, 0.18);
   backdrop-filter: blur(14px);
   transform: translateX(-50%);
-}
-
-.brand {
-  padding: 0 10px 0 12px;
-  color: rgba(46, 27, 21, 0.72);
-  font-size: 0.8rem;
-  font-weight: 800;
-  letter-spacing: 0.12em;
-  text-transform: uppercase;
-}
-
-.toggle {
-  display: inline-flex;
-  align-items: center;
-  gap: 12px;
-  padding: 10px 14px;
-  border: 0;
-  border-radius: 999px;
-  background: #2e1b15;
-  color: #fff8f2;
-  font: inherit;
-  font-weight: 700;
   cursor: pointer;
   transition:
     transform 0.2s ease,
     box-shadow 0.2s ease,
-    background-color 0.2s ease,
-    color 0.2s ease;
+    background-color 0.2s ease;
 }
 
 .toggle:hover,
 .toggle:focus-visible {
-  transform: translateY(-1px);
-  box-shadow: 0 18px 38px rgba(66, 32, 18, 0.24);
-}
-
-.toggleLabel {
-  font-size: 0.86rem;
-  font-weight: 700;
-  letter-spacing: 0.01em;
+  transform: translateX(-50%) translateY(-1px);
+  box-shadow: 0 18px 40px rgba(66, 32, 18, 0.24);
 }
 
 .switch {
@@ -64,8 +34,13 @@
   height: 34px;
   padding: 4px;
   border-radius: 999px;
-  background: linear-gradient(135deg, #d4b39a 0%, #8a5a43 100%);
+  background: linear-gradient(135deg, #e6be7f 0%, #c97b3d 100%);
   overflow: hidden;
+  transition: background 0.24s ease;
+}
+
+.switch[data-theme="dark"] {
+  background: linear-gradient(135deg, #45305b 0%, #17131f 100%);
 }
 
 .trackIcons {
@@ -79,10 +54,23 @@
 }
 
 .trackIcon {
-  color: rgba(255, 248, 242, 0.82);
-  font-size: 0.7rem;
-  font-weight: 800;
+  font-size: 0.88rem;
   line-height: 1;
+  transition:
+    opacity 0.24s ease,
+    transform 0.24s ease;
+}
+
+.switch[data-theme="light"] .trackIcon:first-child,
+.switch[data-theme="dark"] .trackIcon:last-child {
+  opacity: 1;
+  transform: scale(1);
+}
+
+.switch[data-theme="light"] .trackIcon:last-child,
+.switch[data-theme="dark"] .trackIcon:first-child {
+  opacity: 0.52;
+  transform: scale(0.9);
 }
 
 .thumb {
@@ -104,25 +92,15 @@
 }
 
 @media (max-width: 720px) {
-  .navbar {
-    top: calc(env(safe-area-inset-top, 0px) + 12px);
-    gap: 8px;
-    width: calc(100% - 28px);
-    justify-content: space-between;
-    padding: 7px;
-  }
-
-  .brand {
-    padding-left: 10px;
-    font-size: 0.74rem;
-  }
-
   .toggle {
-    padding: 10px 13px;
-    font-size: 0.92rem;
+    top: calc(env(safe-area-inset-top, 0px) + 12px);
+    right: 14px;
+    left: auto;
+    transform: none;
   }
 
-  .toggleLabel {
-    font-size: 0.8rem;
+  .toggle:hover,
+  .toggle:focus-visible {
+    transform: translateY(-1px);
   }
 }
