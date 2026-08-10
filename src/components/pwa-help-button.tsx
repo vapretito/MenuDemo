@@ -65,7 +65,6 @@ export function PwaHelpButton() {
         id="pwa-help-panel"
       >
         <div className={styles.panelHeader}>
-          <span className={styles.badge}>PWA</span>
           <h2>Instalar esta app</h2>
           <p>
             Si queres tener acceso rapido desde tu pantalla principal, segui estos

@@ -85,6 +85,7 @@
   background-color: #d8c2ad;
   background-position: center;
   background-size: cover;
+  transition: filter 0.2s ease;
 }
 
 .restaurantNameWrap {
@@ -116,6 +117,52 @@
   margin: 0;
   color: #715e56;
   line-height: 1.6;
+}
+
+:global(html[data-group-theme="dark"]) .page {
+  background:
+    radial-gradient(circle at top, rgba(249, 115, 22, 0.12), transparent 28%),
+    linear-gradient(180deg, #17120f 0%, #120e0c 48%, #0d0908 100%);
+  color: #f6eee6;
+}
+
+:global(html[data-group-theme="dark"]) .eyebrow {
+  border-color: rgba(255, 243, 232, 0.16);
+  background: rgba(36, 28, 24, 0.72);
+  color: #ffd7bf;
+}
+
+:global(html[data-group-theme="dark"]) .restaurantCard {
+  border-color: rgba(255, 235, 219, 0.1);
+  background: rgba(33, 24, 20, 0.9);
+  box-shadow: 0 22px 58px rgba(0, 0, 0, 0.34);
+}
+
+:global(html[data-group-theme="dark"]) .restaurantLink:hover .restaurantCard,
+:global(html[data-group-theme="dark"]) .restaurantLink:focus-visible .restaurantCard {
+  box-shadow: 0 28px 68px rgba(0, 0, 0, 0.42);
+}
+
+:global(html[data-group-theme="dark"]) .restaurantImage {
+  background-color: #3b2b24;
+  filter: saturate(0.92) brightness(0.84);
+}
+
+:global(html[data-group-theme="dark"]) .restaurantNameWrap h3 {
+  color: #fff4eb;
+}
+
+:global(html[data-group-theme="dark"]) .emptyState {
+  border-color: rgba(255, 227, 207, 0.16);
+  background: rgba(33, 24, 20, 0.82);
+}
+
+:global(html[data-group-theme="dark"]) .emptyState h3 {
+  color: #fff4eb;
+}
+
+:global(html[data-group-theme="dark"]) .emptyState p {
+  color: #d6c2b3;
 }
 
 @media (max-width: 720px) {

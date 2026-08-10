@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import styles from "@/app/contenedores/page.module.css";
+import { GroupThemeToggle } from "@/components/group-theme-toggle";
 import { PwaHelpButton } from "@/components/pwa-help-button";
 import { getPublicRestaurantsForGroup } from "@/lib/restaurant-groups";
 import type { RestaurantRecord } from "@/types/platform";
@@ -76,6 +77,7 @@ export default async function GroupLandingPage({ params }: GroupLandingPageProps
       </section>
 
       <PwaHelpButton />
+      <GroupThemeToggle />
     </main>
   );
 }
