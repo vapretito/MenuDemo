@@ -6,12 +6,6 @@ import type { RestaurantRecord } from "@/types/platform";
 
 export const dynamic = "force-dynamic";
 
-const money = new Intl.NumberFormat("es-AR", {
-  style: "currency",
-  currency: "ARS",
-  maximumFractionDigits: 0,
-});
-
 type GroupLandingPageProps = {
   params: Promise<{
     groupSlug: string;
@@ -34,16 +28,15 @@ export default async function GroupLandingPage({ params }: GroupLandingPageProps
         <div className={styles.heroGlow} />
         <div className={styles.heroCopy}>
           <span className={styles.eyebrow}>Menui / {group.name}</span>
-          <h1>Una sola portada dentro de Menui para descubrir restaurantes y pedir desde el celular.</h1>
+          <h1>Elegi un restaurante y entra directo a su menu.</h1>
           <p>
-            Esta seccion vive dentro de <strong>menui.online/{group.slug}</strong> y
-            reutiliza tu flujo actual de pedidos, pero arranca desde una lista
-            centralizada de locales en vez de depender de subdominios o QR.
+            Esta pagina reune todos los locales del grupo en una sola lista simple
+            para que puedas entrar rapido desde el celular.
           </p>
           <div className={styles.heroMeta}>
-            <span>{restaurants.length} restaurantes listos</span>
-            <span>Pedidos directos</span>
-            <span>PWA propia</span>
+            <span>{restaurants.length} restaurantes</span>
+            <span>Acceso rapido</span>
+            <span>Instalable como app</span>
           </div>
         </div>
       </section>
@@ -52,80 +45,38 @@ export default async function GroupLandingPage({ params }: GroupLandingPageProps
         <div className={styles.sectionHeader}>
           <div>
             <span className={styles.eyebrow}>Locales</span>
-            <h2>Elegi donde queres pedir</h2>
+            <h2>Restaurantes</h2>
           </div>
-          <p>
-            Cada tarjeta abre un menu como <strong>menui.online/{group.slug}/[slug]/menu</strong>,
-            manteniendo una PWA distinta por grupo.
-          </p>
         </div>
 
         {restaurants.length ? (
-          <div className={styles.grid}>
+          <div className={styles.restaurantList}>
             {restaurants.map((restaurant: RestaurantRecord) => {
               const featuredItem =
                 restaurant.items.find(
                   (item: RestaurantRecord["items"][number]) => item.featured
                 ) ?? restaurant.items[0];
+              const previewImage =
+                restaurant.coverImageUrl || featuredItem?.image || undefined;
 
               return (
-                <article className={styles.card} key={restaurant.id}>
-                  <div
-                    className={styles.cardMedia}
-                    style={{
-                      backgroundImage: restaurant.coverImageUrl
-                        ? `url(${restaurant.coverImageUrl})`
-                        : featuredItem?.image
-                          ? `url(${featuredItem.image})`
-                          : undefined,
-                    }}
-                  >
-                    <div className={styles.cardOverlay} />
-                    <div className={styles.cardBadges}>
-                      <span>{restaurant.city}</span>
-                      <span>{restaurant.cuisine}</span>
+                <Link
+                  className={styles.restaurantLink}
+                  key={restaurant.id}
+                  href={`/${group.slug}/${restaurant.slug}/menu`}
+                >
+                  <article className={styles.restaurantCard}>
+                    <div
+                      className={styles.restaurantImage}
+                      style={{
+                        backgroundImage: previewImage ? `url(${previewImage})` : undefined,
+                      }}
+                    />
+                    <div className={styles.restaurantNameWrap}>
+                      <h3>{restaurant.name}</h3>
                     </div>
-                  </div>
-
-                  <div className={styles.cardBody}>
-                    <div className={styles.cardTop}>
-                      <div>
-                        <h3>{restaurant.name}</h3>
-                        <p>{restaurant.description}</p>
-                      </div>
-                      <span className={styles.statusPill}>
-                        {restaurant.isAcceptingOrders === false ? "Pausado" : "Recibiendo"}
-                      </span>
-                    </div>
-
-                    <div className={styles.cardStats}>
-                      <div>
-                        <strong>{restaurant.categories.length}</strong>
-                        <span>categorias</span>
-                      </div>
-                      <div>
-                        <strong>{restaurant.items.length}</strong>
-                        <span>productos</span>
-                      </div>
-                      <div>
-                        <strong>
-                          {featuredItem ? money.format(featuredItem.price) : "Menu listo"}
-                        </strong>
-                        <span>destacado</span>
-                      </div>
-                    </div>
-
-                    <div className={styles.cardFooter}>
-                      <div>
-                        <span className={styles.featuredLabel}>Recomendado</span>
-                        <strong>{featuredItem?.name ?? "Listo para configurar"}</strong>
-                      </div>
-                      <Link className={styles.cardButton} href={`/${group.slug}/${restaurant.slug}/menu`}>
-                        Ver menu
-                      </Link>
-                    </div>
-                  </div>
-                </article>
+                  </article>
+                </Link>
               );
             })}
           </div>
@@ -138,6 +89,39 @@ export default async function GroupLandingPage({ params }: GroupLandingPageProps
             </p>
           </article>
         )}
+      </section>
+
+      <section className={styles.section}>
+        <div className={styles.installCard}>
+          <div className={styles.sectionHeader}>
+            <div>
+              <span className={styles.eyebrow}>PWA</span>
+              <h2>Como instalar esta app</h2>
+            </div>
+          </div>
+
+          <div className={styles.installGrid}>
+            <article className={styles.installBlock}>
+              <h3>En iPhone o iPad</h3>
+              <ol>
+                <li>Abri esta pagina en Safari.</li>
+                <li>Toca el boton Compartir.</li>
+                <li>Elegí &quot;Agregar a pantalla de inicio&quot;.</li>
+                <li>Confirma en &quot;Agregar&quot;.</li>
+              </ol>
+            </article>
+
+            <article className={styles.installBlock}>
+              <h3>En Android</h3>
+              <ol>
+                <li>Abri esta pagina en Chrome.</li>
+                <li>Toca el menu de los tres puntos.</li>
+                <li>Elegí &quot;Instalar app&quot; o &quot;Agregar a pantalla principal&quot;.</li>
+                <li>Confirma la instalacion.</li>
+              </ol>
+            </article>
+          </div>
+        </div>
       </section>
     </main>
   );
