@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import styles from "@/app/contenedores/page.module.css";
+import { PwaHelpButton } from "@/components/pwa-help-button";
 import { getPublicRestaurantsForGroup } from "@/lib/restaurant-groups";
 import type { RestaurantRecord } from "@/types/platform";
 
@@ -27,28 +28,11 @@ export default async function GroupLandingPage({ params }: GroupLandingPageProps
       <section className={styles.hero}>
         <div className={styles.heroGlow} />
         <div className={styles.heroCopy}>
-          <span className={styles.eyebrow}>Menui / {group.name}</span>
-          <h1>Elegi un restaurante y entra directo a su menu.</h1>
-          <p>
-            Esta pagina reune todos los locales del grupo en una sola lista simple
-            para que puedas entrar rapido desde el celular.
-          </p>
-          <div className={styles.heroMeta}>
-            <span>{restaurants.length} restaurantes</span>
-            <span>Acceso rapido</span>
-            <span>Instalable como app</span>
-          </div>
+          <span className={styles.eyebrow}>{group.name}</span>
         </div>
       </section>
 
       <section className={styles.section}>
-        <div className={styles.sectionHeader}>
-          <div>
-            <span className={styles.eyebrow}>Locales</span>
-            <h2>Restaurantes</h2>
-          </div>
-        </div>
-
         {restaurants.length ? (
           <div className={styles.restaurantList}>
             {restaurants.map((restaurant: RestaurantRecord) => {
@@ -91,38 +75,7 @@ export default async function GroupLandingPage({ params }: GroupLandingPageProps
         )}
       </section>
 
-      <section className={styles.section}>
-        <div className={styles.installCard}>
-          <div className={styles.sectionHeader}>
-            <div>
-              <span className={styles.eyebrow}>PWA</span>
-              <h2>Como instalar esta app</h2>
-            </div>
-          </div>
-
-          <div className={styles.installGrid}>
-            <article className={styles.installBlock}>
-              <h3>En iPhone o iPad</h3>
-              <ol>
-                <li>Abri esta pagina en Safari.</li>
-                <li>Toca el boton Compartir.</li>
-                <li>Elegí &quot;Agregar a pantalla de inicio&quot;.</li>
-                <li>Confirma en &quot;Agregar&quot;.</li>
-              </ol>
-            </article>
-
-            <article className={styles.installBlock}>
-              <h3>En Android</h3>
-              <ol>
-                <li>Abri esta pagina en Chrome.</li>
-                <li>Toca el menu de los tres puntos.</li>
-                <li>Elegí &quot;Instalar app&quot; o &quot;Agregar a pantalla principal&quot;.</li>
-                <li>Confirma la instalacion.</li>
-              </ol>
-            </article>
-          </div>
-        </div>
-      </section>
+      <PwaHelpButton />
     </main>
   );
 }
