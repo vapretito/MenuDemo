@@ -49,15 +49,14 @@ export function GroupThemeToggle() {
         onClick={handleToggle}
         type="button"
       >
-        <span className={styles.toggleLabel}>Claro</span>
         <span className={styles.switch} data-theme={themeMode}>
           <span className={styles.trackIcons}>
-            <span className={styles.trackIcon}>D</span>
-            <span className={styles.trackIcon}>N</span>
+            <span className={styles.trackIcon}>☀︎</span>
+            <span className={styles.trackIcon}>⏾</span>
           </span>
           <span className={styles.thumb} />
         </span>
-        <span className={styles.toggleLabel}>Noche</span>
+        
       </button>
     </div>
   );
