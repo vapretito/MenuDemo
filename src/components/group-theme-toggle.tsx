@@ -40,9 +40,12 @@ export function GroupThemeToggle() {
   };
 
   return (
-    <button className={styles.toggle} onClick={handleToggle} type="button">
-      <span className={styles.icon}>{themeMode === "light" ? "☾" : "☀"}</span>
-      <span>{themeMode === "light" ? "Modo nocturno" : "Modo claro"}</span>
-    </button>
+    <div className={styles.navbar}>
+      <span className={styles.brand}>Menui</span>
+      <button className={styles.toggle} onClick={handleToggle} type="button">
+        <span className={styles.icon}>{themeMode === "light" ? "N" : "D"}</span>
+        <span>{themeMode === "light" ? "Modo nocturno" : "Modo claro"}</span>
+      </button>
+    </div>
   );
 }
