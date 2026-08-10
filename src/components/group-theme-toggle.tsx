@@ -42,9 +42,22 @@ export function GroupThemeToggle() {
   return (
     <div className={styles.navbar}>
       <span className={styles.brand}>Menui</span>
-      <button className={styles.toggle} onClick={handleToggle} type="button">
-        <span className={styles.icon}>{themeMode === "light" ? "N" : "D"}</span>
-        <span>{themeMode === "light" ? "Modo nocturno" : "Modo claro"}</span>
+      <button
+        aria-label={themeMode === "light" ? "Activar modo nocturno" : "Activar modo claro"}
+        aria-pressed={themeMode === "dark"}
+        className={styles.toggle}
+        onClick={handleToggle}
+        type="button"
+      >
+        <span className={styles.toggleLabel}>Claro</span>
+        <span className={styles.switch} data-theme={themeMode}>
+          <span className={styles.trackIcons}>
+            <span className={styles.trackIcon}>D</span>
+            <span className={styles.trackIcon}>N</span>
+          </span>
+          <span className={styles.thumb} />
+        </span>
+        <span className={styles.toggleLabel}>Noche</span>
       </button>
     </div>
   );
