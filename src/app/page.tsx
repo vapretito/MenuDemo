@@ -140,9 +140,9 @@ export default async function Home() {
             <Link className={styles.secondaryButton} href={`/menu/${featuredRestaurant.slug}`}>
               Ver demo
             </Link>
-            <Link className={styles.secondaryButton} href="/contenedores">
+            {/* <Link className={styles.secondaryButton} href="/contenedores">
               Ver contenedores
-            </Link>
+            </Link> */}
             <a className={styles.secondaryButton} href="#contacto">
               Contacto
             </a>
