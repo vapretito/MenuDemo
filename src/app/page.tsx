@@ -167,9 +167,9 @@ export default async function Home() {
               <Link className={styles.primaryButton} href={`/menu/${featuredRestaurant.slug}`}>
                 Probar menú demo
               </Link>
-              <Link className={styles.secondaryButton} href="/contenedores">
+              {/* <Link className={styles.secondaryButton} href="/contenedores">
                 Abrir contenedores
-              </Link>
+              </Link> */}
               <Link className={styles.secondaryButton} href="/admin">
                 Ver admin demo
               </Link>
