@@ -1089,7 +1089,7 @@ const openProductModal = (item: RestaurantRecord["items"][number]) => {
                   disabled={checkoutFulfillment !== "delivery"}
                   placeholder={
                     checkoutFulfillment === "delivery"
-                      ? "Calle, numero, piso, departamento y referencias"
+                      ? `Calle, número, piso y referencias (en ${restaurant.city})`
                       : "No hace falta completar direccion para take away"
                   }
                   value={deliveryAddress}

@@ -41,17 +41,25 @@ export async function POST(request: Request) {
       );
     }
 
+    // La ciudad se agrega en servidor: el cliente sólo tiene que ingresar calle,
+    // número y referencias. Así evitamos que una dirección breve se resuelva en
+    // otra ciudad o país.
+    const cityContext = `${restaurant.city}, Argentina`;
     const distanceMeters = await getDeliveryRouteDistanceMeters({
-      originAddress: `${restaurant.address}, ${restaurant.city}`,
-      destinationAddress,
+      originAddress: `${restaurant.address}, ${cityContext}`,
+      destinationAddress: `${destinationAddress}, ${cityContext}`,
     });
     const deliveryFeeArs = Math.ceil(distanceMeters / 1000) * restaurant.deliveryFeePerKmArs;
 
     return NextResponse.json({ deliveryFeeArs, distanceMeters });
   } catch (error) {
+    const message =
+      error instanceof Error ? error.message : "No se pudo calcular el delivery.";
     return NextResponse.json(
-      { error: error instanceof Error ? error.message : "No se pudo calcular el delivery." },
-      { status: 500 }
+      { error: message },
+      {
+        status: message.includes("GOOGLE_MAPS_API_KEY") ? 503 : 422,
+      }
     );
   }
 }

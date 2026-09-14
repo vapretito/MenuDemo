@@ -119,8 +119,8 @@ export async function POST(request: Request) {
       } else if (restaurant.address?.trim()) {
         try {
           deliveryDistanceMeters = await getDeliveryRouteDistanceMeters({
-            originAddress: `${restaurant.address}, ${restaurant.city}`,
-            destinationAddress: deliveryAddress,
+            originAddress: `${restaurant.address}, ${restaurant.city}, Argentina`,
+            destinationAddress: `${deliveryAddress}, ${restaurant.city}, Argentina`,
           });
           deliveryFeeArs =
             Math.ceil(deliveryDistanceMeters / 1000) * restaurant.deliveryFeePerKmArs;
