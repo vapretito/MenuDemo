@@ -29,6 +29,10 @@ export async function PATCH(request: Request) {
         : "FIXED";
     const deliveryFeeFixedArs = Math.max(0, Math.round(Number(body.deliveryFeeFixedArs) || 0));
     const deliveryFeePerKmArs = Math.max(0, Math.round(Number(body.deliveryFeePerKmArs) || 0));
+    const acceptsCash = Boolean(body.acceptsCash ?? true);
+    const acceptsTransfer = Boolean(body.acceptsTransfer ?? true);
+    const acceptsCard = Boolean(body.acceptsCard ?? true);
+    const acceptsMercadoPago = Boolean(body.acceptsMercadoPago ?? false);
     const fulfillmentModeInput = String(body.fulfillmentMode ?? "").trim();
     const fulfillmentMode =
       fulfillmentModeInput === "TAKEAWAY_ONLY" ||
@@ -43,6 +47,13 @@ export async function PATCH(request: Request) {
           error:
             "Completá nombre, ciudad, tipo de cocina, WhatsApp y descripción.",
         },
+        { status: 400 }
+      );
+    }
+
+    if (!acceptsCash && !acceptsTransfer && !acceptsCard && !acceptsMercadoPago) {
+      return NextResponse.json(
+        { error: "Seleccioná al menos una forma de pago." },
         { status: 400 }
       );
     }
@@ -66,6 +77,10 @@ export async function PATCH(request: Request) {
         deliveryFeeMode,
         deliveryFeeFixedArs,
         deliveryFeePerKmArs,
+        acceptsCash,
+        acceptsTransfer,
+        acceptsCard,
+        acceptsMercadoPago,
         fulfillmentMode,
       },
       select: {
@@ -84,6 +99,10 @@ export async function PATCH(request: Request) {
         deliveryFeeMode: true,
         deliveryFeeFixedArs: true,
         deliveryFeePerKmArs: true,
+        acceptsCash: true,
+        acceptsTransfer: true,
+        acceptsCard: true,
+        acceptsMercadoPago: true,
         fulfillmentMode: true,
       },
     });

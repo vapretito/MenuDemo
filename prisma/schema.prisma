@@ -161,6 +161,10 @@ model Restaurant {
   deliveryFeeMode      DeliveryFeeMode @default(FIXED)
   deliveryFeeFixedArs  Int             @default(0)
   deliveryFeePerKmArs  Int             @default(0)
+  acceptsCash          Boolean         @default(true)
+  acceptsTransfer      Boolean         @default(true)
+  acceptsCard          Boolean         @default(true)
+  acceptsMercadoPago   Boolean         @default(false)
 
   status      RestaurantStatus @default(TRIAL)
   dnsStatus   DnsStatus        @default(PENDING)

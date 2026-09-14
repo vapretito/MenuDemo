@@ -1,0 +1,5 @@
+ALTER TABLE "Restaurant"
+  ADD COLUMN "acceptsCash" BOOLEAN NOT NULL DEFAULT true,
+  ADD COLUMN "acceptsTransfer" BOOLEAN NOT NULL DEFAULT true,
+  ADD COLUMN "acceptsCard" BOOLEAN NOT NULL DEFAULT true,
+  ADD COLUMN "acceptsMercadoPago" BOOLEAN NOT NULL DEFAULT false;

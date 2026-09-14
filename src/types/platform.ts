@@ -157,6 +157,10 @@ export type RestaurantRecord = {
   deliveryFeeMode?: "fixed" | "per_kilometer";
   deliveryFeeFixedArs?: number;
   deliveryFeePerKmArs?: number;
+  acceptsCash?: boolean;
+  acceptsTransfer?: boolean;
+  acceptsCard?: boolean;
+  acceptsMercadoPago?: boolean;
   timeZone?: string | null;
 };
 

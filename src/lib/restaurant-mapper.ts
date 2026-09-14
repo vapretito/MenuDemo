@@ -239,6 +239,10 @@ export function mapRestaurantToRecord(
       restaurant.deliveryFeeMode === "PER_KILOMETER" ? "per_kilometer" : "fixed",
     deliveryFeeFixedArs: restaurant.deliveryFeeFixedArs,
     deliveryFeePerKmArs: restaurant.deliveryFeePerKmArs,
+    acceptsCash: restaurant.acceptsCash,
+    acceptsTransfer: restaurant.acceptsTransfer,
+    acceptsCard: restaurant.acceptsCard,
+    acceptsMercadoPago: restaurant.acceptsMercadoPago,
     onboardingNote: restaurant.onboardingNote ?? "",
     graceUntil: restaurant.graceUntil
       ? restaurant.graceUntil.toISOString().slice(0, 10)

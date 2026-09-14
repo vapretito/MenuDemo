@@ -31,13 +31,14 @@ type MobileMenuProps = {
 };
 
 type SortMode = "featured" | "price_asc" | "price_desc";
-type PaymentMethod = "efectivo" | "transferencia" | "tarjeta";
+type PaymentMethod = "efectivo" | "transferencia" | "tarjeta" | "mercadopago";
 type CheckoutFulfillmentChoice = "delivery" | "takeaway";
 
 const paymentLabels: Record<PaymentMethod, string> = {
   efectivo: "Efectivo",
   transferencia: "Transferencia",
   tarjeta: "Tarjeta al recibir",
+  mercadopago: "Mercado Pago",
 };
 
 const fulfillmentLabels: Record<CheckoutFulfillmentChoice, string> = {
@@ -197,7 +198,15 @@ export function MobileMenu({
   );
   const [deliveryDistanceMeters, setDeliveryDistanceMeters] = useState<number | null>(null);
   const [deliveryQuoteLoading, setDeliveryQuoteLoading] = useState(false);
-  const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>("efectivo");
+  const availablePaymentMethods = ([
+    restaurant.acceptsCash ?? true ? "efectivo" : null,
+    restaurant.acceptsTransfer ?? true ? "transferencia" : null,
+    restaurant.acceptsCard ?? true ? "tarjeta" : null,
+    restaurant.acceptsMercadoPago ?? false ? "mercadopago" : null,
+  ].filter(Boolean) as PaymentMethod[]);
+  const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>(
+    availablePaymentMethods[0] ?? "efectivo"
+  );
   const [customerNote, setCustomerNote] = useState("");
   const [checkoutError, setCheckoutError] = useState<string | null>(null);
   const availableFulfillmentChoices = getAvailableFulfillmentChoices(
@@ -1126,9 +1135,9 @@ const openProductModal = (item: RestaurantRecord["items"][number]) => {
                   value={paymentMethod}
                   onChange={(event) => setPaymentMethod(event.target.value as PaymentMethod)}
                 >
-                  <option value="efectivo">Efectivo</option>
-                  <option value="transferencia">Transferencia</option>
-                  <option value="tarjeta">Tarjeta al recibir</option>
+                  {availablePaymentMethods.map((method) => (
+                    <option key={method} value={method}>{paymentLabels[method]}</option>
+                  ))}
                 </select>
               </label>
               <label>

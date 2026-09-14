@@ -1508,6 +1508,10 @@ const fulfillmentModeLabel =
               : "FIXED",
           deliveryFeeFixedArs: restaurant.deliveryFeeFixedArs ?? 0,
           deliveryFeePerKmArs: restaurant.deliveryFeePerKmArs ?? 0,
+          acceptsCash: restaurant.acceptsCash ?? true,
+          acceptsTransfer: restaurant.acceptsTransfer ?? true,
+          acceptsCard: restaurant.acceptsCard ?? true,
+          acceptsMercadoPago: restaurant.acceptsMercadoPago ?? false,
           fulfillmentMode:
             restaurant.fulfillmentMode === "takeaway_only"
               ? "TAKEAWAY_ONLY"
@@ -1536,6 +1540,10 @@ const fulfillmentModeLabel =
           deliveryFeeMode?: "FIXED" | "PER_KILOMETER";
           deliveryFeeFixedArs?: number;
           deliveryFeePerKmArs?: number;
+          acceptsCash?: boolean;
+          acceptsTransfer?: boolean;
+          acceptsCard?: boolean;
+          acceptsMercadoPago?: boolean;
           fulfillmentMode?: "DELIVERY_ONLY" | "TAKEAWAY_ONLY" | "DELIVERY_AND_TAKEAWAY";
         };
       } = {};
@@ -1572,6 +1580,12 @@ const fulfillmentModeLabel =
           data.restaurant?.deliveryFeeFixedArs ?? current.deliveryFeeFixedArs,
         deliveryFeePerKmArs:
           data.restaurant?.deliveryFeePerKmArs ?? current.deliveryFeePerKmArs,
+        acceptsCash: data.restaurant?.acceptsCash ?? current.acceptsCash,
+        acceptsTransfer:
+          data.restaurant?.acceptsTransfer ?? current.acceptsTransfer,
+        acceptsCard: data.restaurant?.acceptsCard ?? current.acceptsCard,
+        acceptsMercadoPago:
+          data.restaurant?.acceptsMercadoPago ?? current.acceptsMercadoPago,
         fulfillmentMode:
           data.restaurant?.fulfillmentMode === "TAKEAWAY_ONLY"
             ? "takeaway_only"
@@ -3712,6 +3726,17 @@ const fulfillmentModeLabel =
     />
   </label>
 )}
+
+<fieldset className={styles.full}>
+  <legend>Formas de pago disponibles</legend>
+  <small>El cliente solo verá las opciones que habilites.</small>
+  <div className={styles.checkboxGroup}>
+    <label><input checked={restaurant.acceptsCash ?? true} type="checkbox" onChange={(event) => updateRestaurant("acceptsCash", event.target.checked)} /> Efectivo</label>
+    <label><input checked={restaurant.acceptsTransfer ?? true} type="checkbox" onChange={(event) => updateRestaurant("acceptsTransfer", event.target.checked)} /> Transferencia</label>
+    <label><input checked={restaurant.acceptsCard ?? true} type="checkbox" onChange={(event) => updateRestaurant("acceptsCard", event.target.checked)} /> Tarjeta al recibir</label>
+    <label><input checked={restaurant.acceptsMercadoPago ?? false} type="checkbox" onChange={(event) => updateRestaurant("acceptsMercadoPago", event.target.checked)} /> Mercado Pago</label>
+  </div>
+</fieldset>
     </div>
   </section>
 ) : null}

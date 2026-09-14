@@ -542,6 +542,24 @@
   resize: vertical;
 }
 
+.checkboxGroup {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px 16px;
+  margin-top: 12px;
+}
+
+.checkboxGroup label {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-weight: 600;
+}
+
+.checkboxGroup input {
+  width: auto;
+}
+
 .formGrid input:focus,
 .formGrid textarea:focus,
 .formGrid select:focus,
