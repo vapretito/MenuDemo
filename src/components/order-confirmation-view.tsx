@@ -123,6 +123,18 @@ export function OrderConfirmationView({
             ))}
           </div>
 
+          {payload.deliveryFeeArs > 0 ? (
+            <div className={styles.orderRow}>
+              <div>
+                <strong>Costo de delivery</strong>
+                {payload.deliveryDistanceMeters ? (
+                  <small>{(payload.deliveryDistanceMeters / 1000).toFixed(1)} km por ruta</small>
+                ) : null}
+              </div>
+              <span>{money.format(payload.deliveryFeeArs)}</span>
+            </div>
+          ) : null}
+
           {payload.customerNote ? (
             <div className={styles.noteBox}>
               <span>Notas para el local</span>

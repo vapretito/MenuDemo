@@ -82,6 +82,11 @@ enum RestaurantFulfillmentMode {
   DELIVERY_AND_TAKEAWAY
 }
 
+enum DeliveryFeeMode {
+  FIXED
+  PER_KILOMETER
+}
+
 enum ServiceMode {
   TABLE_SERVICE
   COUNTER_PICKUP
@@ -153,6 +158,9 @@ model Restaurant {
   instagramUrl         String?
   deliveryZones        String?
   deliveryTimeEstimate String?
+  deliveryFeeMode      DeliveryFeeMode @default(FIXED)
+  deliveryFeeFixedArs  Int             @default(0)
+  deliveryFeePerKmArs  Int             @default(0)
 
   status      RestaurantStatus @default(TRIAL)
   dnsStatus   DnsStatus        @default(PENDING)
@@ -274,6 +282,8 @@ model CartEvent {
   itemCount        Int
   paymentMethod    String
   deliveryAddress  String?
+  deliveryFeeArs   Int      @default(0)
+  deliveryDistanceMeters Int?
   customerNote     String?
   itemsSnapshot    Json
   createdAt        DateTime @default(now())

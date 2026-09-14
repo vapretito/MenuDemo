@@ -154,6 +154,9 @@ export type RestaurantRecord = {
   instagramUrl?: string | null;
   deliveryZones?: string | null;
   deliveryTimeEstimate?: string | null;
+  deliveryFeeMode?: "fixed" | "per_kilometer";
+  deliveryFeeFixedArs?: number;
+  deliveryFeePerKmArs?: number;
   timeZone?: string | null;
 };
 

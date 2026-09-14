@@ -1,0 +1,10 @@
+CREATE TYPE "DeliveryFeeMode" AS ENUM ('FIXED', 'PER_KILOMETER');
+
+ALTER TABLE "Restaurant"
+  ADD COLUMN "deliveryFeeMode" "DeliveryFeeMode" NOT NULL DEFAULT 'FIXED',
+  ADD COLUMN "deliveryFeeFixedArs" INTEGER NOT NULL DEFAULT 0,
+  ADD COLUMN "deliveryFeePerKmArs" INTEGER NOT NULL DEFAULT 0;
+
+ALTER TABLE "CartEvent"
+  ADD COLUMN "deliveryFeeArs" INTEGER NOT NULL DEFAULT 0,
+  ADD COLUMN "deliveryDistanceMeters" INTEGER;

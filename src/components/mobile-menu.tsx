@@ -119,6 +119,8 @@ const buildWhatsappUrl = (
   customerWhatsapp: string,
   fulfillmentLabel: string,
   deliveryAddress: string,
+  deliveryFeeArs: number,
+  deliveryDistanceMeters: number | null,
   paymentMethod: PaymentMethod,
   customerNote: string
 ) => {
@@ -132,10 +134,11 @@ const buildWhatsappUrl = (
     .filter(Boolean)
     .join("\n");
 
-  const total = cart.reduce((sum, line) => {
+  const itemsTotal = cart.reduce((sum, line) => {
     const item = restaurant.items.find((entry) => entry.id === line.itemId);
     return sum + (item ? item.price * line.quantity : 0);
   }, 0);
+  const total = itemsTotal + deliveryFeeArs;
 
   const introMessage =
   restaurant.whatsappIntroMessage?.trim() ||
@@ -152,6 +155,10 @@ const message = [
   "",
   lines,
   "",
+  deliveryFeeArs > 0 ? `Costo de delivery: ${money.format(deliveryFeeArs)}` : null,
+  deliveryDistanceMeters
+    ? `Distancia de delivery: ${(deliveryDistanceMeters / 1000).toFixed(1)} km`
+    : null,
   `Total estimado: ${money.format(total)}`,
   deliveryAddress.trim() ? `Direccion de entrega: ${deliveryAddress.trim()}` : null,
   `Forma de pago: ${paymentLabels[paymentMethod]}`,
@@ -185,6 +192,11 @@ export function MobileMenu({
   const [customerWhatsapp, setCustomerWhatsapp] = useState("");
   const [marketingConsent, setMarketingConsent] = useState(false);
   const [deliveryAddress, setDeliveryAddress] = useState("");
+  const [deliveryFeeArs, setDeliveryFeeArs] = useState<number | null>(
+    restaurant.deliveryFeeMode === "fixed" ? restaurant.deliveryFeeFixedArs ?? 0 : null
+  );
+  const [deliveryDistanceMeters, setDeliveryDistanceMeters] = useState<number | null>(null);
+  const [deliveryQuoteLoading, setDeliveryQuoteLoading] = useState(false);
   const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>("efectivo");
   const [customerNote, setCustomerNote] = useState("");
   const [checkoutError, setCheckoutError] = useState<string | null>(null);
@@ -290,6 +302,7 @@ const showOpeningHours = restaurant.showOpeningHours ?? true;
     );
 
   const total = cartItems.reduce((sum, line) => sum + line.item.price * line.quantity, 0);
+  const orderTotal = total + (checkoutFulfillment === "delivery" ? deliveryFeeArs ?? 0 : 0);
   const totalUnits = cartItems.reduce((sum, line) => sum + line.quantity, 0);
 
   const selectedProductQuantity = selectedProduct
@@ -297,6 +310,41 @@ const showOpeningHours = restaurant.showOpeningHours ?? true;
   : 0;
   const checkoutDeliveryAddress =
     checkoutFulfillment === "delivery" ? deliveryAddress.trim() : "";
+
+  const calculateDeliveryQuote = async () => {
+    if (checkoutFulfillment !== "delivery" || !checkoutDeliveryAddress) return false;
+
+    setDeliveryQuoteLoading(true);
+    setCheckoutError(null);
+    try {
+      const response = await fetch("/api/menu/delivery-quote", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          restaurantSlug: restaurant.slug,
+          destinationAddress: checkoutDeliveryAddress,
+        }),
+      });
+      const data = (await response.json()) as {
+        deliveryFeeArs?: number;
+        distanceMeters?: number | null;
+        error?: string;
+      };
+      if (!response.ok || typeof data.deliveryFeeArs !== "number") {
+        throw new Error(data.error ?? "No pudimos calcular el costo de delivery.");
+      }
+      setDeliveryFeeArs(data.deliveryFeeArs);
+      setDeliveryDistanceMeters(data.distanceMeters ?? null);
+      return true;
+    } catch (error) {
+      setDeliveryFeeArs(null);
+      setDeliveryDistanceMeters(null);
+      setCheckoutError(error instanceof Error ? error.message : "No pudimos calcular el delivery.");
+      return false;
+    } finally {
+      setDeliveryQuoteLoading(false);
+    }
+  };
 
 const closeProductModal = () => {
   setSelectedProduct(null);
@@ -320,6 +368,8 @@ const openProductModal = (item: RestaurantRecord["items"][number]) => {
         customerWhatsapp,
         fulfillmentLabels[checkoutFulfillment],
         checkoutDeliveryAddress,
+        checkoutFulfillment === "delivery" ? deliveryFeeArs ?? 0 : 0,
+        checkoutFulfillment === "delivery" ? deliveryDistanceMeters : null,
         paymentMethod,
         customerNote
       )
@@ -335,6 +385,7 @@ const openProductModal = (item: RestaurantRecord["items"][number]) => {
       : Boolean(customerName.trim()) &&
         hasValidCustomerWhatsapp &&
         (checkoutFulfillment === "takeaway" || Boolean(deliveryAddress.trim())) &&
+        (checkoutFulfillment === "takeaway" || deliveryFeeArs !== null) &&
         cartItems.length > 0 &&
         canSendOrders;
 
@@ -358,6 +409,9 @@ const openProductModal = (item: RestaurantRecord["items"][number]) => {
           paymentMethod,
           fulfillmentMode: checkoutFulfillment,
           deliveryAddress: checkoutDeliveryAddress,
+          deliveryFeeArs: checkoutFulfillment === "delivery" ? deliveryFeeArs ?? 0 : 0,
+          deliveryDistanceMeters:
+            checkoutFulfillment === "delivery" ? deliveryDistanceMeters : null,
           customerNote,
           items: cartItems.map((line) => ({
             itemId: line.item.id,
@@ -403,7 +457,7 @@ const openProductModal = (item: RestaurantRecord["items"][number]) => {
     setShowAllCategories(false);
   };
 
-  const handleSendOrderClick = () => {
+  const handleSendOrderClick = async () => {
     if (!cartItems.length || !canSendOrders) {
       return;
     }
@@ -423,10 +477,15 @@ const openProductModal = (item: RestaurantRecord["items"][number]) => {
       return;
     }
 
+    if (checkoutFulfillment === "delivery" && deliveryFeeArs === null) {
+      const quoteReady = await calculateDeliveryQuote();
+      if (!quoteReady) return;
+    }
+
     setCheckoutError(null);
     posthog.capture("order_submitted", {
       restaurant_slug: restaurant.slug,
-      total_ars: total,
+      total_ars: orderTotal,
       item_count: totalUnits,
       payment_method: paymentMethod,
       fulfillment_mode: checkoutFulfillment,
@@ -445,7 +504,11 @@ const openProductModal = (item: RestaurantRecord["items"][number]) => {
       deliveryAddress: checkoutDeliveryAddress || "Retira en el local",
       paymentMethodLabel: paymentLabels[paymentMethod],
       customerNote: customerNote.trim(),
-      totalArs: total,
+      totalArs: orderTotal,
+      itemsTotalArs: total,
+      deliveryFeeArs: checkoutFulfillment === "delivery" ? deliveryFeeArs ?? 0 : 0,
+      deliveryDistanceMeters:
+        checkoutFulfillment === "delivery" ? deliveryDistanceMeters : null,
       whatsappUrl,
       items: cartItems.map((line) => ({
         id: line.item.id,
@@ -1001,6 +1064,13 @@ const openProductModal = (item: RestaurantRecord["items"][number]) => {
                       setCheckoutFulfillment(
                         event.target.value as CheckoutFulfillmentChoice
                       );
+                      if (event.target.value === "delivery") {
+                        setDeliveryFeeArs(
+                          restaurant.deliveryFeeMode === "fixed"
+                            ? restaurant.deliveryFeeFixedArs ?? 0
+                            : null
+                        );
+                      }
                       if (checkoutError) setCheckoutError(null);
                     }}
                   >
@@ -1025,10 +1095,31 @@ const openProductModal = (item: RestaurantRecord["items"][number]) => {
                   value={deliveryAddress}
                   onChange={(event) => {
                     setDeliveryAddress(event.target.value);
+                    if (restaurant.deliveryFeeMode === "per_kilometer") {
+                      setDeliveryFeeArs(null);
+                      setDeliveryDistanceMeters(null);
+                    }
                     if (checkoutError) setCheckoutError(null);
+                  }}
+                  onBlur={() => {
+                    if (
+                      restaurant.deliveryFeeMode === "per_kilometer" &&
+                      deliveryAddress.trim()
+                    ) {
+                      void calculateDeliveryQuote();
+                    }
                   }}
                 />
               </label>
+              {checkoutFulfillment === "delivery" && restaurant.deliveryFeeMode === "per_kilometer" ? (
+                <p className={styles.deliveryQuote}>
+                  {deliveryQuoteLoading
+                    ? "Calculando costo de delivery..."
+                    : deliveryFeeArs !== null
+                      ? `Delivery: ${money.format(deliveryFeeArs)}${deliveryDistanceMeters ? ` · ${(deliveryDistanceMeters / 1000).toFixed(1)} km por ruta` : ""}`
+                      : "Completá la dirección para calcular el costo de delivery."}
+                </p>
+              ) : null}
               <label>
                 <span>Forma de pago</span>
                 <select
@@ -1062,14 +1153,19 @@ const openProductModal = (item: RestaurantRecord["items"][number]) => {
 
               <footer className={styles.drawerFooter}>
                 <div className={styles.cartSummary}>
-                  <span>Total estimado</span>
-                  <strong>{money.format(total)}</strong>
+                  <span>
+                    Total estimado
+                    {checkoutFulfillment === "delivery" && (deliveryFeeArs ?? 0) > 0
+                      ? ` (incluye ${money.format(deliveryFeeArs ?? 0)} de delivery)`
+                      : ""}
+                  </span>
+                  <strong>{money.format(orderTotal)}</strong>
                 </div>
                 <button
                   aria-disabled={!canSubmitCheckout}
                   className={!canSubmitCheckout ? styles.ctaDisabled : styles.cta}
                   disabled={!canSubmitCheckout}
-                  onClick={handleSendOrderClick}
+                  onClick={() => void handleSendOrderClick()}
                   type="button"
                 >
                   Enviar pedido por WhatsApp

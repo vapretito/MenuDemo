@@ -16,6 +16,9 @@ export type ConfirmOrderPayload = {
   paymentMethodLabel: string;
   customerNote: string;
   totalArs: number;
+  itemsTotalArs: number;
+  deliveryFeeArs: number;
+  deliveryDistanceMeters: number | null;
   whatsappUrl: string;
   items: ConfirmOrderItem[];
 };

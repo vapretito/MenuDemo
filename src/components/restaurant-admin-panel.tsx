@@ -1502,6 +1502,12 @@ const fulfillmentModeLabel =
           instagramUrl: restaurant.instagramUrl,
           deliveryZones: restaurant.deliveryZones,
           deliveryTimeEstimate: restaurant.deliveryTimeEstimate,
+          deliveryFeeMode:
+            restaurant.deliveryFeeMode === "per_kilometer"
+              ? "PER_KILOMETER"
+              : "FIXED",
+          deliveryFeeFixedArs: restaurant.deliveryFeeFixedArs ?? 0,
+          deliveryFeePerKmArs: restaurant.deliveryFeePerKmArs ?? 0,
           fulfillmentMode:
             restaurant.fulfillmentMode === "takeaway_only"
               ? "TAKEAWAY_ONLY"
@@ -1527,6 +1533,9 @@ const fulfillmentModeLabel =
           instagramUrl?: string | null;
           deliveryZones?: string | null;
           deliveryTimeEstimate?: string | null;
+          deliveryFeeMode?: "FIXED" | "PER_KILOMETER";
+          deliveryFeeFixedArs?: number;
+          deliveryFeePerKmArs?: number;
           fulfillmentMode?: "DELIVERY_ONLY" | "TAKEAWAY_ONLY" | "DELIVERY_AND_TAKEAWAY";
         };
       } = {};
@@ -1555,6 +1564,14 @@ const fulfillmentModeLabel =
         deliveryZones: data.restaurant?.deliveryZones ?? current.deliveryZones,
         deliveryTimeEstimate:
           data.restaurant?.deliveryTimeEstimate ?? current.deliveryTimeEstimate,
+        deliveryFeeMode:
+          data.restaurant?.deliveryFeeMode === "PER_KILOMETER"
+            ? "per_kilometer"
+            : "fixed",
+        deliveryFeeFixedArs:
+          data.restaurant?.deliveryFeeFixedArs ?? current.deliveryFeeFixedArs,
+        deliveryFeePerKmArs:
+          data.restaurant?.deliveryFeePerKmArs ?? current.deliveryFeePerKmArs,
         fulfillmentMode:
           data.restaurant?.fulfillmentMode === "TAKEAWAY_ONLY"
             ? "takeaway_only"
@@ -3649,6 +3666,52 @@ const fulfillmentModeLabel =
     }
   />
 </label>
+
+<label className={styles.full}>
+  <span>Cómo cobrar el delivery</span>
+  <select
+    value={restaurant.deliveryFeeMode ?? "fixed"}
+    onChange={(event) =>
+      updateRestaurant(
+        "deliveryFeeMode",
+        event.target.value as "fixed" | "per_kilometer"
+      )
+    }
+  >
+    <option value="fixed">Costo fijo</option>
+    <option value="per_kilometer">Costo según kilómetros</option>
+  </select>
+  <small>
+    El costo se muestra en el carrito y se agrega al total del pedido.
+  </small>
+</label>
+
+{restaurant.deliveryFeeMode === "per_kilometer" ? (
+  <label>
+    <span>Valor por km (ARS)</span>
+    <input
+      min="0"
+      type="number"
+      value={restaurant.deliveryFeePerKmArs ?? 0}
+      onChange={(event) =>
+        updateRestaurant("deliveryFeePerKmArs", Number(event.target.value) || 0)
+      }
+    />
+    <small>Se usa la distancia de la ruta entre el local y la dirección del cliente.</small>
+  </label>
+) : (
+  <label>
+    <span>Costo fijo de delivery (ARS)</span>
+    <input
+      min="0"
+      type="number"
+      value={restaurant.deliveryFeeFixedArs ?? 0}
+      onChange={(event) =>
+        updateRestaurant("deliveryFeeFixedArs", Number(event.target.value) || 0)
+      }
+    />
+  </label>
+)}
     </div>
   </section>
 ) : null}

@@ -235,6 +235,10 @@ export function mapRestaurantToRecord(
     instagramUrl: restaurant.instagramUrl,
     deliveryZones: restaurant.deliveryZones,
     deliveryTimeEstimate: restaurant.deliveryTimeEstimate,
+    deliveryFeeMode:
+      restaurant.deliveryFeeMode === "PER_KILOMETER" ? "per_kilometer" : "fixed",
+    deliveryFeeFixedArs: restaurant.deliveryFeeFixedArs,
+    deliveryFeePerKmArs: restaurant.deliveryFeePerKmArs,
     onboardingNote: restaurant.onboardingNote ?? "",
     graceUntil: restaurant.graceUntil
       ? restaurant.graceUntil.toISOString().slice(0, 10)

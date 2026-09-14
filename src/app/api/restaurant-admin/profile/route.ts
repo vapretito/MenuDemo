@@ -23,6 +23,12 @@ export async function PATCH(request: Request) {
     const instagramUrl = String(body.instagramUrl ?? "").trim();
     const deliveryZones = String(body.deliveryZones ?? "").trim();
     const deliveryTimeEstimate = String(body.deliveryTimeEstimate ?? "").trim();
+    const deliveryFeeMode =
+      String(body.deliveryFeeMode ?? "").trim() === "PER_KILOMETER"
+        ? "PER_KILOMETER"
+        : "FIXED";
+    const deliveryFeeFixedArs = Math.max(0, Math.round(Number(body.deliveryFeeFixedArs) || 0));
+    const deliveryFeePerKmArs = Math.max(0, Math.round(Number(body.deliveryFeePerKmArs) || 0));
     const fulfillmentModeInput = String(body.fulfillmentMode ?? "").trim();
     const fulfillmentMode =
       fulfillmentModeInput === "TAKEAWAY_ONLY" ||
@@ -57,6 +63,9 @@ export async function PATCH(request: Request) {
         instagramUrl: instagramUrl || null,
         deliveryZones: deliveryZones || null,
         deliveryTimeEstimate: deliveryTimeEstimate || null,
+        deliveryFeeMode,
+        deliveryFeeFixedArs,
+        deliveryFeePerKmArs,
         fulfillmentMode,
       },
       select: {
@@ -72,6 +81,9 @@ export async function PATCH(request: Request) {
         instagramUrl: true,
         deliveryZones: true,
         deliveryTimeEstimate: true,
+        deliveryFeeMode: true,
+        deliveryFeeFixedArs: true,
+        deliveryFeePerKmArs: true,
         fulfillmentMode: true,
       },
     });

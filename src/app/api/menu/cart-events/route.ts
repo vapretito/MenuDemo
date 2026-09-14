@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { isValidWhatsapp, normalizeWhatsapp } from "@/lib/whatsapp";
 import { getPostHogClient } from "@/lib/posthog-server";
+import { getDeliveryRouteDistanceMeters } from "@/lib/delivery-distance";
 
 type CartEventItemInput = {
   itemId: string;
@@ -108,7 +109,28 @@ export async function POST(request: Request) {
       );
     }
 
-    const totalArs = snapshot.reduce((sum, item) => sum + item.subtotalArs, 0);
+    const itemsTotalArs = snapshot.reduce((sum, item) => sum + item.subtotalArs, 0);
+    let deliveryFeeArs = 0;
+    let deliveryDistanceMeters: number | null = null;
+
+    if (requiresDeliveryAddress) {
+      if (restaurant.deliveryFeeMode === "FIXED") {
+        deliveryFeeArs = restaurant.deliveryFeeFixedArs;
+      } else if (restaurant.address?.trim()) {
+        try {
+          deliveryDistanceMeters = await getDeliveryRouteDistanceMeters({
+            originAddress: `${restaurant.address}, ${restaurant.city}`,
+            destinationAddress: deliveryAddress,
+          });
+          deliveryFeeArs =
+            Math.ceil(deliveryDistanceMeters / 1000) * restaurant.deliveryFeePerKmArs;
+        } catch (error) {
+          console.error("[Delivery Quote During Cart Event Error]", error);
+        }
+      }
+    }
+
+    const totalArs = itemsTotalArs + deliveryFeeArs;
     const itemCount = snapshot.reduce((sum, item) => sum + item.quantity, 0);
     const now = new Date();
 
@@ -166,6 +188,8 @@ export async function POST(request: Request) {
           itemCount,
           paymentMethod,
           deliveryAddress: deliveryAddress || null,
+          deliveryFeeArs,
+          deliveryDistanceMeters,
           customerNote: customerNote || null,
           itemsSnapshot: snapshot,
         },
