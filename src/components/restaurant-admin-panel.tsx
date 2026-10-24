@@ -95,6 +95,14 @@ const formatExactDateTime = (value: string) =>
     second: "2-digit",
   });
 
+const escapePrintHtml = (value: string) =>
+  value
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/\"/g, "&quot;")
+    .replace(/'/g, "&#039;");
+
 const templateFilterOptions = [
   "Todos",
   "Delivery",
@@ -383,6 +391,24 @@ type RestaurantAdminPanelProps = {
   initialRestaurant?: RestaurantRecord;
 };
 
+type CartOrderRecord = {
+  id: string;
+  customerName: string;
+  customerWhatsapp: string;
+  totalArs: number;
+  itemCount: number;
+  paymentMethod: string;
+  deliveryAddress: string | null;
+  deliveryFeeArs: number;
+  customerNote: string | null;
+  items: Array<{
+    name: string;
+    quantity: number;
+    subtotalArs: number;
+  }>;
+  createdAt: string;
+};
+
 const buildOperationalLocalOrdersMap = (summary: {
   awaitingPayment: LocalOrderRecord[];
   active: LocalOrderRecord[];
@@ -408,15 +434,8 @@ export function RestaurantAdminPanel({
     totalEstimatedArs: 0,
     totalItems: 0,
     averageTicketArs: 0,
-    lastEvents: [] as Array<{
-      id: string;
-      customerName: string;
-      customerWhatsapp: string;
-      totalArs: number;
-      itemCount: number;
-      paymentMethod: string;
-      createdAt: string;
-    }>,
+    lastEvents: [] as CartOrderRecord[],
+    orders: [] as CartOrderRecord[],
   });
 
   const [customerFilter, setCustomerFilter] = useState<CustomerFilter>("all");
@@ -922,6 +941,50 @@ const fulfillmentModeLabel =
     } finally {
       setCartDeletingId(null);
     }
+  };
+
+  const printCartOrder = (order: CartOrderRecord) => {
+    const printWindow = window.open("", "_blank", "width=420,height=720");
+
+    if (!printWindow) {
+      window.alert("No se pudo abrir la impresión. Permití las ventanas emergentes e intentá de nuevo.");
+      return;
+    }
+
+    const items = order.items
+      .map(
+        (item) =>
+          `<li><span>${item.quantity}x ${escapePrintHtml(item.name)}</span><strong>${money.format(item.subtotalArs)}</strong></li>`
+      )
+      .join("");
+    const deliveryDetails = order.deliveryAddress
+      ? `<p><b>Dirección:</b><br>${escapePrintHtml(order.deliveryAddress)}</p>`
+      : "<p><b>Modalidad:</b> Retiro en el local</p>";
+    const note = order.customerNote
+      ? `<p><b>Observaciones:</b><br>${escapePrintHtml(order.customerNote)}</p>`
+      : "";
+
+    printWindow.document.write(`<!doctype html>
+      <html lang="es"><head><title>Pedido ${escapePrintHtml(order.id.slice(-6))}</title>
+      <style>
+        @page { size: 80mm auto; margin: 4mm; }
+        * { box-sizing: border-box; } body { width: 72mm; margin: 0; color: #111; font: 12px/1.35 Arial, sans-serif; }
+        h1 { margin: 0 0 4px; font-size: 18px; } h2 { margin: 0 0 12px; font-size: 14px; }
+        p { margin: 7px 0; } .meta { padding: 8px 0; border-top: 1px dashed #111; border-bottom: 1px dashed #111; }
+        ul { margin: 10px 0; padding: 0; list-style: none; } li { display: flex; justify-content: space-between; gap: 8px; padding: 4px 0; }
+        .total { margin-top: 8px; padding-top: 8px; border-top: 1px dashed #111; font-size: 16px; font-weight: 700; display: flex; justify-content: space-between; }
+        .small { color: #444; font-size: 10px; } @media print { body { width: 72mm; } }
+      </style></head><body>
+        <h1>${escapePrintHtml(restaurant.name)}</h1>
+        <h2>Pedido #${escapePrintHtml(order.id.slice(-6).toUpperCase())}</h2>
+        <div class="meta"><p><b>Fecha:</b> ${escapePrintHtml(formatExactDateTime(order.createdAt))}</p><p><b>Cliente:</b> ${escapePrintHtml(order.customerName)}</p><p><b>WhatsApp:</b> ${escapePrintHtml(order.customerWhatsapp)}</p>${deliveryDetails}<p><b>Pago:</b> ${escapePrintHtml(order.paymentMethod)}</p></div>
+        <ul>${items}</ul>${note}
+        ${order.deliveryFeeArs > 0 ? `<p>Envío: ${money.format(order.deliveryFeeArs)}</p>` : ""}
+        <div class="total"><span>TOTAL</span><span>${money.format(order.totalArs)}</span></div>
+        <p class="small">Comprobante generado desde el panel de ${escapePrintHtml(restaurant.name)}.</p>
+        <script>window.onload = () => { window.print(); window.onafterprint = () => window.close(); };<\/script>
+      </body></html>`);
+    printWindow.document.close();
   };
 
   const addItem = (categoryId?: string) => {
@@ -3056,6 +3119,64 @@ const fulfillmentModeLabel =
           <strong>{localOrdersSummary.readyCount}</strong>
           <span>listos para retirar</span>
         </article>
+      </div>
+    </section>
+
+    <section className={styles.panel}>
+      <div className={styles.panelHeader}>
+        <div>
+          <span className={styles.eyebrow}>Pedidos recibidos</span>
+          <h3>Envíos desde el menú</h3>
+          <p>
+            Cada envío del cliente queda registrado con sus datos, dirección y detalle del pedido.
+          </p>
+        </div>
+      </div>
+
+      <div className={styles.overviewFeed}>
+        {cartSummary.orders.length ? (
+          cartSummary.orders.map((order) => (
+            <article
+              className={`${styles.publishCard} ${styles.overviewFeedCard}`}
+              key={order.id}
+            >
+              <span>{formatExactDateTime(order.createdAt)}</span>
+              <strong>{order.customerName}</strong>
+              <p>WhatsApp: {order.customerWhatsapp}</p>
+              <p>
+                {order.deliveryAddress
+                  ? `Dirección: ${order.deliveryAddress}`
+                  : "Retiro en el local"}
+              </p>
+              <p>
+                {order.items.map((item) => `${item.quantity}x ${item.name}`).join(" · ")}
+              </p>
+              {order.customerNote ? <p>Obs: {order.customerNote}</p> : null}
+              <p>
+                {order.paymentMethod} · {money.format(order.totalArs)}
+              </p>
+              <div className={styles.feedCardActions}>
+                <button
+                  className={styles.primaryButton}
+                  onClick={() => printCartOrder(order)}
+                  type="button"
+                >
+                  Imprimir etiqueta
+                </button>
+                <button
+                  className={styles.ghostDanger}
+                  disabled={cartDeletingId === order.id}
+                  onClick={() => void deleteCartEvent(order.id)}
+                  type="button"
+                >
+                  {cartDeletingId === order.id ? "Borrando..." : "Borrar"}
+                </button>
+              </div>
+            </article>
+          ))
+        ) : (
+          <p>Todavía no hay pedidos enviados desde el menú.</p>
+        )}
       </div>
     </section>
 

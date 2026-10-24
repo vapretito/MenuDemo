@@ -29,13 +29,27 @@ export async function GET() {
     const averageTicketArs =
       totalEvents > 0 ? Math.round(totalEstimatedArs / totalEvents) : 0;
 
-    const lastEvents = events.slice(0, 8).map((event) => ({
+    const orders = events.map((event) => ({
       id: event.id,
       customerName: event.customerName,
       customerWhatsapp: event.customerWhatsapp,
       totalArs: event.totalArs,
       itemCount: event.itemCount,
       paymentMethod: event.paymentMethod,
+      deliveryAddress: event.deliveryAddress,
+      deliveryFeeArs: event.deliveryFeeArs,
+      customerNote: event.customerNote,
+      items: Array.isArray(event.itemsSnapshot)
+        ? event.itemsSnapshot.map((item) => {
+            const entry = item as Record<string, unknown>;
+
+            return {
+              name: String(entry.name ?? "Producto"),
+              quantity: Number(entry.quantity ?? 0),
+              subtotalArs: Number(entry.subtotalArs ?? 0),
+            };
+          })
+        : [],
       createdAt: event.createdAt,
     }));
 
@@ -46,7 +60,10 @@ export async function GET() {
         totalEstimatedArs,
         totalItems,
         averageTicketArs,
-        lastEvents,
+        // Mantiene compatibilidad con el resumen del dashboard y entrega el
+        // detalle completo para la bandeja de pedidos e impresión.
+        lastEvents: orders.slice(0, 8),
+        orders,
       },
     });
   } catch (error) {
